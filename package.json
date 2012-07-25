@@ -1,0 +1,22 @@
+{
+  "name": "CollabCoding",
+  "version": "0.0.1",
+  "description": "Collaborated Coding",
+  "main": "index.js",
+  "scripts": {
+    "test": "nodeunit tests.coffee"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/icharlie/CollabCoding.git"
+  },
+  "keywords": [
+    "Collaborate"
+  ],
+  "author": "iCharlie <iCharlie.osu@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "share": "*",
+    "connect": "~1"
+  }
+}
