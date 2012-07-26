@@ -87,7 +87,14 @@
         $("#shareDoc").click(function() { 
           $("#dialog").attr('title', 'Share via this link');
           $("#dialog").text(document.location+docName);
-          $("#dialog").dialog();
+          $("#dialog").dialog({
+            modal: true,
+            			buttons: {
+            				Ok: function() {
+            					$( this ).dialog( "close" );
+            				}
+          			}
+          });
         });
       });  
 
