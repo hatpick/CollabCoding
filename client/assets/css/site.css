@@ -1,7 +1,14 @@
 body {
   background-color: #ebebeb
 }
-
 div {
   background-color: transparent;
+}
+a.button {
+  color: #FFFFFF;
+  text-decoration: none;
+  padding: 6px 20px;    
+  border-radius: 6px;
+  background-color: #F7421E;
+  cursor: pointer;
 }
