@@ -17,9 +17,11 @@
     <script type="text/javascript" charset="utf-8" src="assets/js/ace/mode-javascript.js"></script>
     <script type="text/javascript" charset="utf-8" src="assets/js/ace/mode-html.js"></script>
     <script type="text/javascript" charset="utf-8" src="assets/js/ace/mode-css.js"></script>    
-    <script src="/channel/bcsocket.js"></script>
-    <script src="/share/share.js"></script>
-    <script src="/share/ace.js"></script>
+    <script type="text/javascript" src="assets/js/ace/mode-coffee.js"></script>
+    <script type="text/javascript" src="assets/js/ace/theme-idle_fingers.js"></script>    
+    <script type="text/javascript" src="/channel/bcsocket.js"></script>
+    <script type="text/javascript" src="/share/share.js"></script>
+    <script type="text/javascript" src="/share/ace.js"></script>
     <style type="text/css" media="screen">
       #tabs {
         padding: 0;
@@ -36,29 +38,65 @@
         font-size: 12pt;
       }
     </style>
-    <script type="text/javascript" charset="utf-8">
-$(document).ready(function() {
-          $("#project-tree").treeview();
-          $("#tabs").tabs();
+    <script type="text/javascript" charset="utf-8">   
+      var randomDocName = function(length) {
+        var chars, x;
+        if (length == null) {
+          length = 10;
+        }
+        chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-=";
+        var name = [];
+        for (x = 0; x < length; x++) {
+          name.push(chars[Math.floor(Math.random() * chars.length)]);
+        }
+        return name.join('');
+      };     
+    
+      $(document).ready(function() {
+        $("#project-tree").treeview();
+        $("#tabs").tabs();
 
-          $("#new").bind('click', function() {
-            console.log("click");
-          });
-          
-          
-          var editor = ace.edit("editor");
-          editor.resize()
-          var JavaScriptMode = require("ace/mode/javascript").Mode;
-          editor.getSession().setMode(new JavaScriptMode());
-          editor.setReadOnly(true);
-          sharejs.open('hello', 'text', function(error, doc) {
-            if (error) {
-              console.error(error);
-            };
-              doc.attach_ace(editor);
-              editor.setReadOnly(false);
+        $("#new").bind('click', function() {
+          console.log("click");
+        });
+  
+        // set up ace and sharejs
+        var editor = ace.edit("editor");
+        editor.resize()
+        var JavaScriptMode = require("ace/mode/javascript").Mode;
+        editor.getSession().setMode(new JavaScriptMode());
+        editor.setReadOnly(true);
+        editor.setTheme("ace/theme/idle_fingers");  
+  
+        var docName;
+        if (!document.location.hash) {
+          docName = '#' + randomDocName();
+        } else {
+          docName = document.location.hash;
+        }
+        sharejs.open(docName, 'text', function(error, doc) {
+          if (error) {
+            console.error(error);   
+            return;
+          };       
+    
+          doc.attach_ace(editor);
+          editor.setReadOnly(false);
+        });
+        // binding event
+        $("#shareDoc").click(function() { 
+          $("#dialog").attr('title', 'Share via this link');
+          $("#dialog").text(document.location+docName);
+          $("#dialog").dialog({
+            modal: true,
+            			buttons: {
+            				Ok: function() {
+            					$( this ).dialog( "close" );
+            				}
+          			}
           });
         });
+      });  
 
     </script>
   </head>
@@ -69,7 +107,10 @@ $(document).ready(function() {
         <div class="container">
           <div class="nav-collapse collapse">
                 <div style="color: #FFFFFF; position: absolute; margin-top: 10px">
-                  Share
+                  <a id="shareDoc" class="button" herf="#">Share</a>    
+                  <div id="dialog" style="display:none">
+                  	
+                  </div>
                 </div>
               </li>
               <div style="text-align:center; padding-top: 10px;">Tool</div>
@@ -124,7 +165,7 @@ $(document).ready(function() {
           </div><!-- <a href="#" id="hide-left" style="position: absolute;float: right">
             <img src="assets/img/left-btn.png">
           </a> -->
-          <div id="chat" style="height: 380px; clear: right; background-color: rgba(0, 0, 0, .2);box-shadow: inset 1px 1px 0 rgba(0, 0, 0, .1),; background-color: #FFFFFF">
+          <div id="chat" style="height: 380px; clear: right; background-color: rgba(0, 0, 0, .2);box-shadow: inset 1px 1px 0 rgba(0, 0, 0, .1),; background-color: #FFFFFF">                 
             blah!blah!blah!
           </div>
         </div>
@@ -138,9 +179,7 @@ $(document).ready(function() {
                 <a href="#new">+</a>
               </li>
             </ul>
-            <div id="editor">
-             
-            </div>
+            <div id="editor"></div>
           </div>
         </div>
         <div class="span2" style="height: 800px; margin: 0;">
