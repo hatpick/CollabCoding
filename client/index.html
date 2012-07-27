@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="assets/css/bootstrap.min.css" type="text/css" media="screen" charset="utf-8">
     <link rel="stylesheet" href="assets/css/jquery.treeview.css" type="text/css" media="screen" charset="utf-8">
     <link rel="stylesheet" href="assets/css/site.css" type="text/css" media="screen" charset="utf-8">
-    <link rel="stylesheet" href="assets/css/ui-lightness/jquery-ui-1.8.21.custom.css" type="text/css" media="screen" charset="utf-8">
+    <link rel="stylesheet" href="assets/css/smoothness/jquery-ui-1.8.22.custom.css" type="text/css" media="screen" charset="utf-8">
     <script type="text/javascript" charset="utf-8" src="assets/js/jquery-1.7.2.min.js"></script>
     <script type="text/javascript" charset="utf-8" src="assets/js/jquery-ui-1.8.21.custom.min.js"></script>
     <script type="text/javascript" charset="utf-8" src="assets/js/bootstrap.min.js"></script>
@@ -18,7 +18,7 @@
     <script type="text/javascript" charset="utf-8" src="assets/js/ace/mode-html.js"></script>
     <script type="text/javascript" charset="utf-8" src="assets/js/ace/mode-css.js"></script>    
     <script type="text/javascript" src="assets/js/ace/mode-coffee.js"></script>
-    <script type="text/javascript" src="assets/js/ace/theme-idle_fingers.js"></script>    
+    <script type="text/javascript" src="assets/js/ace/theme-chrome.js"></script>    
     <script type="text/javascript" src="/channel/bcsocket.js"></script>
     <script type="text/javascript" src="/share/share.js"></script>
     <script type="text/javascript" src="/share/ace.js"></script>
@@ -63,7 +63,7 @@
         var JavaScriptMode = require("ace/mode/javascript").Mode;
         editor.getSession().setMode(new JavaScriptMode());
         editor.setReadOnly(true);
-        editor.setTheme("ace/theme/idle_fingers");  
+        editor.setTheme("ace/theme/chrome");  
   
         var docName;
         if (!document.location.hash) {
@@ -83,6 +83,7 @@
         // binding event
         $("#shareDoc").click(function() { 
           $("#dialog").attr('title', 'Share via this link');
+<<<<<<< HEAD
           $("#dialog").text(document.location+docName);
           $("#dialog").dialog({
             modal: true,
@@ -92,24 +93,27 @@
             				}
           			}
           });
+=======
+	var dialogContent = "<table style='width:100%'><tr><td>"+ document.location+docName +"</td><tr><td><input id='collaboratorEmail' style='width:100%; margin:5px 0px 5px 0px' type='email' placeholder='Enter a valid email address'></input></td></tr><tr><td align='center'><button role='button' id='shareDocOrig' style='margin:5px 0px 5px 0px' class='ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only'><span class='ui-button-text'>Share</span></button></td></tr></table>";
+          $("#dialog").html(dialogContent);
+          $("#dialog").dialog();
+>>>>>>> Restyle
         });
       });  
 
     </script>
   </head>
-  <body>
+  <body style="font-family:'Lucida Grande', sans-serif; font-size:75%;">
     <!-- Info Bar -->
     <div class="navbar" style="margin-bottom: 0">
-      <div class="navbar-inner">
+      <div class="navbar-inner" style="background-image: transparent">
         <div class="container">
           <div class="nav-collapse collapse">
-                <div style="color: #FFFFFF; position: absolute; margin-top: 10px">
-                  <a id="shareDoc" class="button" herf="#">Share</a>    
+               <button role="button" title="Share via email" id="shareDoc" style="position: absolute;margin-top:5px;" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"><span class="ui-button-text">ShareIcon</span></button>    
                   <div id="dialog" style="display:none">
-                  	
+                  			
                   </div>
-                </div>
-              </li>
+                </li>
               <div style="text-align:center; padding-top: 10px;">Tool</div>
           </div>
         </div>
@@ -118,7 +122,7 @@
     <div class="container-fluid" style="height: 800px">
       <div class="row-fluid">
         <div class="span2" id="left-items">
-          <div id="project" style="height: 400px;background-color: rgba(0, 0, 0, .2);box-shadow: inset 1px 1px 0 rgba(0, 0, 0, .1),inset 0 -1px 0 rgba(0, 0, 0, .07); background-color: #FFFFFF">
+          <div id="project" style="margin: 5px; -webkit-border-radius: 4px;border: 1px solid #AAA; height: 397px;background-color: rgba(0, 0, 0, .2);box-shadow: inset 1px 1px 0 rgba(0, 0, 0, .1),inset 0 -1px 0 rgba(0, 0, 0, .07); background-color: #FFFFFF">
             <ul id="project-tree" class="filetree">
               <li>
                 <span class="folder">Folder 1</span>
@@ -162,11 +166,11 @@
           </div><!-- <a href="#" id="hide-left" style="position: absolute;float: right">
             <img src="assets/img/left-btn.png">
           </a> -->
-          <div id="chat" style="height: 380px; clear: right; background-color: rgba(0, 0, 0, .2);box-shadow: inset 1px 1px 0 rgba(0, 0, 0, .1),; background-color: #FFFFFF">                 
+          <div id="chat" style="margin:5px;-webkit-border-radius: 4px; border: 1px solid #AAA; height: 397px; clear: right; background-color: rgba(0, 0, 0, .2);box-shadow: inset 1px 1px 0 rgba(0, 0, 0, .1),; background-color: #FFFFFF">                 
             blah!blah!blah!
           </div>
         </div>
-        <div class="span8" style="height: 800px; margin-left:0">
+        <div class="span8" style="height: 800px; margin-left:0; margin-top:5px;">
           <div id="tabs">
             <ul>
               <li>
@@ -180,18 +184,18 @@
           </div>
         </div>
         <div class="span2" style="height: 800px; margin: 0;">
-          <div id="comment" style="margin-left: 10px;">
-            <div style="background-color: gray">
-              <div style="background-color: #FFFFFF; margin-top: 20px;display: block;border: solid transparent;border-width: 1px 1px 1px 6px">
+          <div id="comment" style="margin-left: 10px; -webkit-border-radius: 4px;border: 1px solid #AAA; margin-top:60px;">
+            <div  style="background-color: #FFFFFF;">
+              <div style="padding: 5px">
                 <img src="assets/img/silhouette.png" height="24" width="24" alt="" style="position: absolute">
-                <div style="font-family: Arial,sans-serif,sans;font-size: 13px; font-weight: bold; margin-left: 32px;">
+                <div style="font-size: 12px; font-weight: bold; margin-left: 32px;">
                   Charlie
                 </div>
-                <div style="margin: 3px 0 0 32px;font: normal 13px arial,sans-serif;color: #666;">
+                <div style="margin: 3px 0 0 32px;font-size: 11px;color: #666;">
                   4:55 PM Today
                 </div>
-                <div style="background-color: transparent; color: #666666">
-                  test
+                <div style="color: black; margin: auto;">
+                  test test test test
                 </div>
               </div>
             </div>

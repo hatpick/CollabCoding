@@ -4,11 +4,9 @@ body {
 div {
   background-color: transparent;
 }
-a.button {
-  color: #FFFFFF;
-  text-decoration: none;
-  padding: 6px 20px;    
-  border-radius: 6px;
-  background-color: #F7421E;
-  cursor: pointer;
+
+.shareButton {
+	padding: 6px 20px;
+	position: absolute;
+	margin-top: 5px;
 }
