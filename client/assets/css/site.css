@@ -1,5 +1,5 @@
 body {
-  background-color: #ebebeb
+  background-color: #ebebeb;
 }
 div {
   background-color: transparent;
@@ -9,4 +9,16 @@ div {
 	padding: 6px 20px;
 	position: absolute;
 	margin-top: 5px;
+}
+
+#nav-tabs {
+  margin-top: 5px;
+}
+
+#editor-area {
+  margin: 5px 0 0 10px;
+}
+
+#tabs > ul.ui-tabs-nav {
+  margin: 2px;
 }
