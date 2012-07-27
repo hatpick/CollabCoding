@@ -82,16 +82,44 @@
 			});
 			// binding event
 			$("#shareDoc").click(function() {
-				$("#dialog").attr('title', 'Share via this link');				
-				var dialogContent = "<table style='width:100%'><tr><td>" + document.location + docName + "</td><tr><td><input id='collaboratorEmail' style='width:100%; margin:5px 0px 5px 0px' type='email' placeholder='Enter a valid email address'></input></td></tr><tr><td align='center'><button role='button' id='shareDocOrig' style='margin:5px 0px 5px 0px' class='ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only'><span class='ui-button-text'>Share</span></button></td></tr></table>";
-				$("#dialog").html(dialogContent);
-				//$("#dialog").dialog();
-				$("#dialog").dialog({					
-					show: "blind",
-					hide: "explode",
-					position: "top"									
-				});				
+				$("#dialog").attr('title', 'Share via this link');
+				$("#shareLink").html(document.location + docName);						
+				$("#dialog").dialog({
+					show : "blind",
+					hide : "explode",
+					position : "top",
+					modal: true
+				});
 			});
+			
+			$("#shareDocOrig").click(function() {
+					var toEmail = $("#collaboratorEmail").val();
+					console.log(toEmail);
+					var shareLink = document.location + docName;
+					console.log(shareLink);
+					$.ajax({
+						type : "POST",
+						url : 'http://people.oregonstate.edu/~ghorashs/CollabCoding/sendEmail.php',
+						data : {
+							to_email : toEmail,
+							link : shareLink
+						},
+						cache : false,
+						timeout : 5000,
+						success : function(e) {
+							console.log('success\n' + e);
+						},
+						error : function(e) {
+							console.log('error\n' + e[0]);
+							//alert('Connect Failed');
+						},
+						complete : function(e) {
+							console.log('error complete\n' + e[1]);
+							//alert('Complete');
+						}
+					});
+					$('#dialog').dialog("close");
+				});
 		});
 
     </script>
@@ -104,6 +132,19 @@
           <div class="nav-collapse collapse">
                <button title="Share via email" id="shareDoc" style="position: absolute;margin-top:5px;" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"><span class="ui-button-text">ShareIcon</span></button>    
                   <div id="dialog" style="display:none">                 		
+				  	<table style='width:100%'>
+				  		<tr>
+				  			<td><span id="shareLink"></span></td>
+				  		<tr>
+				  			<td><input id='collaboratorEmail' style='width:100%; margin:5px 0px 5px 0px' type='email' placeholder='Enter a valid email address'></input></td></tr>
+				  		<tr>
+				  			<td align='center'>
+				  				<button role='button' id='shareDocOrig' style='margin:5px 0px 5px 0px' class='ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only'>
+				  					<span class='ui-button-text'>Share</span>
+				  				</button>
+				  			</td>
+				  		</tr>
+				  	</table>
                   </div>              
               <div style="text-align:center; padding-top: 10px;">Tool</div>
           </div>
