@@ -7,8 +7,8 @@
     </title>
     <link rel="stylesheet" href="assets/css/bootstrap.min.css" type="text/css" media="screen" charset="utf-8">
     <link rel="stylesheet" href="assets/css/jquery.treeview.css" type="text/css" media="screen" charset="utf-8">
-    <link rel="stylesheet" href="assets/css/site.css" type="text/css" media="screen" charset="utf-8">
     <link rel="stylesheet" href="assets/css/smoothness/jquery-ui-1.8.22.custom.css" type="text/css" media="screen" charset="utf-8">
+    <link rel="stylesheet" href="assets/css/site.css" type="text/css" media="screen" charset="utf-8">
     <script type="text/javascript" charset="utf-8" src="assets/js/jquery-1.7.2.min.js"></script>
     <script type="text/javascript" charset="utf-8" src="assets/js/jquery-ui-1.8.21.custom.min.js"></script>
     <script type="text/javascript" charset="utf-8" src="assets/js/bootstrap.min.js"></script>
@@ -51,11 +51,17 @@
 
 		$(document).ready(function() {
 			$("#project-tree").treeview();
+			$("#nav-tabs").tabs();
 			$("#tabs").tabs();
 
 			$("#new").bind('click', function() {
 				console.log("click");
-			});
+      });
+      // layout
+      _height = document.documentElement.clientHeight - $(".navbar").height() - 40;
+      $("#editor-area").height(_height);
+      $("#nav-tabs").height(_height);
+
 
 			// set up ace and sharejs
 			var editor = ace.edit("editor");
@@ -63,7 +69,8 @@
 			var JavaScriptMode = require("ace/mode/javascript").Mode;
 			editor.getSession().setMode(new JavaScriptMode());
 			editor.setReadOnly(true);
-			editor.setTheme("ace/theme/chrome");
+//			editor.setTheme("ace/theme/chrome");
+      editor.setTheme("ace/theme/idle_fingers");
 
 			var docName;
 			if (!document.location.hash) {
@@ -110,10 +117,15 @@
         </div>
       </div>
     </div>
-    <div class="container-fluid" style="height: 800px">
+    <div class="container-fluid">
       <div class="row-fluid">
         <div class="span2" id="left-items">
-          <div id="project" style="margin: 5px; -webkit-border-radius: 4px;border: 1px solid #AAA; height: 397px;background-color: rgba(0, 0, 0, .2);box-shadow: inset 1px 1px 0 rgba(0, 0, 0, .1),inset 0 -1px 0 rgba(0, 0, 0, .07); background-color: #FFFFFF">
+          <div id="nav-tabs">
+          <ul>
+            <li><a href="#project">Project</a></li>
+            <li><a href="#chat">Chat</a></li>
+          </ul>
+          <div id="project">
             <ul id="project-tree" class="filetree">
               <li>
                 <span class="folder">Folder 1</span>
@@ -157,11 +169,12 @@
           </div><!-- <a href="#" id="hide-left" style="position: absolute;float: right">
             <img src="assets/img/left-btn.png">
           </a> -->
-          <div id="chat" style="margin:5px;-webkit-border-radius: 4px; border: 1px solid #AAA; height: 397px; clear: right; background-color: rgba(0, 0, 0, .2);box-shadow: inset 1px 1px 0 rgba(0, 0, 0, .1),; background-color: #FFFFFF">                 
+          <div id="chat" >                 
             blah!blah!blah!
           </div>
         </div>
-        <div class="span8" style="height: 800px; margin-left:0; margin-top:5px;">
+        </div>
+        <div class="span8" id="editor-area">
           <div id="tabs">
             <ul>
               <li>
