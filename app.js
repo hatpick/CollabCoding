@@ -21,8 +21,13 @@ try {
     };
   });
 } catch (e) {
-  
 }
+
+options.auth = function(agent, action) {
+  console.log(agent.sessionId);
+  action.accept();
+};
+  
 
 // Attach the sharejs REST and Socket.io interfaces to the server
 sharejs.attach(server, options);
