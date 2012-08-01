@@ -16,11 +16,12 @@ var layout = function (){
   _height = document.documentElement.clientHeight - $(".navbar").height() - 40;
   $("#editor-area").height(_height);
   $("#left-items").height(_height);
-  $("#right-items").css('left', $(".span8").position().left + $(".span8").width() + 15);
+  $("#editor-area").css('left', $("#left-items").position().left + $("#left-items").width());
+  $("#right-items").css('left', $(".span8").position().left + $(".span8").width() - 15);
   _height = $("#tabs").height() - $(".ui-tabs-nav").height() - 10;
+  $("body").width(parseInt($("#left-items").css('margin-left'), 10) +  parseInt($("#right-items").css('margin-left'), 10) + $("#right-items").position().left + $("#right-items").width());
   $(".CodeMirror-scroll").css("height", _height);
   myCodeMirror.refresh();
-
 
 };
 
@@ -32,6 +33,7 @@ $(document).ready(function() {
 	$("#project-tree").treeview();
 	$("#nav-tabs").tabs();
 	$("#tabs").tabs();
+  $('.dropdown-toggle').dropdown();
 
 	$("#new").bind('click', function() {
 		console.log("click");
@@ -90,11 +92,11 @@ $(document).ready(function() {
 		$("#dialog").attr('title', 'Share via this link');				
 		var dialogContent = "<table style='width:100%'><tr><td>" + document.location.origin + docName + "</td><tr><td><input id='collaboratorEmail' style='width:100%; margin:5px 0px 5px 0px' type='email' placeholder='Enter a valid email address'></input></td></tr><tr><td align='center'><button role='button' id='shareDocOrig' style='margin:5px 0px 5px 0px' class='ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only'><span class='ui-button-text'>Share</span></button></td></tr></table>";
 		$("#dialog").html(dialogContent);
-		//$("#dialog").dialog();
 		$("#dialog").dialog({					
 			show: "blind",
 			hide: "explode",
-			position: "top"									
+			position: "top",
+      modal: true
 		});				
 	});
 });
