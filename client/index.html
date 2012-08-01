@@ -29,115 +29,6 @@
     <script type="text/javascript" charset="utf-8" src="assets/js/codemirror/mode/htmlmixed/htmlmixed.js"></script>
     <script type="text/javascript" src="/channel/bcsocket.js"></script>
     <script type="text/javascript" src="/share/share.js"></script>
-    <script type="text/javascript" src="/share/ace.js"></script>
-    <style type="text/css" media="screen">
-		#tabs {
-			padding: 0;
-			width: 100%;
-			height: 100%;
-		}
-		#editor {
-			padding: 0;
-			width: 100%;
-			height: 750px;
-		}
-
-    </style>
-    <script type="text/javascript" charset="utf-8">
-		var randomDocName = function(length) {
-			var chars, x;
-			if (length == null) {
-				length = 10;
-			}
-			chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-=";
-			var name = [];
-			for ( x = 0; x < length; x++) {
-				name.push(chars[Math.floor(Math.random() * chars.length)]);
-			}
-			return name.join('');
-		};
-
-		$(document).ready(function() {
-			$("#project-tree").treeview();
-			$("#nav-tabs").tabs();
-			$("#tabs").tabs();
-
-			$("#new").bind('click', function() {
-				console.log("click");
-      });
-      // layout
-      _height = document.documentElement.clientHeight - $(".navbar").height() - 40;
-      $("#editor-area").height(_height);
-      $("#nav-tabs").height(_height);
-
-
-			// set up ace and sharejs
-			var editor = ace.edit("editor");
-			editor.resize()
-			var JavaScriptMode = require("ace/mode/javascript").Mode;
-			editor.getSession().setMode(new JavaScriptMode());
-			editor.setReadOnly(true);
-//			editor.setTheme("ace/theme/chrome");
-      editor.setTheme("ace/theme/idle_fingers");
-
-			var docName;
-			if (!document.location.hash) {
-				docName = '#' + randomDocName();
-			} else {
-				docName = document.location.hash;
-			}
-			sharejs.open(docName, 'text', function(error, doc) {
-				if (error) {
-					console.error(error);
-					return;
-				};
-
-				doc.attach_ace(editor);
-				editor.setReadOnly(false);
-			});
-			// binding event
-			$("#shareDoc").click(function() {
-				$("#dialog").attr('title', 'Share via this link');
-				$("#shareLink").html(document.location + docName);						
-				$("#dialog").dialog({
-					show : "blind",
-					hide : "explode",
-					position : "top",
-					modal: true
-				});
-			});
-			
-			$("#shareDocOrig").click(function() {
-					var toEmail = $("#collaboratorEmail").val();
-					console.log(toEmail);
-					var shareLink = document.location + docName;
-					console.log(shareLink);
-					$.ajax({
-						type : "POST",
-						url : 'http://people.oregonstate.edu/~ghorashs/CollabCoding/sendEmail.php',
-						data : {
-							to_email : toEmail,
-							link : shareLink
-						},
-						cache : false,
-						timeout : 5000,
-						success : function(e) {
-							console.log('success\n' + e);
-						},
-						error : function(e) {
-							console.log('error\n' + e[0]);
-							//alert('Connect Failed');
-						},
-						complete : function(e) {
-							console.log('error complete\n' + e[1]);
-							//alert('Complete');
-						}
-					});
-					$('#dialog').dialog("close");
-				});
-		});
-
-    </script>
     <script type="text/javascript" src="/share/textarea.js"></script> 
     <script type="text/javascript" src="assets/js/site.js"></script>
   </head>
@@ -147,23 +38,6 @@
       <div class="navbar-inner">
         <div class="container">
           <div class="nav-collapse collapse">
-               <button title="Share via email" id="shareDoc" style="position: absolute;margin-top:5px;" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"><span class="ui-button-text">ShareIcon</span></button>    
-                  <div id="dialog" style="display:none">                 		
-				  	<table style='width:100%'>
-				  		<tr>
-				  			<td><span id="shareLink"></span></td>
-				  		<tr>
-				  			<td><input id='collaboratorEmail' style='width:100%; margin:5px 0px 5px 0px' type='email' placeholder='Enter a valid email address'></input></td></tr>
-				  		<tr>
-				  			<td align='center'>
-				  				<button role='button' id='shareDocOrig' style='margin:5px 0px 5px 0px' class='ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only'>
-				  					<span class='ui-button-text'>Share</span>
-				  				</button>
-				  			</td>
-				  		</tr>
-				  	</table>
-                  </div>              
-              <div style="text-align:center; padding-top: 10px;">Tool</div>
                <!--<button title="Share via email" id="shareDoc" style="position: absolute;margin-top:5px;" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"><span class="ui-button-text">ShareIcon</span></button>    -->
                <!--<div id="dialog" style="display:none"></div>-->
                <ul class="nav">
@@ -267,3 +141,4 @@
     </div>
   </body>
 </html>
+
