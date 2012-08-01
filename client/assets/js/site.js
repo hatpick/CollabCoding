@@ -16,11 +16,12 @@ var layout = function (){
   _height = document.documentElement.clientHeight - $(".navbar").height() - 40;
   $("#editor-area").height(_height);
   $("#left-items").height(_height);
-  $("#right-items").css('left', $(".span8").position().left + $(".span8").width() + 15);
+  $("#editor-area").css('left', $("#left-items").position().left + $("#left-items").width());
+  $("#right-items").css('left', $(".span8").position().left + $(".span8").width() - 15);
   _height = $("#tabs").height() - $(".ui-tabs-nav").height() - 10;
+  $("body").width(parseInt($("#left-items").css('margin-left'), 10) +  parseInt($("#right-items").css('margin-left'), 10) + $("#right-items").position().left + $("#right-items").width());
   $(".CodeMirror-scroll").css("height", _height);
   myCodeMirror.refresh();
-
 
 };
 
