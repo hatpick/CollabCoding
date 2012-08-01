@@ -7,29 +7,25 @@ body {
 div {
   background-color: transparent; }
 
-.shareButton {
-  padding: 6px 20px;
-  position: absolute;
-  margin-top: 5px; }
-
-/*.nav {*/
-  /*height: 25px;  */
-  /*li {*/
-    /*height: 25px;*/
-    /*a {*/
-      /*height: 25px; */
-      /*vertical-align: middle;*/
-      /*text-align: center;  } } }*/
+#shareDoc {
+  background: transparent; 
+  border: 0;
+  color: #FFFFFF;
+  cursor: pointer;
+    span { 
+      margin-left: 5px; } }
+  
 #navbar {
   margin-bottom: 0; }
 
 .navbar-inner {
   background-image: transparent; }
-  /*min-height: 25px; }*/
 
 #nav-tabs {
   margin-top: 5px;
   height: 100%; }
+
+
 
 #left-items {
   min-width: 200px; }
