@@ -25,6 +25,7 @@ try {
 
 options.auth = function(agent, action) {
   console.log(agent.sessionId);
+  console.log(agent.remote);
   action.accept();
 };
   

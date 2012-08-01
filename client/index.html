@@ -8,19 +8,28 @@
     <link rel="stylesheet" href="assets/css/bootstrap.min.css" type="text/css" media="screen" charset="utf-8">
     <link rel="stylesheet" href="assets/css/jquery.treeview.css" type="text/css" media="screen" charset="utf-8">
     <link rel="stylesheet" href="assets/css/smoothness/jquery-ui-1.8.22.custom.css" type="text/css" media="screen" charset="utf-8">
+    <link rel="stylesheet" href="assets/js/codemirror/codemirror.css" type="text/css" media="screen" charset="utf-8">
+    <link rel="stylesheet" href="assets/js/codemirror/util/simple-hint.css" type="text/css" media="screen" charset="utf-8">
+    <link rel="stylesheet" href="assets/js/codemirror/theme/ambiance.css" type="text/css" media="screen" charset="utf-8">
+    <link rel="stylesheet" href="assets/js/codemirror/theme/neat.css" type="text/css" media="screen" charset="utf-8">
+    <link rel="stylesheet" href="assets/js/codemirror/theme/rubyblue.css" type="text/css" media="screen" charset="utf-8">
     <link rel="stylesheet" href="assets/css/site.css" type="text/css" media="screen" charset="utf-8">
     <script type="text/javascript" charset="utf-8" src="assets/js/jquery-1.7.2.min.js"></script>
     <script type="text/javascript" charset="utf-8" src="assets/js/jquery-ui-1.8.21.custom.min.js"></script>
     <script type="text/javascript" charset="utf-8" src="assets/js/bootstrap.min.js"></script>
     <script type="text/javascript" charset="utf-8" src="assets/js/jquery.treeview.js"></script>
-    <script type="text/javascript" charset="utf-8" src="assets/js/ace/ace.js"></script>
-    <script type="text/javascript" charset="utf-8" src="assets/js/ace/mode-javascript.js"></script>
-    <script type="text/javascript" charset="utf-8" src="assets/js/ace/mode-html.js"></script>
-    <script type="text/javascript" charset="utf-8" src="assets/js/ace/mode-css.js"></script>    
-    <script type="text/javascript" src="assets/js/ace/mode-coffee.js"></script>
-    <script type="text/javascript" src="assets/js/ace/theme-chrome.js"></script>    
+    <script type="text/javascript" charset="utf-8" src="assets/js/codemirror/codemirror.js"></script>
+    <script type="text/javascript" charset="utf-8" src="assets/js/codemirror/util/closetag.js"></script>
+    <script type="text/javascript" charset="utf-8" src="assets/js/codemirror/util/simple-hint.js"></script>
+    <script type="text/javascript" charset="utf-8" src="assets/js/codemirror/util/javascript-hint.js"></script>
+    <script type="text/javascript" charset="utf-8" src="assets/js/codemirror/util/html-hint.js"></script>
+    <script type="text/javascript" charset="utf-8" src="assets/js/codemirror/mode/xml/xml.js"></script>
+    <script type="text/javascript" charset="utf-8" src="assets/js/codemirror/mode/javascript/javascript.js"></script>
+    <script type="text/javascript" charset="utf-8" src="assets/js/codemirror/mode/css/css.js"></script>
+    <script type="text/javascript" charset="utf-8" src="assets/js/codemirror/mode/htmlmixed/htmlmixed.js"></script>
     <script type="text/javascript" src="/channel/bcsocket.js"></script>
     <script type="text/javascript" src="/share/share.js"></script>
+<<<<<<< HEAD
     <script type="text/javascript" src="/share/ace.js"></script>
     <style type="text/css" media="screen">
 		#tabs {
@@ -130,13 +139,18 @@
 		});
 
     </script>
+=======
+    <script type="text/javascript" src="/share/textarea.js"></script> 
+    <script type="text/javascript" src="assets/js/site.js"></script>
+>>>>>>> 7f076a2941d3fb899cb90394213416ca94a15cdd
   </head>
-  <body style="font-family:'Lucida Grande', sans-serif; font-size:75%;">
+  <body>
     <!-- Info Bar -->
-    <div class="navbar" style="margin-bottom: 0">
-      <div class="navbar-inner" style="background-image: transparent">
+    <div class="navbar">
+      <div class="navbar-inner">
         <div class="container">
           <div class="nav-collapse collapse">
+<<<<<<< HEAD
                <button title="Share via email" id="shareDoc" style="position: absolute;margin-top:5px;" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"><span class="ui-button-text">ShareIcon</span></button>    
                   <div id="dialog" style="display:none">                 		
 				  	<table style='width:100%'>
@@ -154,6 +168,17 @@
 				  	</table>
                   </div>              
               <div style="text-align:center; padding-top: 10px;">Tool</div>
+=======
+               <!--<button title="Share via email" id="shareDoc" style="position: absolute;margin-top:5px;" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"><span class="ui-button-text">ShareIcon</span></button>    -->
+               <!--<div id="dialog" style="display:none"></div>-->
+               <ul class="nav">
+                 <li><a href="#file">File</a></li>
+                 <li><a href="#edit">Edit</a></li>
+                 <li><a href="#code">Code</a></li>
+                 <li><a href="#help">Help</a></li>
+               </ul>
+              <!--<div style="text-align:center; padding-top: 10px;">Tool</div>-->
+>>>>>>> 7f076a2941d3fb899cb90394213416ca94a15cdd
           </div>
         </div>
       </div>
@@ -207,9 +232,7 @@
                 <span class="file">File 4</span>
               </li>
             </ul>
-          </div><!-- <a href="#" id="hide-left" style="position: absolute;float: right">
-            <img src="assets/img/left-btn.png">
-          </a> -->
+          </div>
           <div id="chat" >                 
             blah!blah!blah!
           </div>
@@ -225,15 +248,15 @@
                 <a href="#new">+</a>
               </li>
             </ul>
-            <div id="editor"></div>
+            <textarea id="editor" disabled></textarea>
           </div>
         </div>
-        <div class="span2" style="height: 800px; margin: 0;">
-          <div id="comment" style="margin-left: 10px; -webkit-border-radius: 4px;border: 1px solid #AAA; margin-top:60px;">
-            <div  style="background-color: #FFFFFF;">
-              <div style="padding: 5px">
-                <img src="assets/img/silhouette.png" height="24" width="24" alt="" style="position: absolute">
-                <div style="font-size: 12px; font-weight: bold; margin-left: 32px;">
+        <div class="span2" id="right-items">
+          <div id="comment">
+            <div>
+              <div>
+                <img src="assets/img/silhouette.png" alt="">
+                <div>
                   Charlie
                 </div>
                 <div style="margin: 3px 0 0 32px;font-size: 11px;color: #666;">
