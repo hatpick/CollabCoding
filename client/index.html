@@ -17,7 +17,6 @@
     <script type="text/javascript" charset="utf-8" src="assets/js/jquery-1.7.2.min.js"></script>
     <script type="text/javascript" charset="utf-8" src="assets/js/jquery-ui-1.8.21.custom.min.js"></script>
     <script type="text/javascript" charset="utf-8" src="assets/js/bootstrap.min.js"></script>
-    <script type="text/javascript" charset="utf-8" src="assets/js/bootstrap-dropdown.js"></script>
     <script type="text/javascript" charset="utf-8" src="assets/js/jquery.treeview.js"></script>
     <script type="text/javascript" charset="utf-8" src="assets/js/codemirror/codemirror.js"></script>
     <script type="text/javascript" charset="utf-8" src="assets/js/codemirror/util/closetag.js"></script>
@@ -39,113 +38,128 @@
     <div class="navbar">
       <div class="navbar-inner">
         <div class="container">
-          <div>
-               <div id="dialog" style="display:none"></div>
-               <ul class="nav nav-pills">
-                 <li class="active">
-                  <a title="Share via email" id="shareDoc"><img src="assets/img/share-doc.png"><span>Share</span></a>
-                 </li>
-                  <li class="dropdown" id="menuFile">
-                    <a class="dropdown-toggle" data-toggle="dropdown" href="#menuFile">File<b class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                      <li><a href="#">New</a></li>
-                      <li class="divider"></li>
-                      <li><a href="#">Exit</a></li>
-                    </ul>
-                  </li>
-                  <li class="dropdown" id="menuEdit">
-                    <a class="dropdown-toggle" data-toggle="dropdown" href="#menuEidt">Edit<b class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                      <li><a href="#">Undo</a></li>
-                      <li><a href="#">Redo</a></li>
-                      <li><a href="#">Find/Replace</a></li>
-                    </ul>
-                  </li>
-                  <li class="dropdown" id="menuCode">
-                    <a class="dropdown-toggle" data-toggle="dropdown" href="#menuCode">Code<b class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                      <li><a href="#">JSHine</a></li>
-                      <li><a href="#">Reformat code</a></li>
-                    </ul>
-                  </li>
-                  <li class="dropdown" id="menuHelp">
-                    <a class="dropdown-toggle" data-toggle="dropdown" href="#menuHelp">Help<b class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                      <li><a href="#">About</a></li>
-                    </ul>
-                  </li>
-               </ul>
-              <!--<div style="text-align:center; padding-top: 10px;">Tool</div>-->
-          </div>
+          <a class="brand" href="#" muse_scanned="true"><img src="assets/img/osu_logo.png" /></a>
+           <div id="dialog" style="display:none"></div>
+            <div class="nav-collapse">
+             <ul class="nav">
+                <li class="dropdown" id="menuFile">
+                  <a class="dropdown-toggle" data-toggle="dropdown" href="#menuFile">File<b class="caret"></b></a>
+                  <ul class="dropdown-menu">
+                    <li><a href="#">New</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#">Exit</a></li>
+                  </ul>
+                </li>
+                <li class="dropdown" id="menuEdit">
+                  <a class="dropdown-toggle" data-toggle="dropdown" href="#menuEidt">Edit<b class="caret"></b></a>
+                  <ul class="dropdown-menu">
+                    <li><a href="#">Undo</a></li>
+                    <li><a href="#">Redo</a></li>
+                    <li><a href="#">Find/Replace</a></li>
+                  </ul>
+                </li>
+                <li class="dropdown" id="menuCode">
+                  <a class="dropdown-toggle" data-toggle="dropdown" href="#menuCode">Code<b class="caret"></b></a>
+                  <ul class="dropdown-menu">
+                    <li><a href="#">JSHint</a></li>
+                    <li><a href="#">Reformat code</a></li>
+                    <li><a id="shareDoc"><span  class="icon-bar"></span></a></li>
+                  </ul>
+                </li>
+                <li class="dropdown" id="menuHelp">
+                  <a class="dropdown-toggle" data-toggle="dropdown" href="#menuHelp">Help<b class="caret"></b></a>
+                  <ul class="dropdown-menu">
+                    <li><a href="#">About</a></li>
+                  </ul>
+                </li>
+             </ul>
+
+            <!--right -->
+            <ul class="nav pull-right">
+              <div class="btn-group">
+              <button class="btn btn-small btn-primary dropdown-toggle" data-toggle="dropdown" href="#menuProfile">
+                <i class="icon-user icon-white"></i>Profile<span class="caret"></span>
+              </button>
+                  <ul class="dropdown-menu">
+                    <li><a href="#">Account</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#">Logout</a></li>
+                  </ul>
+              </div>
+            </ul>
+            </div>
         </div>
       </div>
     </div>
-    <!--<div class="container-fluid">-->
       <div class="row-fluid">
         <div class="span2" id="left-items">
-          <div id="nav-tabs">
-          <ul>
-            <li><a href="#project">Project</a></li>
-            <li><a href="#chat">Chat</a></li>
+          <div class="tabbable">
+          <ul id="nav-tab" class="nav nav-pills">
+            <li><a href="#project"><i  class="icon-list-alt"></i></a></li>
+            <li><a href="#chat"><i  class="icon-facetime-video"></i></a></li>
           </ul>
-          <div id="project">
-            <ul id="project-tree" class="filetree">
-              <li>
-                <span class="folder">Folder 1</span>
-                <ul>
-                  <li>
-                    <span class="file">Item 1.1</span>
-                  </li>
-                </ul>
-              </li>
-              <li>
-                <span class="folder">Folder 2</span>
-                <ul>
-                  <li>
-                    <span class="folder">Subfolder 2.1</span>
-                    <ul id="folder21">
-                      <li>
-                        <span class="file">File 2.1.1</span>
-                      </li>
-                      <li>
-                        <span class="file">File 2.1.2</span>
-                      </li>
-                    </ul>
-                  </li>
-                  <li>
-                    <span class="file">File 2.2</span>
-                  </li>
-                </ul>
-              </li>
-              <li class="closed">
-                <span class="folder">Folder 3 (closed at start)</span>
-                <ul>
-                  <li>
-                    <span class="file">File 3.1</span>
-                  </li>
-                </ul>
-              </li>
-              <li>
-                <span class="file">File 4</span>
-              </li>
-            </ul>
-          </div>
-          <div id="chat" >                 
-            blah!blah!blah!
+          <div class="tab-content"> 
+            <div id="project" class="tab-pane">
+              <ul id="project-tree" class="filetree">
+                <li>
+                  <span class="folder">Folder 1</span>
+                  <ul>
+                    <li>
+                      <span class="file">Item 1.1</span>
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <span class="folder">Folder 2</span>
+                  <ul>
+                    <li>
+                      <span class="folder">Subfolder 2.1</span>
+                      <ul id="folder21">
+                        <li>
+                          <span class="file">File 2.1.1</span>
+                        </li>
+                        <li>
+                          <span class="file">File 2.1.2</span>
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      <span class="file">File 2.2</span>
+                    </li>
+                  </ul>
+                </li>
+                <li class="closed">
+                  <span class="folder">Folder 3 (closed at start)</span>
+                  <ul>
+                    <li>
+                      <span class="file">File 3.1</span>
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <span class="file">File 4</span>
+                </li>
+              </ul>
+            </div>
+            <div id="chat" class="tab-pane">                 
+              blah!blah!blah!
+            </div>
           </div>
         </div>
         </div>
         <div class="span8" id="editor-area">
-          <div id="tabs">
-            <ul>
+          <div class="tabbable"> 
+            <ul id="doc-tab" class="nav nav-tabs">
               <li>
-                <a href="#editor">Untitled</a>
+                <a href="#editor">Untitled<button class="close">&times;</button> </a>
               </li>
               <li style="cursor: pointer;">
                 <a href="#new">+</a>
               </li>
             </ul>
-            <textarea id="editor" disabled></textarea>
+            <div class="tab-content well">
+              <textarea id="editor" disabled></textarea>
+            </div>
           </div>
         </div>
         <div class="span2" id="right-items">
