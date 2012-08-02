@@ -13,16 +13,17 @@ var randomDocName = function(length) {
 
 var layout = function (){
   // layout
-  _height = document.documentElement.clientHeight - $(".navbar").height() - 40;
+  _height = document.documentElement.clientHeight - $(".navbar").height();
   $("#editor-area").height(_height);
   $("#left-items").height(_height);
   $("#editor-area").css('left', $("#left-items").position().left + $("#left-items").width());
-  $("#right-items").css('left', $(".span8").position().left + $(".span8").width() - 15);
+  $("#right-items").css('left', $("#editor-area").position().left + $("#editor-area").width());
+  $("#comment").css('left', $("#editor-area").position().left + $("#editor-area").width());
   _height = $("#tabs").height() - $(".ui-tabs-nav").height() - 10;
-  $("body").width(parseInt($("#left-items").css('margin-left'), 10) +  parseInt($("#right-items").css('margin-left'), 10) + $("#right-items").position().left + $("#right-items").width());
+  //$("body").width(parseInt($("#left-items").css('margin-left'), 10) +  parseInt($("#right-items").css('margin-left'), 10) + $("#right-items").position().left + $("#right-items").width());
+  //$(".container-fluid").width(parseInt($("#left-items").css('margin-left'), 10) +  parseInt($("#right-items").css('margin-left'), 10) + $("#right-items").position().left + $("#right-items").width());
   $(".CodeMirror-scroll").css("height", _height);
   myCodeMirror.refresh();
-
 };
 
 $(window).resize(function(){
@@ -31,15 +32,25 @@ $(window).resize(function(){
 
 $(document).ready(function() {
 	$("#project-tree").treeview();
-	$("#nav-tabs").tabs();
-	$("#tabs").tabs();
+  $('#doc-tab a:first').tab('show'); 
+  $('#nav-tab a:first').tab('show'); 
+  $('#nav-tab a').click(function (e) {
+    e.preventDefault();
+    $(this).tab('show');
+    _class = $("#nav-tab li.active a i").attr('class');
+    $("#nav-tab li.active a i").attr('class', _class + ' icon-white');
+    $("#nav-tab li:not(.active) a i").each(function(e) {
+      _tmp = $(this).attr('class');
+      $(this).attr('class',  _tmp.split(' ')[0]);
+    });
+  });
+  $('#nav-tab a:first').click();
+
   $('.dropdown-toggle').dropdown();
 
 	$("#new").bind('click', function() {
 		console.log("click");
   });
-
-
 
   // set up editor
   var elem = document.getElementById("editor");
