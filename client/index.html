@@ -19,6 +19,8 @@
     <script type="text/javascript" charset="utf-8" src="assets/js/bootstrap.min.js"></script>
     <script type="text/javascript" charset="utf-8" src="assets/js/jquery.treeview.js"></script>
     <script type="text/javascript" charset="utf-8" src="assets/js/codemirror/codemirror.js"></script>
+    <script type="text/javascript" charset="utf-8" src="assets/js/zen-coding/zen_codemirror.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="assets/js/codemirror/util/formatting.js"></script>
     <script type="text/javascript" charset="utf-8" src="assets/js/codemirror/util/closetag.js"></script>
     <script type="text/javascript" charset="utf-8" src="assets/js/codemirror/util/simple-hint.js"></script>
     <script type="text/javascript" charset="utf-8" src="assets/js/codemirror/util/javascript-hint.js"></script>
@@ -45,25 +47,36 @@
                 <li class="dropdown" id="menuFile">
                   <a class="dropdown-toggle" data-toggle="dropdown" href="#menuFile">File<b class="caret"></b></a>
                   <ul class="dropdown-menu">
-                    <li><a href="#">New</a></li>
+                    <li><a href="#"><i class="icon-file"></i>New</a></li>
                     <li class="divider"></li>
-                    <li><a href="#">Exit</a></li>
+                    <li><a  href="#">Exit</a></li>
                   </ul>
                 </li>
                 <li class="dropdown" id="menuEdit">
                   <a class="dropdown-toggle" data-toggle="dropdown" href="#menuEidt">Edit<b class="caret"></b></a>
                   <ul class="dropdown-menu">
-                    <li><a href="#">Undo</a></li>
-                    <li><a href="#">Redo</a></li>
-                    <li><a href="#">Find/Replace</a></li>
+                  	<li><a href="#">Cut</a></li>
+                    <li><a href="#">Copy</a></li>
+                    <li><a href="#">Paste</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#"><i class="icon-arrow-left"></i>Undo</a></li>
+                    <li><a href="#"><i class="icon-arrow-right"></i>Redo</a></li>
+                    <li class="divider"></li> icon-fullscreen
+                    <li><a href="#"><i class="icon-search"></i>Find/Replace...</a></li>
+                    <li><a href="#">Find Next</a></li>
+                    <li><a href="#">Find Previous</a></li>
+                    <li class="divider"></li> 
+                    <li><a href="#" id="editor-enter-fullscreen"><i class="icon-fullscreen"></i>Enter Full Screen</a></li>
                   </ul>
                 </li>
                 <li class="dropdown" id="menuCode">
                   <a class="dropdown-toggle" data-toggle="dropdown" href="#menuCode">Code<b class="caret"></b></a>
                   <ul class="dropdown-menu">
                     <li><a href="#">JSHint</a></li>
-                    <li><a href="#">Reformat code</a></li>
-                    <li><a id="shareDoc"><span  class="icon-bar"></span></a></li>
+                    <li><a href="#" id="editor-comment-selected">Comment Selected</a></li>
+                    <li><a href="#" id="editor-uncomment-selected">Uncomment Selected</a></li>
+                    <li><a href="#" id="editor-format-selectedcode">Format</a></li>
+                    <li><a href="#" id="shareDoc"><i class="icon-share"></i>Share</a></li>
                   </ul>
                 </li>
                 <li class="dropdown" id="menuHelp">
