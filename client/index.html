@@ -47,42 +47,65 @@
                 <li class="dropdown" id="menuFile">
                   <a class="dropdown-toggle" data-toggle="dropdown" href="#menuFile">File<b class="caret"></b></a>
                   <ul class="dropdown-menu">
-                    <li><a href="#"><i class="icon-file"></i>New</a></li>
+                    <li><a href="#" data-action="editor-new-document"><i class="icon-file"></i>New</a></li>
+                    <li><a href="#" data-action="editor-open-project"><i class="icon-list-alt"></i>Open Project</a></li>
+                    <li><a href="#">Open File...</a></li>
                     <li class="divider"></li>
-                    <li><a  href="#">Exit</a></li>
+                    <li><a href="#" data-action="editor-close-document"></i>Close</a></li>
+                    <li><a href="#" data-action="editor-closeall-documents">Close All</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#" data-action="editor-save-document">Save</a></li>
+                    <li><a href="#" data-action="editor-saveas-document">Save As...</a></li>
+                    <li><a href="#" data-action="editor-saveall-documents">Save All</a></li>
+                    <li class="divider"></li>
+                    <li><a  href="#" data-action="editor-exit">Exit</a></li>
                   </ul>
                 </li>
                 <li class="dropdown" id="menuEdit">
                   <a class="dropdown-toggle" data-toggle="dropdown" href="#menuEidt">Edit<b class="caret"></b></a>
                   <ul class="dropdown-menu">
-                  	<li><a href="#">Cut</a></li>
-                    <li><a href="#">Copy</a></li>
-                    <li><a href="#">Paste</a></li>
+                  	<li><a href="#" data-action="editor-cut-selected-code">Cut</a></li>
+                    <li><a href="#" data-action="editor-copy-selected-code">Copy</a></li>
+                    <li><a href="#" data-action="editor-paste-code">Paste</a></li>
                     <li class="divider"></li>
-                    <li><a href="#"><i class="icon-arrow-left"></i>Undo</a></li>
-                    <li><a href="#"><i class="icon-arrow-right"></i>Redo</a></li>
-                    <li class="divider"></li> icon-fullscreen
-                    <li><a href="#"><i class="icon-search"></i>Find/Replace...</a></li>
-                    <li><a href="#">Find Next</a></li>
-                    <li><a href="#">Find Previous</a></li>
-                    <li class="divider"></li> 
-                    <li><a href="#" id="editor-enter-fullscreen"><i class="icon-fullscreen"></i>Enter Full Screen</a></li>
+                    <li><a href="#" data-action="editor-undo"><i class="icon-arrow-left"></i>Undo</a></li>
+                    <li><a href="#" data-action="editor-redo"><i class="icon-arrow-right"></i>Redo</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#" data-action="editor-delete-selected"><i class="icon-remove"></i>Delete</a></li>
+                    <li><a href="#" data-action="editor-select-all">Select All</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#" data-action="editor-document-refresh"><i class="icon-refresh"></i>Refresh</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#" data-action="editor-find-replace"><i class="icon-search"></i>Find/Replace...</a></li>
+                    <li><a href="#" data-action="editor-find-next">Find Next</a></li>
+                    <li><a href="#" data-action="editor-find-previous">Find Previous</a></li>
+                  </ul>
+                </li>
+                <li class="dropdown" id="menuView">
+                  <a class="dropdown-toggle" data-toggle="dropdown" href="#menuView">View<b class="caret"></b></a>
+                  <ul class="dropdown-menu">
+                  	<li><a href="#" data-action="editor-zoom-in"><i class="icon-zoom-in"></i>Zoom In</a></li>
+                    <li><a href="#" data-action="editor-zoom-out"><i class="icon-zoom-out"></i>Zoom Out</a></li>                    
+                  	<li class="divider"></li>
+                  	<li><a href="#" id="editor-enter-fullscreen"><i class="icon-fullscreen"></i>Enter Full Screen</a></li>
                   </ul>
                 </li>
                 <li class="dropdown" id="menuCode">
                   <a class="dropdown-toggle" data-toggle="dropdown" href="#menuCode">Code<b class="caret"></b></a>
-                  <ul class="dropdown-menu">
-                    <li><a href="#">JSHint</a></li>
-                    <li><a href="#" id="editor-comment-selected">Comment Selected</a></li>
-                    <li><a href="#" id="editor-uncomment-selected">Uncomment Selected</a></li>
-                    <li><a href="#" id="editor-format-selectedcode">Format</a></li>
-                    <li><a href="#" id="shareDoc"><i class="icon-share"></i>Share</a></li>
+                  <ul class="dropdown-menu">                    
+                    <li><a href="#" data-action="editor-comment-selected">Comment Selected</a></li>
+                    <li><a href="#" data-action="editor-uncomment-selected">Uncomment Selected</a></li>
+                    <li><a href="#" data-action="editor-format-selected-code"><i class="icon-th-list"></i>Format</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#"><i class="icon-question-sign"></i>Check Quality</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#" data-action="editor-share-code"><i class="icon-share"></i>Share</a></li>
                   </ul>
                 </li>
                 <li class="dropdown" id="menuHelp">
                   <a class="dropdown-toggle" data-toggle="dropdown" href="#menuHelp">Help<b class="caret"></b></a>
                   <ul class="dropdown-menu">
-                    <li><a href="#">About</a></li>
+                    <li><a href="#" data-action="editor-show-about"><i class="icon-info-sign"></i>About</a></li>
                   </ul>
                 </li>
              </ul>
