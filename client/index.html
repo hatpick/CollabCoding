@@ -18,6 +18,7 @@
     <script type="text/javascript" charset="utf-8" src="assets/js/jquery-ui-1.8.21.custom.min.js"></script>
     <script type="text/javascript" charset="utf-8" src="assets/js/bootstrap.min.js"></script>
     <script type="text/javascript" charset="utf-8" src="assets/js/jquery.treeview.js"></script>
+    <script type="text/javascript" charset="utf-8" src="assets/js/jshint.js"></script>
     <script type="text/javascript" charset="utf-8" src="assets/js/codemirror/codemirror.js"></script>
     <script type="text/javascript" charset="utf-8" src="assets/js/zen-coding/zen_codemirror.min.js"></script>
     <script type="text/javascript" charset="utf-8" src="assets/js/codemirror/util/formatting.js"></script>
@@ -183,6 +184,8 @@
           </div>
         </div>
         </div>
+        <div class="splitter">
+        </div>
         <div class="span8" id="editor-area">
           <div class="tabbable"> 
             <ul id="doc-tab" class="nav nav-tabs">
@@ -193,7 +196,7 @@
                 <a href="#new">+</a>
               </li>
             </ul>
-            <div class="tab-content well">
+            <div class="tab-content">
               <textarea id="editor" disabled></textarea>
             </div>
           </div>
@@ -215,6 +218,16 @@
           </div>
         </div>
       </div>
+    </div>
+    <div id="small-console">
+      <a href="#show" data-action="editor-console">
+        <i class="icon-chevron-up icon-white pull-right"></i>
+      </a>
+    </div>
+    <!--<div id="big-console">-->
+      <!--<a href="#" data-action="editor-hide-console">-->
+        <!--<i class="icon-chevron-down icon-white pull-right"></i>-->
+      <!--</a>-->
     </div>
   </body>
 </html>

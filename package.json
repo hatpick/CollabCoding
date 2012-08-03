@@ -17,7 +17,6 @@
   "license": "MIT",
   "dependencies": {
     "share": "*",
-    "connect": "~1",
-    "jshint": "*"
+    "connect": "~1"
   }
 }

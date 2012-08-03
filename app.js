@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
+
 var connect = require('connect')
     , sharejs = require('share').server
-    , exec    = require('child_process').exec;
-    
+    , exec    = require('child_process').exec
+    , jshint = require('jshint');
+
 var server = connect()
       .use(connect.logger('dev'))
       .use(connect.static(__dirname + '/client'));
