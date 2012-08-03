@@ -250,7 +250,7 @@ $(document).ready(function() {
                 'padding-top': '5px',  
                 'margin-left': '20px',    
                 height: 180, top: 20,         
-               opacity: 0.95});
+               opacity: 0.85});
        $("#small-console").append(_div);	           	
      	$("#small-console").toggleClass("small-console-animated");	 
  	}
