@@ -16,14 +16,34 @@ div {
 .CodeMirror-scroll {
   height: 100%; }
 
-.splitter {
-  width: 2px;
-  height: 100%;
-  background-color: #00000; }
+.left-splitter {
+  width: 5px;
+  float: left;
+  left: 207px;
+  background-color: #B2B2B2; }
+
+.left-splitter-collapse-button {
+  position: relative;
+  cursor: pointer;
+  width: 5px;
+  height: 30px;
+  background-color: #1A1A1A; }
+
+.right-splitter {
+  position: absolute;
+  width: 5px;
+  float: left;
+  background-color: #B2B2B2; }
+
+.right-splitter-collapse-button {
+  position: relative;
+  cursor: pointer;
+  width: 5px;
+  height: 30px;
+  background-color: #1A1A1A; }
 
 .small-console-animated {
-  height: 200px;
-  /*bottom: 180px;*/ }
+  height: 200px; }
 
 [class*="span"], .row-fluid [class*="span"] {
   float: left; }
@@ -41,7 +61,6 @@ a img {
 
 .CodeMirror {
   height: 100%;
-  background-color: #F7F7F7;
   font-size: 14px; }
 
 .CodeMirror-wrap {
@@ -67,18 +86,18 @@ a img {
 .tabbable {
   height: 100%; }
 
-#editor-area .tab-content {
-  border: 1px solid rgba(0,0,0,.05); }
-
 #left-items {
-  margin: 0;
-  min-width: 100px;
+  margin: 0 5px 0 5px;
+  min-width: 205px;
   overflow: hidden; }
 
 #editor-area {
   position: absolute;
   margin-left: 1px;
+  margin-right: 5px;
   min-width: 500px; }
+  #editor-area .tab-content {
+    border: 1px solid #D1D1D1; }
 
 #editor {
   padding: 0;
@@ -86,14 +105,13 @@ a img {
   height: 750px; }
 
 #right-items {
-  clear: both;
   position: absolute;
   margin: 0; }
 
 #comment {
   margin-left: 20px;
   min-width: 150px;
-  z-index: 501;
+  max-width: 250px;
   border: 1px solid #aaaaaa;
   margin-top: 60px; }
   #comment img {
@@ -115,11 +133,5 @@ a img {
   height: 20px;
   z-index: 11;
   -webkit-transition: all .5s ease;
+  padding-top: 3px;
   background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666666), to(#666666), color-stop(0.6, #333333)); }
-
-/*#big-console {*/
-/*display: none;*/
-/*position: absolute;*/
-/*height: 200px;*/
-/*z-index: 12;*/
-/*background-color: #000000;}*/

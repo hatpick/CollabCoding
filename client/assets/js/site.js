@@ -53,34 +53,31 @@ function _(string, context) {
   }
 
 
-  function reportFailure(report) {      	
-    var errors = $("#small-console div");
-    var item;
+function reportFailure(report) {      	
+  var errors = $("#small-console div");
+  var item;
 
-    errors[0].innerHTML = '';
-    errors.append(_(jsHintMessage.errorMessage, {errorNums: report.errors.length}));
-    for (var i = 0, err; err = report.errors[i]; i++) {
-      errors.append(_('<li><p>' + templates.error + '</p></li>', {      
-        line: err.line,
-        character: err.character,
-        code: $.trim(err.evidence) ? $.trim(escapeHTML(err.evidence)) : '',
-        msg:  err.reason
-      }));
-   
-      $('a[data-line=' + err.line + ']').bind('click', function (ev) {
-        var line = $(this).attr('data-line') - 1;
-        var str  = myCodeMirror.getLine(line);
+  errors[0].innerHTML = '';
+  errors.append(_(jsHintMessage.errorMessage, {errorNums: report.errors.length}));
+  for (var i = 0, err; err = report.errors[i]; i++) {
+    errors.append(_('<li><p>' + templates.error + '</p></li>', {      
+      line: err.line,
+      character: err.character,
+      code: $.trim(err.evidence) ? $.trim(escapeHTML(err.evidence)) : '',
+      msg:  err.reason
+    }));
+ 
+    $('a[data-line=' + err.line + ']').bind('click', function (ev) {
+      var line = $(this).attr('data-line') - 1;
+      var str  = myCodeMirror.getLine(line);
 
-        myCodeMirror.setSelection({line:line, ch:0}, {line:line, ch:str.length});
-        //scrollTo(0, 0);
-      });
-    }
-    $("#small-console").append(errors);
-      $(errors).toggleClass("small-console-animated");
-    //listOptions($('div.report > div.error > div.options pre'), report.options);
-    //$('div.editorArea div.alert-message.error').show();
-    //$('div.report > div.error').show();
+      myCodeMirror.setSelection({line:line, ch:0}, {line:line, ch:str.length});
+      //scrollTo(0, 0);
+    });
   }
+  $("#small-console").append(errors);
+    $(errors).toggleClass("small-console-animated");
+} 
 
 function reportSuccess(report) {  
     var success = $("#small-console div");
@@ -89,16 +86,39 @@ function reportSuccess(report) {
    $("#small-console").append(success);
    $(success).toggleClass("small-console-animated");
 }
+    
+$.fn.usedWidth = function() {
+  return $(this).width() + parseInt($(this).css('margin-left'), 10) + parseInt($(this).css('margin-right'), 10);
+}
 
+// layout    
 var layout = function() {
-	// layout
 	_height = document.documentElement.clientHeight - $(".navbar").height() - $("#small-console").height();
 	$("#editor-area").height(_height);
-	$("#left-items").height(_height);
-	$("#right-items").height(_height);
-	$("#editor-area").css('left', $("#left-items").position().left + $("#left-items").width());
-	$("#right-items").css('left', $("#left-items").width() + $("#editor-area").width());
-	_height = $(".tabbable").height() - $("#doc-tab").height() - parseInt($("#doc-tab").css('margin-bottom'), 10);
+	$("#left-items").height(_height);      
+	$(".left-splitter").height(_height);     
+	$(".right-splitter").height(_height);     
+	$(".left-splitter-collapse-button").css("margin-top", _height / 2);
+	$(".right-splitter-collapse-button").css("margin-top", _height / 2);
+	$("#right-items").height(_height);                                                              
+	$("#editor-area").css('left', 	$(".left-splitter").position().left + $(".left-splitter").usedWidth());  
+	$("#editor-area").css('width', document.documentElement.clientWidth - 300 - $("#left-items").usedWidth() - $(".left-splitter").usedWidth() - $(".right-splitter").usedWidth());
+  if ($("#left-items").is(':visible')) {
+     if ($("#right-items").is(':visible')) {   
+          $("#right-items").css('left', $("#left-items").usedWidth() + $('.left-splitter').usedWidth() + $("#editor-area").usedWidth() + $(".right-splitter").usedWidth());  
+       $('.right-splitter').css('left', $("#left-items").usedWidth() + $('.left-splitter').usedWidth() + $("#editor-area").usedWidth());    
+       $("#right-items").css('width', 300); 
+     } else {
+       // $('.right-splitter').css('left', $("#left-items").usedWidth() + $('.left-splitter').usedWidth() + $("#editor-area").usedWidth());    
+     }
+  }  else{          
+     if ($("#right-items").is(':visible')) {  
+       $("#right-items").css('left', $('.left-splitter').usedWidth() + $("#editor-area").usedWidth() + $(".right-splitter").usedWidth());   
+     } else {
+       $('.right-splitter').css('left', $('.left-splitter').usedWidth() + $("#editor-area").usedWidth()); 
+     }   
+  }
+  _height = $("#editor-area").height() - $("#doc-tab").height() - parseInt($("#doc-tab").css('margin-bottom'), 10);
   $(".tab-content").height(_height);
 	myCodeMirror.refresh();
 };
@@ -107,7 +127,8 @@ $(window).resize(function() {
 	layout();
 });
 
-$(document).ready(function() {
+$(document).ready(function() {       
+	$("#left-items").width($("#nav-tab").children(":first").width() * 4 + 7);    
 	$("#project-tree").treeview();
 	$('#doc-tab a:first').tab('show');
 	$('#nav-tab a:first').tab('show');
@@ -128,7 +149,60 @@ $(document).ready(function() {
 	$("#new").bind('click', function() {
 		console.log("click");
 	});
+                  
+  // set uo tooltip
+  $(".left-splitter-collapse-button").tooltip({
+    title: 'Hide'
+  });                           
 
+  $(".right-splitter-collapse-button").tooltip({
+    title: 'Hide'
+  });                           
+
+  
+  $(".left-splitter-collapse-button").click(function() {
+    if ($(this).attr('data-action') === '#hide') {
+      $("#left-items").hide();                    
+      $(this).attr('data-action', '#show');
+      $(".left-splitter-collapse-button").data('tooltip')['options'].title = 'Show'; 
+      $(".left-splitter-collapse-button").data('tooltip')['options'].placement = 'right';
+    } else {
+      $("#left-items").show();      
+      $(this).attr('data-action', '#hide');
+      $(".left-splitter-collapse-button").data('tooltip')['options'].title = 'Hide';  
+      $(".left-splitter-collapse-button").data('tooltip')['options'].placement = 'top';
+    }
+    _original_left = $("#editor-area").position().left;
+    _new_left = $(".left-splitter").position().left + $(".left-splitter").width();
+  	$("#editor-area").css('left', 	$(".left-splitter").position().left + $(".left-splitter").width());
+    $("#editor-area").css( 'width', parseInt($("#editor-area").css('width'), 10) + (_original_left - _new_left));
+  });
+      
+
+
+  $(".right-splitter-collapse-button").click(function() {
+    if ($(this).attr('data-action') === '#hide') {
+      $("#right-items").hide();                    
+      $(this).attr('data-action', '#show');
+      $(".right-splitter-collapse-button").data('tooltip')['options'].title = 'Show'; 
+      $(".right-splitter-collapse-button").data('tooltip')['options'].placement = 'left';
+      $(".right-splitter").css('left', document.documentElement.clientWidth -  $(".right-splitter").usedWidth());
+      $("#editor-area").css( 'width', $("#editor-area").width() + $("#right-items").usedWidth() - 10);
+    } else {
+      $("#right-items").show();      
+      $(this).attr('data-action', '#hide');
+      $(".right-splitter-collapse-button").data('tooltip')['options'].title = 'Hide';
+      $(".right-splitter-collapse-button").data('tooltip')['options'].placement = 'top';  
+      $("#editor-area").css( 'width', $("#editor-area").width() - $("#right-items").width() + 10);
+      $('.right-splitter').css('left', ($("#left-items").is(':visible') ? $("#left-items").usedWidth() : 0 ) + $('.left-splitter').usedWidth() + $("#editor-area").usedWidth());
+    }
+    // _original_left = $("#editor-area").position().left;
+    // _new_left = $(".right-splitter").position().left + $(".left-splitter").width();
+    // $("#editor-area").css('left',  $(".left-splitter").position().left + $(".left-splitter").width());
+    // $("#editor-area").css( 'width', parseInt($("#editor-area").css('width'), 10) + (_original_left - _new_left));
+  });
+  
+  
 	// set up editor
 	var elem = document.getElementById("editor");
 	CodeMirror.commands.autocomplete = function(cm) {
@@ -137,7 +211,6 @@ $(document).ready(function() {
 		if (mode == 'htmlmixed') {
 			CodeMirror.simpleHint(cm, CodeMirror.javascriptHint);
 			CodeMirror.simpleHint(cm, CodeMirror.htmlHint);
-			//CodeMirror.simpleHint(cm, CodeMirror.javascriptHint);
 		} else if (mode == 'text/html' || mode == 'xml') {
 			CodeMirror.simpleHint(cm, CodeMirror.htmlHint);
 		} else if (mode == 'javascript') {

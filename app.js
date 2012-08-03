@@ -3,8 +3,7 @@
 
 var connect = require('connect')
     , sharejs = require('share').server
-    , exec    = require('child_process').exec
-    , jshint = require('jshint');
+    , exec    = require('child_process').exec;
 
 var server = connect()
       .use(connect.logger('dev'))
