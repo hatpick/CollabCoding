@@ -53,16 +53,8 @@ function _(string, context) {
   }
 
 
-  function reportFailure(report) {    
-  	$("#small-console div").remove();
-    var errors = $("<div>");
-    errors.css({display: 'block', position: 'relative',
-               'overflow-y': 'scroll',
-                '-webkit-transition': 'all .5s ease',                                
-                'background': '-webkit-linear-gradient(top, rgba(242,242,242,1) 0%,rgba(193,193,189,1) 100%)',
-                'padding-left': '25px',   
-                'padding-top': '5px',               
-               opacity: 0.95});      
+  function reportFailure(report) {      	
+    var errors = $("#small-console div");
     var item;
 
     errors[0].innerHTML = '';
@@ -90,15 +82,9 @@ function _(string, context) {
     //$('div.report > div.error').show();
   }
 
-function reportSuccess(report) {
-  $("#small-console div").remove();
-    var success = $("<div>");
-    success.css({display: 'block', position: 'relative',
-               'overflow-y': 'scroll',
-                '-webkit-transition': 'all .5s ease',                                
-                'background': '-webkit-linear-gradient(top, rgba(242,242,242,1) 0%,rgba(193,193,189,1) 100%)',
-                'padding-left': '25px',                  
-               opacity: 0.95});    
+function reportSuccess(report) {  
+    var success = $("#small-console div");
+    success[0].innerHTML = '';
    success.append(_(jsHintMessage.successMessage)); 
    $("#small-console").append(success);
    $(success).toggleClass("small-console-animated");
@@ -230,6 +216,12 @@ $(document).ready(function() {
 		});
 	});
 	
+	function checkQuality(){
+		var options = {"debug":true,"forin":true,"eqnull":true,"noarg":true,"noempty":true,"eqeqeq":true,"boss":true,"loopfunc":true,"evil":true,"laxbreak":true,"bitwise":true,"strict":false,"undef":true,"curly":true,"nonew":true,"browser":true,"devel":false,"jquery":true,"es5":false,"node":true};
+		JSHINT(myCodeMirror.getValue(), options) ? reportSuccess(JSHINT.data()) : reportFailure(JSHINT.data());
+		showConsole($("#small-console a"));
+	}
+	
 	$("a[data-action=editor-comment-selected]").click(function(){
 		commentSelection(true);
 	});
@@ -243,24 +235,29 @@ $(document).ready(function() {
 	});
 
 	$("a[data-action=editor-check-quality]").click(function(){				
-		var options = {"debug":true,"forin":true,"eqnull":true,"noarg":true,"noempty":true,"eqeqeq":true,"boss":true,"loopfunc":true,"evil":true,"laxbreak":true,"bitwise":true,"strict":true,"undef":true,"curly":true,"nonew":true,"browser":true,"devel":false,"jquery":true,"es5":false,"node":false};
-		JSHINT(myCodeMirror.getValue(), options) ? reportSuccess(JSHINT.data()) : reportFailure(JSHINT.data());
-		showConsole($("#small-console a"));						
+		checkQuality();						
 	});
 	
 	function showConsole(consoleToggle){
-		$("#small-console").css({ bottom: 180});
+		$("#small-console").css({bottom: 180,height: 200});
       	$(consoleToggle).attr('href', '#hide');
-      	$("#small-console a i").attr('class', 'icon-chevron-down icon-white pull-right');	      
-     	$("#small-console div").css({height: 180, top: 20});
-     	$("#small-console div").css("display","block");
+      	$("#small-console a i").attr('class', 'icon-chevron-down icon-white pull-right');
+      	var _div = $("#small-console div").css({display: 'block', position: 'relative',
+               'overflow-y': 'scroll',
+                '-webkit-transition': 'all .5s ease',                                
+                'background': '-webkit-linear-gradient(top, rgba(242,242,242,1) 0%,rgba(193,193,189,1) 100%)',
+                'padding-left': '25px',   
+                'padding-top': '5px',  
+                'margin-left': '20px',    
+                height: 180, top: 20,         
+               opacity: 0.95});
+       $("#small-console").append(_div);	           	
      	$("#small-console").toggleClass("small-console-animated");	 
  	}
  	    	
     function hideConsole(consoleToggle){
       	$("#small-console").css({ bottom: 0});
-      	$(consoleToggle).attr('href', '#show');      
-      	//$("#small-console div").css("display","none");
+      	$(consoleToggle).attr('href', '#show');            	
       	$("#small-console a i").attr('class', 'icon-chevron-up icon-white pull-right');      	   	 
     }
 
