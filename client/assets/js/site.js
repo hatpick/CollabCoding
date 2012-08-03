@@ -11,18 +11,84 @@ var randomDocName = function(length) {
 	return name.join('');
 };
 
+  var templates = {
+    error: '<a data-line="%(line)s" href="javascript:void(0)">Line %(line)s</a>: ' +
+           '<code>%(code)s</code></p><p>%(msg)s'
+  };
+
+function _(string, context) {
+    return string.replace(/%\(\w+\)s/g, function (match) {
+      return context[match.slice(2, -2)];
+    });
+  }
+
+  function escapeHTML(text) {
+    var esc = text;
+    var re  = [ [/&/g, "&amp;"], [/</g, "&lt;"], [/>/g, "&gt;"] ];
+
+    for (var i = 0, len = re.length; i < len; i++) {
+      esc = esc.replace(re[i][0], re[i][1]);
+    }
+
+    return esc;
+  }
+
+  function listOptions(els, opts) {
+    var str = '/*jshint ';
+
+    for (var name in opts) {
+      if (opts.hasOwnProperty(name)) {
+        str += name + ':' + opts[name] + ', ';
+      }
+    }
+
+    str = str.slice(0, str.length - 2);
+    str += ' */';
+    els.append(str);
+  }
+
+
+  function reportFailure(report) {
+    var errors = $('<div>');
+    var item;
+
+    errors[0].innerHTML = '';
+    for (var i = 0, err; err = report.errors[i]; i++) {
+      errors.append(_('<li><p>' + templates.error + '</p></li>', {
+        line: err.line,
+        code: err.evidence ? escapeHTML(err.evidence) : '',
+        msg:  err.reason
+      }));
+   
+      //$('a[data-line="' + err.line + '"]').bind('click', function (ev) {
+        //var line = $(ev.target).attr('data-line') - 1;
+        //var str  = myCodeMirror.getLine(line);
+
+        //myCodeMirror.setSelection({ line: line, ch: 0 }, { line: line, ch: str.length });
+        ////scrollTo(0, 0);
+      //});
+    }
+    console.log(errors);
+    $('#small-console').append(errors);
+    //listOptions($('div.report > div.error > div.options pre'), report.options);
+    //$('div.editorArea div.alert-message.error').show();
+    //$('div.report > div.error').show();
+  }
+
+function reportSuccess(report) {
+  $('div.editorArea div.alert-message.success').show();
+}
+
 var layout = function() {
 	// layout
-	_height = document.documentElement.clientHeight - $(".navbar").height();
+	_height = document.documentElement.clientHeight - $(".navbar").height() - $("#small-console").height();
 	$("#editor-area").height(_height);
 	$("#left-items").height(_height);
+	$("#right-items").height(_height);
 	$("#editor-area").css('left', $("#left-items").position().left + $("#left-items").width());
-	$("#right-items").css('left', $("#editor-area").position().left + $("#editor-area").width());
-	$("#comment").css('left', $("#editor-area").position().left + $("#editor-area").width());
-	_height = $("#tabs").height() - $(".ui-tabs-nav").height() - 10;
-	//$("body").width(parseInt($("#left-items").css('margin-left'), 10) +  parseInt($("#right-items").css('margin-left'), 10) + $("#right-items").position().left + $("#right-items").width());
-	//$(".container-fluid").width(parseInt($("#left-items").css('margin-left'), 10) +  parseInt($("#right-items").css('margin-left'), 10) + $("#right-items").position().left + $("#right-items").width());
-	$(".CodeMirror-scroll").css("height", _height);
+	$("#right-items").css('left', $("#left-items").width() + $("#editor-area").width());
+	_height = $(".tabbable").height() - $("#doc-tab").height() - parseInt($("#doc-tab").css('margin-bottom'), 10);
+  $(".tab-content").height(_height);
 	myCodeMirror.refresh();
 };
 
@@ -150,4 +216,27 @@ $(document).ready(function() {
 	$("a[data-action=editor-format-selected-code]").click(function(){
 		autoFormatSelection();
 	});
+
+  $("a[data-action=editor-console]").click(function(){
+    if($(this).attr('href') === '#show' ){
+      $("#small-console").css({ bottom: 180});
+      $(this).attr('href', '#hide');
+      $("#small-console a i").attr('class', 'icon-chevron-down icon-white pull-right');
+      _div = $("<div>");
+      _div.css({display: 'block', position: 'relative', height: 180, top: 20,
+               'overflow-y': 'auto',
+                '-webkit-transition': 'all .5s ease',
+                margin: '0 15px 0 15px',
+               'background': '-webkit-gradient(linear, 0% 0%, 0% 100%, from(#666666), to(#666666), color-stop(.6,#333))', 
+               opacity: 0.8});
+      $("#small-console").append(_div);
+      $(_div).toggleClass("small-console-animated");
+      $("#small-console").toggleClass("small-console-animated");
+    } else {
+      $("#small-console").css({ bottom: 0});
+      $(this).attr('href', '#show');
+      $("#small-console div").remove();
+      $("#small-console a i").attr('class', 'icon-chevron-up icon-white pull-right');
+    }
+  });
 });

@@ -20,34 +20,9 @@
     // Find the token at the cursor
     var cur = editor.getCursor(), token = getToken(editor, cur), tprop = token;
 
-    // If it's not a 'word-style' token, ignore the token.
-		//if (!/^[\w$_]*$/.test(token.string)) {
-      //token = tprop = {start: cur.ch, end: cur.ch, string: "", state: token.state,
-                       //className: token.string == "." ? "property" : null};
-    //}
-    // If it is a property, find out what it is a property of.
-    //while (tprop.className == "property") {
-      //tprop = getToken(editor, {line: cur.line, ch: tprop.start});
-      //if (tprop.string != ".") return;
-      //tprop = getToken(editor, {line: cur.line, ch: tprop.start});
-      //if (tprop.string == ')') {
-        //var level = 1;
-        //do {
-          //tprop = getToken(editor, {line: cur.line, ch: tprop.start});
-          //switch (tprop.string) {
-          //case ')': level++; break;
-          //case '(': level--; break;
-          //default: break;
-          //}
-        //} while (level > 0)
-        //tprop = getToken(editor, {line: cur.line, ch: tprop.start});
-				//if (tprop.className == 'variable')
-					//tprop.className = 'function';
-				//else return; // no clue
-      //}
-      if (!context) var context = [];
-      context.push(tprop);
-    //}
+    if (!context) var context = [];
+    context.push(tprop);
+
     if (/^<.*/.test(token.string)) {
       token.start = token.start + 1;
     }
@@ -104,36 +79,7 @@
       else if (obj instanceof Function) forEach(funcProps, maybeAdd);
       for (var name in obj) maybeAdd(name);
     }
-
-    //if (context) {
-      // If this is a property, see if it belongs to some object we can
-      // find in the current environment.
-      //var obj = context.pop(), base;
-      //if (obj.className == "variable")
-        //base = window[obj.string];
-      //else if (obj.className == "string")
-        //base = "";
-      //else if (obj.className == "atom")
-        //base = 1;
-      //else if (obj.className == "function") {
-        //if (window.jQuery != null && (obj.string == '$' || obj.string == 'jQuery') &&
-            //(typeof window.jQuery == 'function'))
-          //base = window.jQuery();
-        //else if (window._ != null && (obj.string == '_') && (typeof window._ == 'function'))
-          //base = window._();
-      //}
-      //while (base != null && context.length)
-        //base = base[context.pop().string];
-      //if (base != null) gatherCompletions(base);
-    //}
-    //else {
-      // If not, just look in the window object and any local scope
-      // (reading into JS mode internals to get at the local variables)
-      //for (var v = token.state.localVars; v; v = v.next) maybeAdd(v.name);
-      //gatherCompletions(window);
-      forEach(keywords, maybeAdd);
-    //}
-
+    forEach(keywords, maybeAdd);
     return found;
   }
 })();
