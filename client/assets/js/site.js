@@ -12,10 +12,15 @@ var randomDocName = function(length) {
 };
 
   var templates = {
-    error: '<a data-line="%(line)s" href="javascript:void(0)">Line %(line)s</a>: ' +
-           '<code>%(code)s</code></p><p>%(msg)s'
+    error: '<a style="text-decoration:none;" data-line="%(line)s" href="javascript:void(0)">Line %(line)s, Character %(character)s</a>: ' +
+           '<code>%(code)s</code><p style="color: #b94a48">%(msg)s</p>'
   };
 
+  var jsHintMessage = {
+  	errorMessage : '<p style="color:#E62E00; text-align=center;">JSHint has found %(errorNums)s potential problems in your code.</p>',
+  	successMessage : '<p style="color:#009933; text-align=center;">Good job! JSHint hasn\'t found any problems with your code.</p>', 
+  	
+  };
 function _(string, context) {
     return string.replace(/%\(\w+\)s/g, function (match) {
       return context[match.slice(2, -2)];
@@ -48,35 +53,55 @@ function _(string, context) {
   }
 
 
-  function reportFailure(report) {
-    var errors = $('<div>');
+  function reportFailure(report) {    
+  	$("#small-console div").remove();
+    var errors = $("<div>");
+    errors.css({display: 'block', position: 'relative',
+               'overflow-y': 'scroll',
+                '-webkit-transition': 'all .5s ease',                                
+                'background': '-webkit-linear-gradient(top, rgba(242,242,242,1) 0%,rgba(193,193,189,1) 100%)',
+                'padding-left': '25px',   
+                'padding-top': '5px',               
+               opacity: 0.95});      
     var item;
 
     errors[0].innerHTML = '';
+    errors.append(_(jsHintMessage.errorMessage, {errorNums: report.errors.length}));
     for (var i = 0, err; err = report.errors[i]; i++) {
-      errors.append(_('<li><p>' + templates.error + '</p></li>', {
+      errors.append(_('<li><p>' + templates.error + '</p></li>', {      
         line: err.line,
-        code: err.evidence ? escapeHTML(err.evidence) : '',
+        character: err.character,
+        code: $.trim(err.evidence) ? $.trim(escapeHTML(err.evidence)) : '',
         msg:  err.reason
       }));
    
-      //$('a[data-line="' + err.line + '"]').bind('click', function (ev) {
-        //var line = $(ev.target).attr('data-line') - 1;
-        //var str  = myCodeMirror.getLine(line);
+      $('a[data-line=' + err.line + ']').bind('click', function (ev) {
+        var line = $(this).attr('data-line') - 1;
+        var str  = myCodeMirror.getLine(line);
 
-        //myCodeMirror.setSelection({ line: line, ch: 0 }, { line: line, ch: str.length });
-        ////scrollTo(0, 0);
-      //});
+        myCodeMirror.setSelection({line:line, ch:0}, {line:line, ch:str.length});
+        //scrollTo(0, 0);
+      });
     }
-    console.log(errors);
-    $('#small-console').append(errors);
+    $("#small-console").append(errors);
+      $(errors).toggleClass("small-console-animated");
     //listOptions($('div.report > div.error > div.options pre'), report.options);
     //$('div.editorArea div.alert-message.error').show();
     //$('div.report > div.error').show();
   }
 
 function reportSuccess(report) {
-  $('div.editorArea div.alert-message.success').show();
+  $("#small-console div").remove();
+    var success = $("<div>");
+    success.css({display: 'block', position: 'relative',
+               'overflow-y': 'scroll',
+                '-webkit-transition': 'all .5s ease',                                
+                'background': '-webkit-linear-gradient(top, rgba(242,242,242,1) 0%,rgba(193,193,189,1) 100%)',
+                'padding-left': '25px',                  
+               opacity: 0.95});    
+   success.append(_(jsHintMessage.successMessage)); 
+   $("#small-console").append(success);
+   $(success).toggleClass("small-console-animated");
 }
 
 var layout = function() {
@@ -134,7 +159,7 @@ $(document).ready(function() {
 		}
 	};
 	var myCodeMirror = CodeMirror.fromTextArea(elem, {
-		mode : "text/html",
+		mode : "javascript",
 		lineNumbers : true,
 		lineWrapping : true,
 		extraKeys : {
@@ -217,26 +242,32 @@ $(document).ready(function() {
 		autoFormatSelection();
 	});
 
-  $("a[data-action=editor-console]").click(function(){
-    if($(this).attr('href') === '#show' ){
-      $("#small-console").css({ bottom: 180});
-      $(this).attr('href', '#hide');
-      $("#small-console a i").attr('class', 'icon-chevron-down icon-white pull-right');
-      _div = $("<div>");
-      _div.css({display: 'block', position: 'relative', height: 180, top: 20,
-               'overflow-y': 'auto',
-                '-webkit-transition': 'all .5s ease',
-                margin: '0 15px 0 15px',
-               'background': '-webkit-gradient(linear, 0% 0%, 0% 100%, from(#666666), to(#666666), color-stop(.6,#333))', 
-               opacity: 0.8});
-      $("#small-console").append(_div);
-      $(_div).toggleClass("small-console-animated");
-      $("#small-console").toggleClass("small-console-animated");
-    } else {
-      $("#small-console").css({ bottom: 0});
-      $(this).attr('href', '#show');
-      $("#small-console div").remove();
-      $("#small-console a i").attr('class', 'icon-chevron-up icon-white pull-right');
+	$("a[data-action=editor-check-quality]").click(function(){				
+		var options = {"debug":true,"forin":true,"eqnull":true,"noarg":true,"noempty":true,"eqeqeq":true,"boss":true,"loopfunc":true,"evil":true,"laxbreak":true,"bitwise":true,"strict":true,"undef":true,"curly":true,"nonew":true,"browser":true,"devel":false,"jquery":true,"es5":false,"node":false};
+		JSHINT(myCodeMirror.getValue(), options) ? reportSuccess(JSHINT.data()) : reportFailure(JSHINT.data());
+		showConsole($("#small-console a"));						
+	});
+	
+	function showConsole(consoleToggle){
+		$("#small-console").css({ bottom: 180});
+      	$(consoleToggle).attr('href', '#hide');
+      	$("#small-console a i").attr('class', 'icon-chevron-down icon-white pull-right');	      
+     	$("#small-console div").css({height: 180, top: 20});
+     	$("#small-console div").css("display","block");
+     	$("#small-console").toggleClass("small-console-animated");	 
+ 	}
+ 	    	
+    function hideConsole(consoleToggle){
+      	$("#small-console").css({ bottom: 0});
+      	$(consoleToggle).attr('href', '#show');      
+      	//$("#small-console div").css("display","none");
+      	$("#small-console a i").attr('class', 'icon-chevron-up icon-white pull-right');      	   	 
     }
+
+  $("a[data-action=editor-console]").click(function(){
+  	if($(this).attr('href') === '#show' )
+  		showConsole($("#small-console a"));
+	else
+		hideConsole($("#small-console a"));	  			    
   });
 });

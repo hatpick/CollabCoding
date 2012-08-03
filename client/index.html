@@ -35,7 +35,7 @@
     <script type="text/javascript" src="/share/textarea.js"></script> 
     <script type="text/javascript" src="assets/js/site.js"></script>
   </head>
-  <body>
+  <body style="overflow:hidden">
     <div class="container-fluid">
     <!-- Info Bar -->
     <div class="navbar">
@@ -98,7 +98,7 @@
                     <li><a href="#" data-action="editor-uncomment-selected">Uncomment Selected</a></li>
                     <li><a href="#" data-action="editor-format-selected-code"><i class="icon-th-list"></i>Format</a></li>
                     <li class="divider"></li>
-                    <li><a href="#"><i class="icon-question-sign"></i>Check Quality</a></li>
+                    <li><a href="#" data-action="editor-check-quality"><i class="icon-question-sign"></i>Check Quality</a></li>
                     <li class="divider"></li>
                     <li><a href="#" data-action="editor-share-code"><i class="icon-share"></i>Share</a></li>
                   </ul>
@@ -186,7 +186,7 @@
         </div>
         <div class="splitter">
         </div>
-        <div class="span8" id="editor-area">
+        <div class="span8" id="editor-area">        	
           <div class="tabbable"> 
             <ul id="doc-tab" class="nav nav-tabs">
               <li>
@@ -195,7 +195,7 @@
               <li style="cursor: pointer;">
                 <a href="#new">+</a>
               </li>
-            </ul>
+            </ul>                                    
             <div class="tab-content">
               <textarea id="editor" disabled></textarea>
             </div>
