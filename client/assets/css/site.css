@@ -61,18 +61,13 @@ a img {
 
 .CodeMirror {
   height: 100%;
-<<<<<<< HEAD
-  background-color: #F7F7F7;
-  font-size: 13px; }
-=======
   font-size: 14px; }
->>>>>>> bf17959dcfb40d028072a096c57cb20bf9d8bc51
 
 .CodeMirror-wrap {
   height: 100%; }
 
 .CodeMirror-gutter {
-  font-size: 13px; }
+  font-size: 14px; }
 
 #shareDoc {
   background: transparent;
