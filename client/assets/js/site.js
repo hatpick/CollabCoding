@@ -257,18 +257,35 @@ $(document).ready(function() {
 	}
 	
 	function commentSelection(isComment) {
-		if(myCodeMirror.somethingSelected()){				
-			var range = getSelectedRange();
-			myCodeMirror.commentRange(isComment, range.from, range.to);
+		if(myCodeMirror.somethingSelected()){
+			if(isComment){
+				var range = getSelectedRange();
+				myCodeMirror.commentRange(isComment, range.from, range.to);					
+			}	
+			else{
+				var selectedText = myCodeMirror.getSelection();
+				//html, js comment block
+				if((/<!--[\s\S]*?-->/g).test(myCodeMirror.getSelection()) || (/\/\*([\s\S]*?)\*\//g).test(myCodeMirror.getSelection())){
+					var range = getSelectedRange();
+					myCodeMirror.commentRange(false, range.from, range.to);	
+				}		
+				else {
+					var uncomment_error = $("#small-console div");
+					uncomment_error[0].innerHTML = '';
+					uncomment_error.append(_(editorMessage.errorMessage, {message: "Selected text is not a comment to be uncommented. Please select a commented text block to uncomment."}));										
+					$("#small-console").toggleClass("small-console-animated");
+					showConsole($("a[data-action=editor-console-toggle]"));						
+				}		
+			}			
+			
 		}
 		else {			
 			var comment_error = $("#small-console div");
 			comment_error[0].innerHTML = '';
 			isComment?comment_error.append(_(editorMessage.errorMessage, {message: "Please select uncommented text you want to comment."}))
-			:comment_error.append(_(editorMessage.errorMessage, {message: "Please select commented text you want to uncomment."}));
-			$("#small-console").append(comment_error);
+			:comment_error.append(_(editorMessage.errorMessage, {message: "Please select commented text you want to uncomment."}));			
 			$("#small-console").toggleClass("small-console-animated");
-			showConsole($("#small-console a"));
+			showConsole($("a[data-action=editor-console-toggle]"));
 		}
 	}
 	
