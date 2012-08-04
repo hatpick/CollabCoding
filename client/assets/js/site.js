@@ -16,9 +16,9 @@ var randomDocName = function(length) {
            '<code>%(code)s</code><p style="color: #b94a48">%(msg)s</p>'
   };
 
-  var jsHintMessage = {
-  	errorMessage : '<p style="color:#E62E00; text-align=center;">JSHint has found %(errorNums)s potential problems in your code.</p>',
-  	successMessage : '<p style="color:#009933; text-align=center;">Good job! JSHint hasn\'t found any problems with your code.</p>', 
+  var editorMessage = {
+  	errorMessage : '<p style="color:#E62E00; text-align=center;">%(message)s</p>',
+  	successMessage : '<p style="color:#009933; text-align=center;">%(message)s</p>', 
   	
   };
 function _(string, context) {
@@ -58,7 +58,7 @@ function reportFailure(report) {
   var item;
 
   errors[0].innerHTML = '';
-  errors.append(_(jsHintMessage.errorMessage, {errorNums: report.errors.length}));
+  errors.append(_(editorMessage.errorMessage, {message: "JSHint has found " + report.errors.length + " potential problems in your code."}));
   for (var i = 0, err; err = report.errors[i]; i++) {
     errors.append(_('<li><p>' + templates.error + '</p></li>', {      
       line: err.line,
@@ -76,15 +76,15 @@ function reportFailure(report) {
     });
   }
   $("#small-console").append(errors);
-    $(errors).toggleClass("small-console-animated");
+    $("#small-console").toggleClass("small-console-animated");
 } 
 
 function reportSuccess(report) {  
     var success = $("#small-console div");
     success[0].innerHTML = '';
-   success.append(_(jsHintMessage.successMessage)); 
+   success.append(_(editorMessage.successMessage, {message: "Good job! JSHint hasn\'t found any problems with your code."})); 
    $("#small-console").append(success);
-   $(success).toggleClass("small-console-animated");
+   $("#small-console").toggleClass("small-console-animated");
 }
     
 $.fn.usedWidth = function() {
@@ -246,14 +246,30 @@ $(document).ready(function() {
 		};
 	}
 	
-	function autoFormatSelection() {
-		var range = getSelectedRange();
-		myCodeMirror.autoFormatRange(range.from, range.to);
+	function autoFormatCode() {
+		if(!myCodeMirror.somethingSelected()) {				
+			var lineCount = myCodeMirror.lineCount();
+			var lastLineLength = myCodeMirror.getLine(lineCount-1).length;
+			myCodeMirror.setSelection({line:0,ch:0},{line:lineCount,ch:lastLineLength});
+		}
+			var range = getSelectedRange();
+			myCodeMirror.autoFormatRange(range.from, range.to);		
 	}
 	
 	function commentSelection(isComment) {
-		var range = getSelectedRange();
-		myCodeMirror.commentRange(isComment, range.from, range.to);
+		if(myCodeMirror.somethingSelected()){				
+			var range = getSelectedRange();
+			myCodeMirror.commentRange(isComment, range.from, range.to);
+		}
+		else {			
+			var comment_error = $("#small-console div");
+			comment_error[0].innerHTML = '';
+			isComment?comment_error.append(_(editorMessage.errorMessage, {message: "Please select uncommented text you want to comment."}))
+			:comment_error.append(_(editorMessage.errorMessage, {message: "Please select commented text you want to uncomment."}));
+			$("#small-console").append(comment_error);
+			$("#small-console").toggleClass("small-console-animated");
+			showConsole($("#small-console a"));
+		}
 	}
 	
 	window.myCodeMirror = myCodeMirror;
@@ -284,7 +300,7 @@ $(document).ready(function() {
 		$("#dialog").html(dialogContent);
 		$("#dialog").dialog({
 			show : "blind",
-			hide : "explode",
+			hide : "blind",
 			position : "top",
 			modal : true
 		});
@@ -305,14 +321,14 @@ $(document).ready(function() {
 	});
 	
 	$("a[data-action=editor-format-selected-code]").click(function(){
-		autoFormatSelection();
+		autoFormatCode();
 	});
 
 	$("a[data-action=editor-check-quality]").click(function(){				
 		checkQuality();						
 	});
 	
-	$("#small-console a i").tooltip({
+	$("a[data-action=editor-console-toggle]").tooltip({
     	title: 'Show Console',
     	placement: 'left'
   	});
@@ -320,32 +336,44 @@ $(document).ready(function() {
 	function showConsole(consoleToggle){
 		$("#small-console").css({bottom: 180,height: 200});
       	$(consoleToggle).attr('href', '#hide');
-      	$("#small-console a i").data('tooltip')['options'].title = 'Hide Console';
-      	$("#small-console a i").attr('class', 'icon-chevron-down icon-white pull-right');
+      	$("a[data-action=editor-console-toggle]").data('tooltip')['options'].title = 'Hide Console';
+      	$("a[data-action=editor-console-toggle] i").attr('class', 'icon-chevron-down icon-white pull-right');
       	var _div = $("#small-console div").css({display: 'block', position: 'relative',
                'overflow-y': 'scroll',
                 '-webkit-transition': 'all .5s ease',                                
                 'background': '-webkit-linear-gradient(top, rgba(242,242,242,1) 0%,rgba(193,193,189,1) 100%)',
                 'padding-left': '25px',   
                 'padding-top': '5px',  
-                'margin-left': '20px',    
+                'margin-left': '25px', 
+                'margin-right':'-20px',   
                 height: 180, top: 20,         
-               opacity: 0.85});
-       $("#small-console").append(_div);	           	
+               opacity: 0.85});                	
      	$("#small-console").toggleClass("small-console-animated");	 
  	}
  	    	
     function hideConsole(consoleToggle){
-    	$("#small-console a i").data('tooltip')['options'].title = 'Show Console';
+    	$("a[data-action=editor-console-toggle]").data('tooltip')['options'].title = 'Show Console';
       	$("#small-console").css({ bottom: 0});
       	$(consoleToggle).attr('href', '#show');            	
-      	$("#small-console a i").attr('class', 'icon-chevron-up icon-white pull-right');      	   	 
+      	$("a[data-action=editor-console-toggle] i").attr('class', 'icon-chevron-up icon-white pull-right');      	   	 
     }
 
-  $("a[data-action=editor-console]").click(function(){
+  $("a[data-action=editor-console-toggle]").click(function(){
   	if($(this).attr('href') === '#show' )
-  		showConsole($("#small-console a"));
+  		showConsole($(this));
 	else
-		hideConsole($("#small-console a"));	  			    
+		hideConsole($(this));	  			    
   });
+  
+  $("a[data-action=editor-console-clean]").tooltip({
+    	title: 'Clean Console',
+    	placement: 'left'
+  	});
+ 
+  $("a[data-action=editor-console-clean]").click(function(){
+  	var consoleDiv = $("#small-console div");
+  	if(consoleDiv[0].innerHTML !== "")
+  		consoleDiv[0].innerHTML = "";
+  });
+  
 });
