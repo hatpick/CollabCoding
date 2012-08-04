@@ -19,15 +19,21 @@ div {
 .left-splitter {
   width: 5px;
   float: left;
-  left: 207px;
+  left: 207px;  
   background-color: #B2B2B2; }
 
 .left-splitter-collapse-button {
   position: relative;
   cursor: pointer;
-  width: 5px;
+  width: 7px;
+  left:-1px;
   height: 30px;
-  background-color: #1A1A1A; }
+  background-color: #666666; 
+  }
+    
+  .left-splitter-collapse-button:hover {
+  	 background-color: #1A1A1A;  	   	 
+  }  
 
 .right-splitter {
   position: absolute;
@@ -38,9 +44,14 @@ div {
 .right-splitter-collapse-button {
   position: relative;
   cursor: pointer;
-  width: 5px;
+  width: 7px;
   height: 30px;
-  background-color: #1A1A1A; }
+  left:-1px;
+  background-color: #666666; }
+  
+  .right-splitter-collapse-button:hover {
+  	 background-color: #1A1A1A;
+  }
 
 .small-console-animated {
   height: 200px; }
@@ -93,8 +104,8 @@ a img {
 
 #editor-area {
   position: absolute;
-  margin-left: 1px;
-  margin-right: 5px;
+  margin-left: 5px;
+  margin-right: 5px;  
   min-width: 500px; }
   #editor-area .tab-content {
     border: 1px solid #D1D1D1; }

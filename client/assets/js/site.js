@@ -93,7 +93,7 @@ $.fn.usedWidth = function() {
 
 // layout    
 var layout = function() {
-	_height = document.documentElement.clientHeight - $(".navbar").height() - $("#small-console").height();
+	_height = document.documentElement.clientHeight - $(".navbar").height() - 20; //Size of console when it's closed.
 	$("#editor-area").height(_height);
 	$("#left-items").height(_height);      
 	$(".left-splitter").height(_height);     
@@ -102,24 +102,26 @@ var layout = function() {
 	$(".right-splitter-collapse-button").css("margin-top", _height / 2);
 	$("#right-items").height(_height);                                                              
 	$("#editor-area").css('left', 	$(".left-splitter").position().left + $(".left-splitter").usedWidth());  
-	$("#editor-area").css('width', document.documentElement.clientWidth - 300 - $("#left-items").usedWidth() - $(".left-splitter").usedWidth() - $(".right-splitter").usedWidth());
+	$("#editor-area").css('width', document.documentElement.clientWidth - ($("#right-items").is(':visible') ? 300 : 10 ) - ($("#left-items").is(':visible') ? $("#left-items").usedWidth() : 0)
+	 - $(".left-splitter").usedWidth() - $(".right-splitter").usedWidth());
   if ($("#left-items").is(':visible')) {
      if ($("#right-items").is(':visible')) {   
           $("#right-items").css('left', $("#left-items").usedWidth() + $('.left-splitter').usedWidth() + $("#editor-area").usedWidth() + $(".right-splitter").usedWidth());  
        $('.right-splitter').css('left', $("#left-items").usedWidth() + $('.left-splitter').usedWidth() + $("#editor-area").usedWidth());    
        $("#right-items").css('width', 300); 
      } else {
-       // $('.right-splitter').css('left', $("#left-items").usedWidth() + $('.left-splitter').usedWidth() + $("#editor-area").usedWidth());    
+       //$('.right-splitter').css('left', $("#left-items").usedWidth() + $('.left-splitter').usedWidth() + $("#editor-area").usedWidth());    
      }
   }  else{          
      if ($("#right-items").is(':visible')) {  
        $("#right-items").css('left', $('.left-splitter').usedWidth() + $("#editor-area").usedWidth() + $(".right-splitter").usedWidth());   
      } else {
-       $('.right-splitter').css('left', $('.left-splitter').usedWidth() + $("#editor-area").usedWidth()); 
+       $('.right-splitter').css('left', $('.left-splitter').usedWidth() + $("#editor-area").usedWidth() + 4); 
      }   
   }
   _height = $("#editor-area").height() - $("#doc-tab").height() - parseInt($("#doc-tab").css('margin-bottom'), 10);
-  $(".tab-content").height(_height);
+  $(".tab-content").height(_height);  
+  
 	myCodeMirror.refresh();
 };
 
@@ -156,19 +158,18 @@ $(document).ready(function() {
   });                           
 
   $(".right-splitter-collapse-button").tooltip({
-    title: 'Hide'
+    title: 'Hide Comments'
   });                           
 
-  
   $(".left-splitter-collapse-button").click(function() {
     if ($(this).attr('data-action') === '#hide') {
       $("#left-items").hide();                    
-      $(this).attr('data-action', '#show');
+      $(this).attr('data-action', '#show').css('left','0px');
       $(".left-splitter-collapse-button").data('tooltip')['options'].title = 'Show'; 
       $(".left-splitter-collapse-button").data('tooltip')['options'].placement = 'right';
     } else {
       $("#left-items").show();      
-      $(this).attr('data-action', '#hide');
+      $(this).attr('data-action', '#hide').css('left','-1px');;
       $(".left-splitter-collapse-button").data('tooltip')['options'].title = 'Hide';  
       $(".left-splitter-collapse-button").data('tooltip')['options'].placement = 'top';
     }
@@ -183,15 +184,15 @@ $(document).ready(function() {
   $(".right-splitter-collapse-button").click(function() {
     if ($(this).attr('data-action') === '#hide') {
       $("#right-items").hide();                    
-      $(this).attr('data-action', '#show');
-      $(".right-splitter-collapse-button").data('tooltip')['options'].title = 'Show'; 
+      $(this).attr('data-action', '#show').css('left','-2px');;
+      $(".right-splitter-collapse-button").data('tooltip')['options'].title = 'Show Comments'; 
       $(".right-splitter-collapse-button").data('tooltip')['options'].placement = 'left';
       $(".right-splitter").css('left', document.documentElement.clientWidth -  $(".right-splitter").usedWidth());
       $("#editor-area").css( 'width', $("#editor-area").width() + $("#right-items").usedWidth() - 10);
     } else {
       $("#right-items").show();      
-      $(this).attr('data-action', '#hide');
-      $(".right-splitter-collapse-button").data('tooltip')['options'].title = 'Hide';
+      $(this).attr('data-action', '#hide').css('left','-1px');;
+      $(".right-splitter-collapse-button").data('tooltip')['options'].title = 'Hide Comments';
       $(".right-splitter-collapse-button").data('tooltip')['options'].placement = 'top';  
       $("#editor-area").css( 'width', $("#editor-area").width() - $("#right-items").width() + 10);
       $('.right-splitter').css('left', ($("#left-items").is(':visible') ? $("#left-items").usedWidth() : 0 ) + $('.left-splitter').usedWidth() + $("#editor-area").usedWidth());
@@ -311,9 +312,15 @@ $(document).ready(function() {
 		checkQuality();						
 	});
 	
+	$("#small-console a i").tooltip({
+    	title: 'Show Console',
+    	placement: 'left'
+  	});
+	
 	function showConsole(consoleToggle){
 		$("#small-console").css({bottom: 180,height: 200});
       	$(consoleToggle).attr('href', '#hide');
+      	$("#small-console a i").data('tooltip')['options'].title = 'Hide Console';
       	$("#small-console a i").attr('class', 'icon-chevron-down icon-white pull-right');
       	var _div = $("#small-console div").css({display: 'block', position: 'relative',
                'overflow-y': 'scroll',
@@ -329,6 +336,7 @@ $(document).ready(function() {
  	}
  	    	
     function hideConsole(consoleToggle){
+    	$("#small-console a i").data('tooltip')['options'].title = 'Show Console';
       	$("#small-console").css({ bottom: 0});
       	$(consoleToggle).attr('href', '#show');            	
       	$("#small-console a i").attr('class', 'icon-chevron-up icon-white pull-right');      	   	 
