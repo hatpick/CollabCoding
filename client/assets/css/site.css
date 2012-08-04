@@ -42,13 +42,13 @@ a img {
 .CodeMirror {
   height: 100%;
   background-color: #F7F7F7;
-  font-size: 14px; }
+  font-size: 13px; }
 
 .CodeMirror-wrap {
   height: 100%; }
 
 .CodeMirror-gutter {
-  font-size: 14px; }
+  font-size: 13px; }
 
 #shareDoc {
   background: transparent;

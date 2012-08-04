@@ -145,7 +145,7 @@ $(document).ready(function() {
 		}
 	};
 	var myCodeMirror = CodeMirror.fromTextArea(elem, {
-		mode : "javascript",
+		mode : "text/html",
 		lineNumbers : true,
 		lineWrapping : true,
 		extraKeys : {
