@@ -32,7 +32,7 @@
     <script type="text/javascript" charset="utf-8" src="assets/js/codemirror/mode/htmlmixed/htmlmixed.js"></script>
     <script type="text/javascript" src="/channel/bcsocket.js"></script>
     <script type="text/javascript" src="/share/share.js"></script>
-    <script type="text/javascript" src="/share/textarea.js"></script> 
+    <script type="text/javascript" src="/share/cm.js"></script>  
     <script type="text/javascript" src="assets/js/site.js"></script>
   </head>
   <body style="overflow:hidden">
@@ -41,73 +41,78 @@
     <div class="navbar">
       <div class="navbar-inner">
         <div class="container">
-          <a class="brand" href="#" muse_scanned="true"><img src="assets/img/osu_logo.png" /></a>
+          <a class="brand" href="JavaScript:void(0);" muse_scanned="true"><img src="assets/img/osu_logo.png" /></a>
            <div id="dialog" style="display:none"></div>
-            <div class="nav-collapse">
+            <div>
              <ul class="nav">
                 <li class="dropdown" id="menuFile">
-                  <a class="dropdown-toggle" data-toggle="dropdown" href="#menuFile">File<b class="caret"></b></a>
+                  <a class="dropdown-toggle" data-toggle="dropdown" href="JavaScript:void(0);">File<b class="caret"></b></a>
                   <ul class="dropdown-menu">
                     <li>
-                    <li><a href="#" href="#menuFile" data-action="editor-new-file"><i class="icon-file"></i>New</a></li></li>
-                    <li><a href="#" data-action="editor-open-project"><i class="icon-list-alt"></i>Open Project</a></li>
-                    <li><a href="#">Open File...</a></li>
+                      <a href="JavaScript:void(0);">New</a>
+                      <ul class="dropdown-menu sub-menu">
+                        <li><a href="JavaScript:void(0);" data-action="editor-new-file"><i class="icon-file"></i>New File</a></li>
+                        <li><a href="JavaScript:void(0);" data-action="editor-new-project">New Project</a></li>
+                      </ul>
+                    </li>
+                    <li><a href="JavaScript:void(0);" data-action="editor-open-project"><i class="icon-list-alt"></i>Open Project</a></li>
+                    <li><a href="JavaScript:void(0);">Open File...</a></li>
                     <li class="divider"></li>
-                    <li><a href="#" data-action="editor-close-document"></i>Close</a></li>
-                    <li><a href="#" data-action="editor-closeall-documents">Close All</a></li>
+                    <li><a href="JavaScript:void(0);" data-action="editor-close-document"></i>Close</a></li>
+                    <li><a href="JavaScript:void(0);" data-action="editor-closeall-documents">Close All</a></li>
                     <li class="divider"></li>
-                    <li><a href="#" data-action="editor-save-document">Save</a></li>
-                    <li><a href="#" data-action="editor-saveas-document">Save As...</a></li>
-                    <li><a href="#" data-action="editor-saveall-documents">Save All</a></li>
+                    <li><a href="JavaScript:void(0);" data-action="editor-save-document">Save</a></li>
+                    <li><a href="JavaScript:void(0);" data-action="editor-saveas-document">Save As...</a></li>
+                    <li><a href="JavaScript:void(0);" data-action="editor-saveall-documents">Save All</a></li>
                     <li class="divider"></li>
-                    <li><a  href="#" data-action="editor-exit">Exit</a></li>
+                    <li><a  href="JavaScript:void(0);" data-action="editor-exit">Exit</a></li>
                   </ul>
                 </li>
                 <li class="dropdown" id="menuEdit">
                   <a class="dropdown-toggle" data-toggle="dropdown" href="#menuEidt">Edit<b class="caret"></b></a>
                   <ul class="dropdown-menu">
-                  	<li><a href="#" data-action="editor-cut-selected-code">Cut</a></li>
-                    <li><a href="#" data-action="editor-copy-selected-code">Copy</a></li>
-                    <li><a href="#" data-action="editor-paste-code">Paste</a></li>
+                  	<li><a href="JavaScript:void(0);" data-action="editor-cut-selected-code">Cut</a></li>
+                    <li><a href="JavaScript:void(0);" data-action="editor-copy-selected-code">Copy</a></li>
+                    <li><a href="JavaScript:void(0);" data-action="editor-paste-code">Paste</a></li>
                     <li class="divider"></li>
-                    <li><a href="#" data-action="editor-undo"><i class="icon-arrow-left"></i>Undo</a></li>
-                    <li><a href="#" data-action="editor-redo"><i class="icon-arrow-right"></i>Redo</a></li>
+                    <li><a href="JavaScript:void(0);" data-action="editor-undo"><i class="icon-arrow-left"></i>Undo</a></li>
+                    <li><a href="JavaScript:void(0);" data-action="editor-redo"><i class="icon-arrow-right"></i>Redo</a></li>
                     <li class="divider"></li>
-                    <li><a href="#" data-action="editor-delete-selected"><i class="icon-remove"></i>Delete</a></li>
-                    <li><a href="#" data-action="editor-select-all">Select All</a></li>
+                    <li><a href="JavaScript:void(0);" data-action="editor-delete-selected"><i class="icon-remove"></i>Delete</a></li>
+                    <li><a href="JavaScript:void(0);" data-action="editor-select-all">Select All</a></li>
                     <li class="divider"></li>
-                    <li><a href="#" data-action="editor-document-refresh"><i class="icon-refresh"></i>Refresh</a></li>
+                    <li><a href="JavaScript:void(0);" data-action="editor-document-refresh"><i class="icon-refresh"></i>Refresh</a></li>
                     <li class="divider"></li>
-                    <li><a href="#" data-action="editor-find-replace"><i class="icon-search"></i>Find/Replace...</a></li>
-                    <li><a href="#" data-action="editor-find-next">Find Next</a></li>
-                    <li><a href="#" data-action="editor-find-previous">Find Previous</a></li>
+                    <li><a href="JavaScript:void(0);" data-action="editor-find-replace"><i class="icon-search"></i>Find/Replace...</a></li>
+                    <li><a href="JavaScript:void(0);" data-action="editor-find-next">Find Next</a></li>
+                    <li><a href="JavaScript:void(0);" data-action="editor-find-previous">Find Previous</a></li>
                   </ul>
                 </li>
                 <li class="dropdown" id="menuView">
                   <a class="dropdown-toggle" data-toggle="dropdown" href="#menuView">View<b class="caret"></b></a>
                   <ul class="dropdown-menu">
-                  	<li><a href="#" data-action="editor-zoom-in"><i class="icon-zoom-in"></i>Zoom In</a></li>
-                    <li><a href="#" data-action="editor-zoom-out"><i class="icon-zoom-out"></i>Zoom Out</a></li>                    
+                  	<li><a href="JavaScript:void(0);" data-action="editor-zoom-in"><i class="icon-zoom-in"></i>Zoom In</a></li>
+                    <li><a href="JavaScript:void(0);" data-action="editor-zoom-out"><i class="icon-zoom-out"></i>Zoom Out</a></li>                    
                   	<li class="divider"></li>
-                  	<li><a href="#" id="editor-enter-fullscreen"><i class="icon-fullscreen"></i>Enter Full Screen</a></li>
+                  	<li><a href="JavaScript:void(0);" id="editor-enter-fullscreen"><i class="icon-fullscreen"></i>Enter Full Screen</a></li>
                   </ul>
                 </li>
                 <li class="dropdown" id="menuCode">
                   <a class="dropdown-toggle" data-toggle="dropdown" href="#menuCode">Code<b class="caret"></b></a>
                   <ul class="dropdown-menu">                    
-                    <li><a href="#" data-action="editor-comment-selected">Comment Selected</a></li>
-                    <li><a href="#" data-action="editor-uncomment-selected">Uncomment Selected</a></li>
-                    <li><a href="#" data-action="editor-format-selected-code"><i class="icon-th-list"></i>Format</a></li>
+                    <li><a href="JavaScript:void(0);" data-action="editor-comment-selected">Comment Selected</a></li>
+                    <li><a href="JavaScript:void(0);" data-action="editor-uncomment-selected">Uncomment Selected</a></li>
+                    <li><a href="JavaScript:void(0);" data-action="editor-format-selected-code"><i class="icon-th-list"></i>Format</a></li>
                     <li class="divider"></li>
-                    <li><a href="#" data-action="editor-check-quality"><i class="icon-question-sign"></i>Check Quality</a></li>
+                    <li><a href="JavaScript:void(0);" data-action="editor-check-quality"><i class="icon-question-sign"></i>Check Quality</a></li>
                     <li class="divider"></li>
-                    <li><a href="#" data-action="editor-share-code"><i class="icon-share"></i>Share</a></li>
+                    <li><a href="JavaScript:void(0);" data-action="editor-share-code"><i class="icon-share"></i>Share</a></li>
                   </ul>
                 </li>
                 <li class="dropdown" id="menuHelp">
                   <a class="dropdown-toggle" data-toggle="dropdown" href="#menuHelp">Help<b class="caret"></b></a>
                   <ul class="dropdown-menu">
-                    <li><a href="#" data-action="editor-show-about"><i class="icon-info-sign"></i>About</a></li>
+                    <li><a href="JavaScript:void(0);" data-action="editor-show-about"><i class="icon-info-sign"></i>About</a></li>
                   </ul>
                 </li>
              </ul>
@@ -119,9 +124,9 @@
                 <i class="icon-user icon-white"></i>Profile<span class="caret"></span>
               </button>
                   <ul class="dropdown-menu">
-                    <li><a href="#">Account</a></li>
+                    <li><a href="JavaScript:void(0);">Account</a></li>
                     <li class="divider"></li>
-                    <li><a href="#">Logout</a></li>
+                    <li><a href="JavaScript:void(0);">Logout</a></li>
                   </ul>
               </div>
             </ul>
@@ -132,55 +137,18 @@
       <div class="row-fluid">
         <div class="span2" id="left-items">
           <div class="tabbable">
-          <ul id="nav-tab" class="nav nav-pills">
-            <li><a href="#project"><i  class="icon-list-alt"></i></a></li>
-            <li><a href="#chat"><i  class="icon-facetime-video"></i></a></li>
-            <li><a href="#editor-settings"><i  class="icon-cog"></i></a></li>            
-            <li><a href="#editor-deploy-project"><i  class="icon-globe"></i></a></li>
-            
-          </ul>
-          <div class="tab-content"> 
+            <ul id="nav-tab" class="nav nav-pills">
+              <li><a href="#project"><i  class="icon-list-alt"></i></a></li>
+              <li><a href="#chat"><i  class="icon-facetime-video"></i></a></li>
+              <li><a href="#editor-settings"><i  class="icon-cog"></i></a></li>            
+              <li><a href="#editor-deploy-project"><i  class="icon-globe"></i></a></li>
+            </ul>  
+            <div class="tab-content"> 
+            <!-- project tree-->
             <div id="project" class="tab-pane">
-              <!--ul id="project-tree" class="filetree">
-                <li>
-                  <span class="folder">Folder 1</span>
-                  <ul>
-                    <li>
-                      <span class="file">Item 1.1</span>
-                    </li>
-                  </ul>
-                </li>
-                <li>
-                  <span class="folder">Folder 2</span>
-                  <ul>
-                    <li>
-                      <span class="folder">Subfolder 2.1</span>
-                      <ul id="folder21">
-                        <li>
-                          <span class="file">File 2.1.1</span>
-                        </li>
-                        <li>
-                          <span class="file">File 2.1.2</span>
-                        </li>
-                      </ul>
-                    </li>
-                    <li>
-                      <span class="file">File 2.2</span>
-                    </li>
-                  </ul>
-                </li>
-                <li class="closed">
-                  <span class="folder">Folder 3 (closed at start)</span>
-                  <ul>
-                    <li>
-                      <span class="file">File 3.1</span>
-                    </li>
-                  </ul>
-                </li>
-                <li>
-                  <span class="file">File 4</span>
-                </li>
-              </ul-->
+              <ul id="browser" class="filetree treeview">
+                
+              </ul>
             </div>
             <div id="chat" class="tab-pane">                               
             </div>
@@ -189,25 +157,23 @@
             <div id="editor-deploy-project" class="tab-pane">            	
             </div>
           </div>
-        </div>
+          </div>
         </div>
         <div class="left-splitter">
           <div class="left-splitter-collapse-button" data-action="#hide" >          	
           </div>
         </div>
         <div class="span8" id="editor-area">        	
-          <div class="tabbable"> 
-            <ul id="doc-tab" class="nav nav-tabs">
-              <li>
-                <a href="#home" data-docId>Home<button class="close">&times;</button></a>
-              </li>
-            </ul>                                    
-            <div class="tab-content">
-              <div  class="tab-pane fade" id="home">
-                <textarea id="editor"disabled>test</textarea>
-              </div>
-            </div>
-          </div>
+          <ul class="breadcrumb">
+            <li>
+              <a href="#">Home</a> <span class="divider">/</span>
+            </li>
+            <li>
+              <a href="#">Library</a> <span class="divider">/</span>
+            </li>
+            <li class="active">Data</li>
+          </ul>
+          <textarea class="tab-pane fade" id="home" disabled>test</textarea>
         </div>
         <div class="right-splitter">
           <div class="right-splitter-collapse-button" data-action="#hide" >
@@ -228,30 +194,18 @@
                   This line should be something else, having a negative value here causes a bug in front-end view.
                 </div>
                 <div style="margin: 4px auto">
-                        <a href="#" class="discussion-command">Edit</a>
-                        <a href="#" class="discussion-command">Delete</a>
-                        <a href="#" class="discussion-command">Reply</a>
-                        <a href="#" class="discussion-command">Resolve</a>
+                        <a href="JavaScript:void(0);" class="discussion-command">Edit</a>
+                        <a href="JavaScript:void(0);" class="discussion-command">Delete</a>
+                        <a href="JavaScript:void(0);" class="discussion-command">Reply</a>
+                        <a href="JavaScript:void(0);" class="discussion-command">Resolve</a>
                 </div>
                 <!--textarea class="discussion-myreply" styl="width:100%"></textarea-->
               </div>
             </div>
           </div>
+        </div>
       </div>
-    </div>
-    <div id="small-console" style="-webkit-box-shadow: 0px -5px 10px #000000; opacity: 0.95">
-      <a href="#show" data-action="editor-console-toggle">
-        <i class="icon-chevron-up icon-white pull-right"></i>
-      </a>
-      <a href="#" data-action="editor-console-clean">
-        <i class="icon-trash icon-white pull-right"></i>
-      </a>
-      <div></div>
-    </div>
-    <!--<div id="big-console">-->
-      <!--<a href="#" data-action="editor-hide-console">-->
-        <!--<i class="icon-chevron-down icon-white pull-right"></i>-->
-      <!--</a>-->
+      <div id="small-console" style="-webkit-box-shadow: 0px -5px 10px #000000; opacity: 0.95">
     </div>
   </body>
 </html>
