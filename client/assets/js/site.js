@@ -403,7 +403,7 @@ $(document).ready(function() {
 
   $("a[data-action=editor-share-code]").click(function() {
     $("#dialog").attr('title', 'Share via this link');
-    var dialogContent = "<table style='width:100%'><tr><td>" + document.location.origin + docName + "</td><tr><td><input id='collaboratorEmail' style='width:100%; margin:5px 0px 5px 0px' type='email' placeholder='Enter a valid email address'></input></td></tr><tr><td align='center'><button role='button' id='shareDocOrig' style='margin:5px 0px 5px 0px' class='ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only'><span class='ui-button-text'>Share</span></button></td></tr></table>";
+    var dialogContent = "<table style='width:100%'><tr><td>" + document.location.origin + docName + "</td><tr><td><input id='collaboratorEmail' style='width:100%; margin:5px 0px 5px 0px' type='email' placeholder='Enter a valid email address'></input></td></tr><tr><td align='center'><button role='button' id='shareDocOrig' style='margin:5px 0px 5px 0px' class='btn btn-inverse'><span class='ui-button-text'>Share</span></button></td></tr></table>";
     $("#dialog").html(dialogContent);
     $("#dialog").dialog({
       show : "blind",
