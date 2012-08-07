@@ -48,7 +48,8 @@
                 <li class="dropdown" id="menuFile">
                   <a class="dropdown-toggle" data-toggle="dropdown" href="#menuFile">File<b class="caret"></b></a>
                   <ul class="dropdown-menu">
-                    <li><a href="#" data-action="editor-new-document"><i class="icon-file"></i>New</a></li>
+                    <li>
+                    <li><a href="#" href="#menuFile" data-action="editor-new-file"><i class="icon-file"></i>New</a></li></li>
                     <li><a href="#" data-action="editor-open-project"><i class="icon-list-alt"></i>Open Project</a></li>
                     <li><a href="#">Open File...</a></li>
                     <li class="divider"></li>
@@ -198,14 +199,13 @@
           <div class="tabbable"> 
             <ul id="doc-tab" class="nav nav-tabs">
               <li>
-                <a href="#editor">Untitled<button class="close">&times;</button> </a>
-              </li>
-              <li style="cursor: pointer;">
-                <a href="#new">+</a>
+                <a href="#home" data-docId>Home<button class="close">&times;</button></a>
               </li>
             </ul>                                    
             <div class="tab-content">
-              <textarea id="editor" disabled></textarea>
+              <div  class="tab-pane fade" id="home">
+                <textarea id="editor"disabled>test</textarea>
+              </div>
             </div>
           </div>
         </div>
@@ -214,14 +214,14 @@
           </div>
         </div>
         <div class="span2" id="right-items" >
-          <div id="comment" style="margin-left: 10px;border: 1px solid #AAA; margin-top:60px;">
+          <div id="comment"> 
             <div  style="background-color: #FFFFFF;">
               <div style="padding: 5px; font-weight: normal">
                 <img src="assets/img/silhouette.png" height="24" width="24" alt="" style="position: absolute">
-                <div style="font-size: 12px; font-weight: bold; margin-left: 32px;">
+                <div id="comment-name">
                   Soroush
                 </div>
-                <div style="margin: 3px 0 0 32px;font-size: 11px;color: #666;">
+                <div id="comment-time">
                   4:55 PM Today
                 </div>
                 <div style="text-align: justify;color: black; margin: auto;font-size: 12px;">
@@ -241,10 +241,10 @@
     </div>
     <div id="small-console" style="-webkit-box-shadow: 0px -5px 10px #000000; opacity: 0.95">
       <a href="#show" data-action="editor-console-toggle">
-        <i class="icon-chevron-up icon-white pull-right"></i>      
+        <i class="icon-chevron-up icon-white pull-right"></i>
       </a>
       <a href="#" data-action="editor-console-clean">
-        <i class="icon-trash icon-white pull-right"></i>      
+        <i class="icon-trash icon-white pull-right"></i>
       </a>
       <div></div>
     </div>
