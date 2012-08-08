@@ -1,0 +1,11 @@
+extends layout
+
+block content  
+  .container   
+    .span4.offset4
+      h2 #{title}
+      p Welcome to #{title} 
+      div.well.form-inline
+        input.input-medium(type='text', name='user[name]', placeholder='User Name')
+        input.input-medium(type='password', name='user[password]', placeholder='Password')
+        a.btn(href='/login', title='View login page') Login
