@@ -5,5 +5,6 @@ exports.index = function(req, res){
 
 exports.login = function(req, res) {
    // TODO
-   res.redirect('index.html');
+   console.log(req.body.user_name);
+   res.redirect('index.html'); 
 };

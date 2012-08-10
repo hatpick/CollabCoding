@@ -5,20 +5,30 @@ var express = require('express')
   , sharejs = require('share').server
   , http = require('http')
   , path = require('path')
-  , exec = require('child_process').exec;
+  , exec = require('child_process').exec
+  , ProjectProvider = require(__dirname + '/models/projectprovider-mongodb').ProjectProvider;
 
 var app = express();
 
 app.configure(function() {  
   app.set('views', __dirname + '/views');
-  app.set('view engine', 'jade');     
-  app.use(app.router);
+  app.set('view engine', 'jade');
+  app.use(express.bodyParser());
+  app.use(express.methodOverride());
+  app.use(app.router); 
+  app.use(require('stylus').middleware({
+    src: __dirname + '/public',
+    compress: true
+  }));
   app.use(express.static(path.join(__dirname, 'public')));
 });
            
 
 app.get('/', routes.index);   
-app.get('/login', routes.login);
+app.post('/login', routes.login); 
+app.post('/index.html', function(req, res){
+  console.log(req);
+});
 
 var options = {db: {type: 'none'}}; // See docs for options. {type: 'redis'} to enable persistance.
 
