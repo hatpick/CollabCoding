@@ -19,6 +19,8 @@
     "share": "*",
     "connect": "~1",
     "express": "3.x",
-    "jade": "*"
+    "jade": "*",
+    "stylus": "*",
+    "mongodb": "*"
   }
 }

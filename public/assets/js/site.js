@@ -313,7 +313,7 @@ $(document).ready(function() {
   });
 
   $("a[data-action=editor-new-project]").click(function() {
-    var dialogContent = '<input type="text" placeholder="Enter project name" width="100%"/>';
+    var dialogContent = '<form aciton="/project/new" method="post"><input type="text" name="title" placeholder="Enter project name" width="100%" required/><input name="_method" value="PUT" type="hidden"/><button class="btn btn-inverse">Create</button></form>';
     $("#dialog").html(dialogContent);
       $("#dialog").dialog({
       show : "blind",
@@ -329,7 +329,7 @@ $(document).ready(function() {
                 '</div>';
               if (!$('#dialog .alert')[0])
                 $("#dialog").append(error_msg);
-            } else {
+            } else {  
               var html_folder = $('<ul>').append($("<li>").append($('<span>').text('html')));
               var css_folder = $('<ul>').append($("<li>").append($('<span>').text('css')));
               var js_folder = $('<ul>').append($("<li>").append($('<span>').text('js')));
@@ -338,7 +338,8 @@ $(document).ready(function() {
               $("#browser").treeview();
               html_folder.find('li span').addClass('folder-html');
               css_folder.find('li span').addClass('folder-css');
-              js_folder.find('li span').addClass('folder-js');
+              js_folder.find('li span').addClass('folder-js');   
+              $()
               $(this).dialog("close");
             }
           }
