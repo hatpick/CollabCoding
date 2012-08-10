@@ -1,0 +1,250 @@
+!!! 5
+html
+  head
+    meta(http-equiv='Content-type', content='text/html; charset=utf-8')
+    title
+      | CollabCoding
+    link(rel='icon', href='assets/img/icon.png')
+    link(rel='stylesheet', href='assets/css/bootstrap.min.css', type='text/css', media='screen', charset='utf-8')
+    link(rel='stylesheet', href='assets/css/smoothness/jquery-ui-1.8.22.custom.css', type='text/css', media='screen', charset='utf-8')
+    link(rel='stylesheet', href='assets/js/codemirror/codemirror.css', type='text/css', media='screen', charset='utf-8')
+    link(rel='stylesheet', href='assets/js/codemirror/util/simple-hint.css', type='text/css', media='screen', charset='utf-8')
+    link(rel='stylesheet', href='assets/js/codemirror/theme/ambiance.css', type='text/css', media='screen', charset='utf-8')
+    link(rel='stylesheet', href='assets/js/codemirror/theme/neat.css', type='text/css', media='screen', charset='utf-8')
+    link(rel='stylesheet', href='assets/js/codemirror/theme/rubyblue.css', type='text/css', media='screen', charset='utf-8')
+    link(rel='stylesheet', href='assets/css/site.css', type='text/css', media='screen', charset='utf-8')
+    script(type='text/javascript', charset='utf-8', src='assets/js/jquery-1.7.2.min.js')
+    script(type='text/javascript', charset='utf-8', src='assets/js/jquery-ui-1.8.22.js')
+    script(type='text/javascript', charset='utf-8', src='assets/js/bootstrap.min.js')
+    script(type='text/javascript', charset='utf-8', src='assets/js/jquery.jstree.js')  
+    script(type='text/javascript', charset='utf-8', src='assets/js/jshint.js')
+    script(type='text/javascript', charset='utf-8', src='assets/js/codemirror/codemirror.js')
+    script(type='text/javascript', charset='utf-8', src='assets/js/zen-coding/zen_codemirror.min.js')
+    script(type='text/javascript', charset='utf-8', src='assets/js/codemirror/util/formatting.js')
+    script(type='text/javascript', charset='utf-8', src='assets/js/codemirror/util/closetag.js')
+    script(type='text/javascript', charset='utf-8', src='assets/js/codemirror/util/simple-hint.js')
+    script(type='text/javascript', charset='utf-8', src='assets/js/codemirror/util/javascript-hint.js')
+    script(type='text/javascript', charset='utf-8', src='assets/js/codemirror/util/html-hint.js')
+    script(type='text/javascript', charset='utf-8', src='assets/js/codemirror/mode/xml/xml.js')
+    script(type='text/javascript', charset='utf-8', src='assets/js/codemirror/mode/javascript/javascript.js')
+    script(type='text/javascript', charset='utf-8', src='assets/js/codemirror/mode/css/css.js')
+    script(type='text/javascript', charset='utf-8', src='assets/js/codemirror/mode/htmlmixed/htmlmixed.js')
+    script(type='text/javascript', src='/channel/bcsocket.js')
+    script(type='text/javascript', src='/share/share.js')
+    script(type='text/javascript', src='/share/cm.js')
+    script(type='text/javascript', src='assets/js/site.js')
+  body(style='overflow: hidden;')
+    .container-fluid
+      //
+         Info Bar 
+      .navbar
+        .navbar-inner
+          .container
+            a.brand(href='JavaScript:void(0);', muse_scanned='true')
+              img(src='assets/img/osu_logo.png')
+            #dialog(style='display: none;')
+            div
+              ul.nav
+                li#menuFile.dropdown
+                  a.dropdown-toggle(data-toggle='dropdown', href='JavaScript:void(0);')
+                    | File
+                    b.caret
+                  ul.dropdown-menu
+                    li
+                      a(href='JavaScript:void(0);') New
+                      ul.dropdown-menu.sub-menu
+                        li
+                          a(href='JavaScript:void(0);', data-action='editor-new-file')
+                            i.icon-file
+                            | New File
+                        li
+                          a(href='JavaScript:void(0);', data-action='editor-new-project') New Project
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-open-project')
+                        i.icon-list-alt
+                        | Open Project
+                    li
+                      a(href='JavaScript:void(0);') Open File...
+                    li.divider
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-close-document') Close
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-closeall-documents') Close All
+                    li.divider
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-save-document') Save
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-saveas-document') Save As...
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-saveall-documents') Save All
+                    li.divider
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-exit') Exit
+                li#menuEdit.dropdown
+                  a.dropdown-toggle(data-toggle='dropdown', href='#menuEidt')
+                    | Edit
+                    b.caret
+                  ul.dropdown-menu
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-cut-selected-code') Cut
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-copy-selected-code') Copy
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-paste-code') Paste
+                    li.divider
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-undo')
+                        i.icon-arrow-left
+                        | Undo
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-redo')
+                        i.icon-arrow-right
+                        | Redo
+                    li.divider
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-delete-selected')
+                        i.icon-remove
+                        | Delete
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-select-all') Select All
+                    li.divider
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-document-refresh')
+                        i.icon-refresh
+                        | Refresh
+                    li.divider
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-find-replace')
+                        i.icon-search
+                        | Find/Replace...
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-find-next') Find Next
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-find-previous') Find Previous
+                li#menuView.dropdown
+                  a.dropdown-toggle(data-toggle='dropdown', href='#menuView')
+                    | View
+                    b.caret
+                  ul.dropdown-menu
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-zoom-in')
+                        i.icon-zoom-in
+                        | Zoom In
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-zoom-out')
+                        i.icon-zoom-out
+                        | Zoom Out
+                    li.divider
+                    li
+                      a#editor-enter-fullscreen(href='JavaScript:void(0);')
+                        i.icon-fullscreen
+                        | Enter Full Screen
+                li#menuCode.dropdown
+                  a.dropdown-toggle(data-toggle='dropdown', href='#menuCode')
+                    | Code
+                    b.caret
+                  ul.dropdown-menu
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-comment-selected') Comment Selected
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-uncomment-selected') Uncomment Selected
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-format-selected-code')
+                        i.icon-th-list
+                        | Format
+                    li.divider
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-check-quality')
+                        i.icon-question-sign
+                        | Check Quality
+                    li.divider
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-share-code')
+                        i.icon-share
+                        | Share
+                li#menuHelp.dropdown
+                  a.dropdown-toggle(data-toggle='dropdown', href='#menuHelp')
+                    | Help
+                    b.caret
+                  ul.dropdown-menu
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-show-about')
+                        i.icon-info-sign
+                        | About
+              //
+                right 
+              ul.nav.pull-right
+                .btn-group
+                  button.btn.btn-small.btn-primary.dropdown-toggle(data-toggle='dropdown', href='#menuProfile')
+                    i.icon-user.icon-white
+                    | Profile
+                    span.caret
+                  ul.dropdown-menu
+                    li
+                      a(href='JavaScript:void(0);') Account
+                    li.divider
+                    li
+                      a(href='JavaScript:void(0);') Logout
+      .row-fluid
+        #left-items.span2
+          .tabbable
+            ul#nav-tab.nav.nav-pills
+              li
+                a(href='#project')
+                  i.icon-list-alt
+              li
+                a(href='#chat')
+                  i.icon-facetime-video
+              li
+                a(href='#editor-settings')
+                  i.icon-cog
+              li
+                a(href='#editor-deploy-project')
+                  i.icon-globe
+            .tab-content
+              // project tree
+              #project.tab-pane
+                #browser
+              #chat.tab-pane
+                | 
+              #editor-settings.tab-pane
+                | 
+              #editor-deploy-project.tab-pane
+        .left-splitter
+          .left-splitter-collapse-button(data-action='#hide')
+        #editor-area.span8
+          ul.breadcrumb
+            li
+              a(href='#') Home
+              span.divider /
+            li
+              a(href='#') Library
+              span.divider /
+            li.active Data
+          textarea#home.tab-pane.fade(disabled='disabled') test
+        .right-splitter
+          .right-splitter-collapse-button(data-action='#hide')
+        #right-items.span2
+          #comment
+            div(style='background-color: #FFFFFF;')
+              div(style='padding: 5px; font-weight: normal;')
+                img(src='assets/img/silhouette.png', height='24', width='24', alt='', style='position: absolute;')
+                #comment-name
+                  | Soroush
+                #comment-time
+                  | 4:55 PM Today
+                div(style='text-align: justify; color: black; margin: auto; font-size: 12px;')
+                  | This line should be something else, having a negative value here causes a bug in front-end view.
+                div(style='margin: 4px auto;')
+                  a.discussion-command(href='JavaScript:void(0);') Edit
+                  a.discussion-command(href='JavaScript:void(0);') Delete
+                  a.discussion-command(href='JavaScript:void(0);') Reply
+                  a.discussion-command(href='JavaScript:void(0);') Resolve
+                //
+                  textarea class="discussion-myreply" styl="width:100%"></textarea
+      #small-console(style='-webkit-box-shadow: 0px -5px 10px #000000; opacity: 0.95;')
+        a(href='#show', data-action='editor-console-toggle')
+          i.icon-chevron-up.icon-white.pull-right
+        a(href='#', data-action='editor-console-clean')
+          i.icon-trash.icon-white.pull-right
+        div
