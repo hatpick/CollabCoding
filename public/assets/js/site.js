@@ -154,7 +154,7 @@ $(window).resize(function() {
 
 $(document).ready(function() {       
   $("#left-items").width($("#nav-tab").children(":first").width() * 4 + 7);
-  $("#project-tree").treeview();
+  $("#project-tree").jstree();
   $('#doc-tab a:first').tab('show');
   $('#nav-tab a:first').tab('show');
   $('#nav-tab a').click(function(e) {
@@ -313,7 +313,7 @@ $(document).ready(function() {
   });
 
   $("a[data-action=editor-new-project]").click(function() {
-    var dialogContent = '<form aciton="/project/new" method="post"><input type="text" name="title" placeholder="Enter project name" width="100%" required/><input name="_method" value="PUT" type="hidden"/><button class="btn btn-inverse">Create</button></form>';
+    var dialogContent = '<input type="text" id="project_name" placeholder="Enter project name" width="100%" required/>';
     $("#dialog").html(dialogContent);
       $("#dialog").dialog({
       show : "blind",
@@ -329,19 +329,45 @@ $(document).ready(function() {
                 '</div>';
               if (!$('#dialog .alert')[0])
                 $("#dialog").append(error_msg);
-            } else {  
-              var html_folder = $('<ul>').append($("<li>").append($('<span>').text('html')));
-              var css_folder = $('<ul>').append($("<li>").append($('<span>').text('css')));
-              var js_folder = $('<ul>').append($("<li>").append($('<span>').text('js')));
-              var li = $("<li>").append($('<span>').addClass('folder').text($('#dialog input').val())).append(html_folder).append(css_folder).append(js_folder);
-              $("#browser").append(li);
-              $("#browser").treeview();
-              html_folder.find('li span').addClass('folder-html');
-              css_folder.find('li span').addClass('folder-css');
-              js_folder.find('li span').addClass('folder-js');   
-              $()
+            } else {                  
+              // send to server
+              $.post('/project/new', {name: $("#dialog > #project_name").val()},function() { 
+                // TODO: render server information
+                console.log('success');
+              });
+              // generate project tree                         
+              var tree_data = {
+                  data: $('#dialog input').val(),
+                  children: [
+                    {
+                      data: 'html',
+                      icon: {
+                        image: '/assets/imgs/folder-html.png'
+                       }
+                    },
+                    {
+                      data: 'css', 
+                      icon: 'folder-css'
+                    },
+                    {
+                      data: 'js',
+                      icon: 'folder-js'
+                    } 
+                  ],
+                  "state" : "open"
+                };    
+                    
+
+              $("#browser").jstree({
+                "json_data":   {
+                  // `data` can also be an object
+                   "data" : tree_data,
+                   "progressive_render" : true
+                 },
+                   "plugins" : [ "themes", "json_data" ]
+                 });   
               $(this).dialog("close");
-            }
+            }     
           }
         },
         {
