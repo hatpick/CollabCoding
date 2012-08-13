@@ -21,6 +21,9 @@
     "express": "3.x",
     "jade": "*",
     "stylus": "*",
-    "mongodb": "*"
+    "bcrypt": ">= 0.5.0",        
+     "mongodb": ">= 0.1.0",
+     "moment" : ">=1.6.2",        
+     "emailjs": ">= 0.2.9"
   }
 }
