@@ -1,6 +1,7 @@
-html,body{background-color:#ebebeb;width:100%;height:100%;font-family:"Lucida Grande",sans-serif;padding-left:0;padding-right:0;overflow-y:scroll}
+html,body{background-color:#ebebeb;width:100%;height:100%;font-family:"Lucida Grande",sans-serif;padding-left:0;padding-right:0}
 div{background-color:transparent}
 a img{max-width:none;height:20px}
+.center{text-align:center;vertical-align:middle}
 .container{height:100%;vertical-align:middle}
 .container-fluid{padding-left:0;padding-right:0}
 .sidebar-nav{padding:9px 0}
@@ -31,11 +32,11 @@ a img{max-width:none;height:20px}
 .navbar{margin-bottom:0}
 .navbar-inner{background-image:transparent}
 .tabbable{height:100%}
-#left-items{margin:0 5px 0 5px;min-width:205px;overflow:hidden}
+#left-items{margin:0 0 0 5px;min-width:205px;overflow:hidden}
 #editor-area{position:absolute;margin-left:5px;margin-right:5px;min-width:500px}
 #editor-area .tab-content{border:1px solid #d1d1d1}
 #editor{padding:0;width:100%;height:750px}
-#right-items{position:absolute;margin:0}
+#right-items{position:absolute;margin:0 -5px 0 0}
 #comment{margin-left:10px;border:1px solid #aaa;margin-top:60px;min-width:150px;max-width:250px}
 #comment img{width:24px;height:24px;float:left;position:relative}
 #comment div{background-color:#fff;font-size:12px;font-weight:bold}
