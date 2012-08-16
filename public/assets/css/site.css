@@ -47,4 +47,3 @@ a img{max-width:none;height:20px}
 #small-console{display:block;position:relative;height:20px;z-index:11;-webkit-transition:all .5s ease;-webkit-border-radius:2px 2px 0 0;padding-top:3px;background:-webkit-gradient(linear,0% 0%,0% 100%,from(#666),to(#666),color-stop(.6,#333))}
 .ui-dialog .ui-dialog-buttonpane .ui-dialog-buttonset{float:center}
 .ui-dialog-buttonset{text-align:center}
-
