@@ -41,7 +41,11 @@ html
           .container
             a.brand(href='JavaScript:void(0);', muse_scanned='true')
               img(src='assets/img/osu_logo.png')
-            #dialog(style='display: none;')
+            div#dialog.modal.hide.fade
+              form
+                div.modal-header
+                div.modal-body
+                div.modal-footer
             div
               ul.nav
                 li#menuFile.dropdown
