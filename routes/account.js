@@ -5,7 +5,6 @@ var EM = require('../modules/email-dispatcher');
 
 exports.login = function(req, res) {  
   if (req.method == 'GET') {
-      console.log('login', req.cookies.user, req.cookies.pass);
       if (req.cookies.user == undefined || req.cookies.pass == undefined){
         res.render('account/login', { title: 'Hello - Please Login To Your Account' });
       } else{
@@ -33,19 +32,28 @@ exports.login = function(req, res) {
     // attempt manual login //  
       AM.manualLogin(req.param('user'), req.param('pass'), function(e, o){
         if (!o){
+          // FIXME: it dosen't show page
           res.send(e, 400);
+          // res.redirect('/login', )
         } else{
             req.session.user = o;
           if (req.param('remember-me') == 'true'){
             res.cookie('user', o.user, { maxAge: 900000 });
             res.cookie('pass', o.pass, { maxAge: 900000 });
           }     
-          res.send(o, 200);
+          res.redirect('/project');
         }
       });
     }
   }
 };       
+
+
+exports.logout = function(req, res) {
+  res.clearCookie('user');
+  res.clearCookie('pass');
+  req.session.destroy(function(e){ res.redirect('/') });
+};
 
 
 exports.signup = function(req, res) {

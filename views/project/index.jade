@@ -35,8 +35,7 @@ html
     script(type='text/javascript', src='assets/js/site.js')
   body(style='overflow: hidden;')
     .container-fluid
-      //
-         Info Bar 
+      // Info Bar 
       .navbar
         .navbar-inner
           .container
@@ -63,8 +62,6 @@ html
                       a(href='JavaScript:void(0);', data-action='editor-open-project')
                         i.icon-list-alt
                         | Open Project
-                    li
-                      a(href='JavaScript:void(0);') Open File...
                     li.divider
                     li
                       a(href='JavaScript:void(0);', data-action='editor-close-document') Close
@@ -171,10 +168,11 @@ html
                       a(href='JavaScript:void(0);', data-action='editor-show-about')
                         i.icon-info-sign
                         | About
-              //
-                right 
+              // right 
               ul.nav.pull-right
-                .btn-group
+                .btn-group   
+                  button.btn.btn-small.btn-primary
+                    i.icon-bullhorn.icon-white
                   button.btn.btn-small.btn-primary.dropdown-toggle(data-toggle='dropdown', href='#menuProfile')
                     i.icon-user.icon-white
                     | Profile
@@ -183,8 +181,12 @@ html
                     li
                       a(href='JavaScript:void(0);') Account
                     li.divider
-                    li
-                      a(href='JavaScript:void(0);') Logout
+                    li.center
+                      button.btn-logout.btn.btn-primary(href='/logout') 
+                        i.icon-lock.icon-white
+                        |   Logout
+
+                      
       .row-fluid
         #left-items.span2
           .tabbable
@@ -206,9 +208,9 @@ html
               #project.tab-pane
                 #browser
               #chat.tab-pane
-                | 
+                |
               #editor-settings.tab-pane
-                | 
+                |
               #editor-deploy-project.tab-pane
         .left-splitter
           .left-splitter-collapse-button(data-action='#hide')
@@ -240,8 +242,6 @@ html
                   a.discussion-command(href='JavaScript:void(0);') Delete
                   a.discussion-command(href='JavaScript:void(0);') Reply
                   a.discussion-command(href='JavaScript:void(0);') Resolve
-                //
-                  textarea class="discussion-myreply" styl="width:100%"></textarea
       #small-console(style='-webkit-box-shadow: 0px -5px 10px #000000; opacity: 0.95;')
         a(href='#show', data-action='editor-console-toggle')
           i.icon-chevron-up.icon-white.pull-right
