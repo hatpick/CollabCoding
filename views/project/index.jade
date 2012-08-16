@@ -173,10 +173,9 @@ html
                         i.icon-info-sign
                         | About
               // right 
-              ul.nav.pull-right
-                .btn-group   
-                  button.btn.btn-small.btn-primary
-                    i.icon-bullhorn.icon-white
+              ul.nav.pull-right                   
+                  button.btn.btn-mini.btn-primary.btn-ntfc
+                    i.icon-bullhorn.icon-white.btn-ntfc-i
                   button.btn.btn-small.btn-primary.dropdown-toggle(data-toggle='dropdown', href='#menuProfile')
                     i.icon-user.icon-white
                     | Profile
@@ -212,9 +211,7 @@ html
               #project.tab-pane
                 #browser
               #chat.tab-pane
-                |
               #editor-settings.tab-pane
-                |
               #editor-deploy-project.tab-pane
         .left-splitter
           .left-splitter-collapse-button(data-action='#hide')
@@ -252,3 +249,4 @@ html
         a(href='#', data-action='editor-console-clean')
           i.icon-trash.icon-white.pull-right
         div
+

@@ -558,14 +558,14 @@ $(document).ready(function() {
 		} else {
 			$("#right-items").show("drop", {
 				direction : "right"
-			}, 500);
+			}, 200);
 			$(this).attr("data-action", "#hide").css("left", "-1px");
 			$(".right-splitter-collapse-button").data("tooltip").options.title = "Hide Comments";
 			$(".right-splitter-collapse-button").data("tooltip").options.placement = "top";
 			$("#editor-area").animate({
-				width : $("#editor-area").width() - $("#right-items").width() + 10
+				width : $("#editor-area").width() - $("#right-items").usedWidth() + 10
 			}, {
-				duration : 500,
+				duration : 200,
 				step : function(now, fx) {
 					$(".right-splitter").css("left", ($("#left-items").is(":visible") ? $("#left-items").usedWidth() : 0) + $(".left-splitter").usedWidth() + $("#editor-area").usedWidth());
 				}
@@ -677,3 +677,4 @@ $(document).ready(function() {
 		$(this).tab("show");
 	});
 });
+
