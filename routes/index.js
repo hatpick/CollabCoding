@@ -4,15 +4,12 @@ module.exports = function(app) {
   app.get('/', function(req, res){
     res.render('index', { title: 'CollabCode Editor' });
   });    
-
                     
   app.get('/login', account.login);                         
   app.post('/login', account.login);     
-  
-    
+  app.get('/logout', account.logout);
   app.get('/signup', account.signup);
-  app.post('/signup',account.signup);
-  
+  app.post('/signup',account.signup);  
   
   app.get('/project', function(req, res) {
     if (!req.session.user) res.redirect('/login') ;

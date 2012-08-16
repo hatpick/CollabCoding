@@ -5,7 +5,7 @@ var Server = require('mongodb').Server;
 
 var dbPort = 27017;
 var dbHost = '127.0.0.1'; // FIXME: change host
-var dbName = 'login-testing';
+var dbName = 'account';
 
 // use moment.js for pretty date-stamping //
 var moment = require('moment');
