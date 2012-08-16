@@ -32,9 +32,7 @@ exports.login = function(req, res) {
     // attempt manual login //  
       AM.manualLogin(req.param('user'), req.param('pass'), function(e, o){
         if (!o){
-          // FIXME: it dosen't show page
-          res.send(e, 400);
-          // res.redirect('/login', )
+          res.render('account/login', {title: 'Hello - Please Login To Your Account', error: "User not found"});
         } else{
             req.session.user = o;
           if (req.param('remember-me') == 'true'){

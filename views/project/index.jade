@@ -42,10 +42,10 @@ html
             a.brand(href='JavaScript:void(0);', muse_scanned='true')
               img(src='assets/img/osu_logo.png')
             div#dialog.modal.hide.fade
-              form
-                div.modal-header
-                div.modal-body
-                div.modal-footer
+              //- form
+              div.modal-header
+              div.modal-body
+              div.modal-footer
             div
               ul.nav
                 li#menuFile.dropdown
@@ -187,7 +187,7 @@ html
                       a(href='JavaScript:void(0);') Account
                     li.divider
                     li.center
-                      button.btn-logout.btn.btn-primary(href='/logout') 
+                      button.btn-logout.btn.btn-primary 
                         i.icon-lock.icon-white
                         |   Logout
 
@@ -226,7 +226,7 @@ html
               a(href='#') Library
               span.divider /
             li.active Data
-          textarea#home.tab-pane.fade(disabled='disabled') test
+          textarea#home.tab-pane.fade(disabled='disabled')
         .right-splitter
           .right-splitter-collapse-button(data-action='#hide')
         #right-items.span2
