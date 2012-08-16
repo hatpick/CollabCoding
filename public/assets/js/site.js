@@ -641,6 +641,30 @@ $(document).ready(function() {
 		$(".modal-footer").html(dialogFotter);
 		$("#dialog").modal();								
 	});
+	
+	$("button[data-action=editor-livepreview-toggle]").tooltip({
+		title : "Turn Live Preview On!",
+		placement : "bottom"
+	});
+	
+	$("button[data-action=editor-livepreview-toggle]").click(function(){
+		var live_preview_toggle = $("button[data-action=editor-livepreview-toggle]");
+		var live_preview_toggle_icon = $("button[data-action=editor-livepreview-toggle] i");
+		
+		if(live_preview_toggle.attr("data-status") === 'off'){
+			live_preview_toggle_icon.removeClass("icon-eye-close").addClass("icon-eye-open");
+			live_preview_toggle.data("tooltip").options.title = "Turn Live Preview Off!";
+			live_preview_toggle.attr("data-status","on")
+			//TODO: Hide comment area on right and split editor area into two equal sections
+		}
+		else {
+			$("button[data-action=editor-livepreview-toggle] i").removeClass("icon-eye-open").addClass("icon-eye-close");
+			live_preview_toggle.data("tooltip").options.title = "Turn Live Preview On!";
+			live_preview_toggle.attr("data-status","off")
+			//TODO: Merge equal sections in editor area and show comments
+		}	
+	});
+	
 	$("a[data-action=editor-comment-selected]").click(function() {
 		commentSelection(true);
 	});

@@ -173,9 +173,11 @@ html
                         i.icon-info-sign
                         | About
               // right 
-              ul.nav.pull-right                   
+              ul.nav.pull-right      
+                  button.btn.btn-mini.btn-primary(data-action='editor-livepreview-toggle', data-status='off')
+                    i.icon-eye-close.icon-white
                   button.btn.btn-mini.btn-primary.btn-ntfc
-                    i.icon-bullhorn.icon-white.btn-ntfc-i
+                    i.icon-bullhorn.icon-white                  
                   button.btn.btn-small.btn-primary.dropdown-toggle(data-toggle='dropdown', href='#menuProfile')
                     i.icon-user.icon-white
                     | Profile
