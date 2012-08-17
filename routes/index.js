@@ -1,47 +1,32 @@
-var account = require('./account');
+var account = require('./account'),
+    project = require('./project');
 
-module.exports = function(app) { 
+
+
+module.exports = function(app) {  
+  
+  function requireAuthentication(req, res, next) {
+    if (!req.session.user) {
+      return res.redirect('/login');
+    } else {
+      return next();
+    }
+  };
+
+  app.all('/project/*', requireAuthentication);
+  app.all('/project', requireAuthentication);
+  
   app.get('/', function(req, res){
     res.render('index', { title: 'CollabCode Editor' });
   });    
                     
-  app.get('/login', account.login);                         
-  app.post('/login', account.login);     
+  app.all('/login', account.login);                         
   app.get('/logout', account.logout);
-  app.get('/signup', account.signup);
-  app.post('/signup',account.signup);  
+  app.all('/signup', account.signup);
+  app.get('/project', project.show);
+  app.post('/project/new', project.new);
+  app.post('/project/:name/new', project.files.new);
   
-  app.get('/project', function(req, res) {
-    if (!req.session.user) res.redirect('/login') ;
-    projectProvider = ProjectProvider.factory();
-    if (req.url == '/project/list') {    
-      projectProvider.findAll(function(error, result) { 
-        res.send(result);
-      });   
-    } else {
-      res.render('project/index');    
-    }  
-  });
-  
-  app.post('/project', function(req, res) {
-    if (!req.session.user) res.redirect('/login') ;
-    projectProvider = ProjectProvider.factory();
-    projectProvider.findByName(req.body.name, function(error, project){ 
-      console.log(project);  
-      if (project) {
-         res.render('project/index', {error: 'Duplicated Name'});
-      } else {             
-        // TODO: create, name get from params
-        projectProvider.save({
-                   name: req.body.name,
-                   creator: 'Charlie',
-                   users: [{
-                     name: 'Charlie'
-                   }]
-                }, function(error, projects) { 
-                  res.render('project/index');   
-                });     
-      }
-    }); 
-  });          
-}
+}         
+
+
