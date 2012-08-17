@@ -1,25 +1,21 @@
-
 var bcrypt = require('bcrypt')
 var Db = require('mongodb').Db;
 var Server = require('mongodb').Server;
-
-var dbPort = 27017;
-var dbHost = '127.0.0.1'; // FIXME: change host
-var dbName = 'collabcoding';
+var config = require('../config');
 
 // use moment.js for pretty date-stamping //
 var moment = require('moment');
 
 var AM = {}; 
-  AM.db = new Db(dbName, new Server(dbHost, dbPort, {auto_reconnect: true}, {}));
-  AM.db.open(function(e, d){
-    if (e) {
-      console.log(e);
-    } else{
-      console.log('connected to database :: ' + dbName);
-    }
-  });
-  AM.accounts = AM.db.collection('accounts');
+AM.db = new Db(config.dbName, new Server(config.dbHost, config.dbPort, {auto_reconnect: true}, {}));
+AM.db.open(function(e, d){
+  if (e) {
+    console.log(e);
+  } else{
+    console.log('connected to database :: ' + config.dbName);
+  }
+});
+AM.accounts = AM.db.collection('accounts');  
 
 module.exports = AM;
 

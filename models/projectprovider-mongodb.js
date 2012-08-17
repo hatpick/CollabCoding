@@ -3,7 +3,7 @@ var Connection = require('mongodb').Connection;
 var Server = require('mongodb').Server;
 var BSON = require('mongodb').BSON;
 var ObjectID = require('mongodb').ObjectID;
-var  projectProvider = undefined;
+var  projectProvider = undefined;       
 
 ProjectProvider = function(host, port) { 
   if (process.env.MONGOHQ_URL) { // connect to mongoHQ
@@ -30,8 +30,7 @@ ProjectProvider = function(host, port) {
     this.db= new Db('collabcoding', new Server(host, port, {auto_reconnect: true}, {}));
     this.db.open(function(){});     
   }
-};
-
+};        
 
 ProjectProvider.prototype.getCollection= function(callback) {
   this.db.collection('projects', function(error, project_collection) {
@@ -81,14 +80,19 @@ ProjectProvider.prototype.findByName = function(name, callback) {
 ProjectProvider.prototype.update = function(name, data, callback) {
   this.getCollection(function(error, project_collection) {
     if (error) callback(error);
-    else {                                           
-      var _obj =  { "$push": {
-        root: {}
-      } };                        
-      // TODO:  add more properties: session Id, shareJS Id, create on, last modified
-      _obj['$push']['root'][data['folder']] = {name: data['file']};
-      console.log(_obj);
-      project_collection.update({name: name}, _obj);
+    else { 
+      project_collection.findOne({name: name}, function(error, result) {
+        if (error) callback(error);
+         var files = result.root[data.folder];
+         for ( var i=0; i < files.length; i++ ) {
+          if (files[i] == data.file) {
+            callback('duplicated file'); 
+            return;
+          }
+         }      
+         result.root[data.folder].push(data.file);
+         project_collection.save(result);
+      });
     }
   });
 };

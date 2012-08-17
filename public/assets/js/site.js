@@ -264,7 +264,7 @@ $(document).ready(function() {
                   separator_after : false,
                   label : "Folder",
                   action : function(obj) {
-                    this.copy(obj);
+                    createFolder(obj);
                   }
                 }
               }
@@ -486,6 +486,30 @@ $(document).ready(function() {
     $("#dialog").modal();
   }
 
+  function createFolder(ele) {
+    var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>New Folder</p>";
+    var dialogContent = $("<div>").css({
+      "margin" : "0 auto"
+    }).append($("<p>").append($("<input>").attr({
+      type: "text",
+      placeholder : "Enter folder name",
+      width : "100%",
+      required : true      
+    })));
+    var dialogFotter = $("<div>").append($("<a>").attr({
+      class : "btn",
+      "data-dismiss" : "modal"
+    }).text("Cancel")).append($("<a>").attr({
+      class : "btn btn-primary"
+    }).text("Create").click(function() {
+     //  TODO
+     $("#dialog").modal('hide');
+    }));
+    $(".modal-header").html(dialogHeader);
+    $(".modal-body").html(dialogContent);
+    $(".modal-footer").html(dialogFotter);
+    $("#dialog").modal();
+  }
 
   $("#left-items").width($("#nav-tab").children(":first").width() * 4 + 7);
   $("#project-tree").jstree();
@@ -612,7 +636,8 @@ $(document).ready(function() {
   
   $("a[data-action=editor-new-file]").click(function() {
     createFile(this);
-  });
+  }); 
+  
   $("a[data-action=editor-new-project]").click(function() {
     //TODO: save new project in database
     var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>New Project</p>";

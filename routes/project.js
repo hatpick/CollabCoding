@@ -13,7 +13,9 @@ exports.new  = function(req, res) {
   var project_name = req.body.pname;   
   projectProvider = ProjectProvider.factory();
   projectProvider.findByName(project_name, function(error, project){ 
+    console.log(project);
     if (project) {
+        console.log('error: duplicated');
        res.render('project/index', {error: 'Duplicated Name'});
     } else {             
       // TODO: create, name get from params
@@ -46,8 +48,12 @@ exports.files.new = function(req, res, next) {
   var project_name = req.params['name'];
   var folder = req.body.folder;
   var file = req.body.file;
-  projectProvider.update(project_name, {folder: folder, file: file});
-                                           
-  return next();
+  projectProvider.update(project_name, {folder: folder, file: file}, function(error, project) {
+     if (error) {
+       res.send(404, {error: error});
+     }
+     res.send(200);
+  });
+  
 };
 
