@@ -4,7 +4,10 @@ block content
   #login-container
       form( method="post")#login-form.well.span4
           h1 Hello!
-          p.subheading Please Login To Your Account
+          p.subheading Please Login To Your Account 
+          - if (typeof error !== "undefined")
+            div.alert.alert-error= error
+
           label Username 
           input(type="text", name="user", id='user-tf').span4.required
           label Password

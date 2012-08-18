@@ -1320,12 +1320,13 @@
 				});
 				h2.width(Math.min(h1.text("pW" + h2[0].value).width(),w))[0].select();
 			},
-			rename : function (obj) {
+			rename : function (obj, callback) {
 				obj = this._get_node(obj);
 				this.__rollback();
 				var f = this.__callback;
 				this._show_input(obj, function (obj, new_name, old_name) { 
 					f.call(this, { "obj" : obj, "new_name" : new_name, "old_name" : old_name });
+					if (callback) {callback({ "obj" : obj, "new_name" : new_name, "old_name" : old_name })};
 				});
 			},
 			create : function (obj, position, js, callback, skip_rename) {
