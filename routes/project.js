@@ -4,8 +4,17 @@ exports.show = function(req, res) {
     projectProvider.findAll(function(error, result) { 
       res.send(result);
     });   
-  } else {
-    res.render('project/index');    
+  } else {    
+    var project_name = req.query.name;
+    console.log('project_name:' + project_name);
+    if (project_name) {
+      projectProvider.findByName(project_name, function(error, result) {
+        console.log('result: '  + result);
+        res.json(result); 
+      });
+    } else {
+      res.render('project/index');
+    }
   }  
 };
 
@@ -23,13 +32,19 @@ exports.new  = function(req, res) {
                  name: project_name,
                  creator: req.session.user.name,
                  users: [{
-                   name: 'Charlie'
+                   name: req.session.user.name
                  }],
                  root: {
                    html: [],
                    css: [],
                    js:[],
-                   files: []
+                   files: [{
+                     name: 'index.html', 
+                     type: "file",
+                     shareJSId: "", // TODO generate unique id
+                     createOn: new Date(),
+                     last_modified_data: new Date()
+                   }]
                  }
               }, function(error, projects) { 
                 res.render('project/index');   
@@ -42,18 +57,31 @@ exports.new  = function(req, res) {
 exports.files = {};
 
 exports.files.new = function(req, res, next) {
-  console.log('project: ' + req.params['name']);  
-  console.log('foler: ' + req.body.folder);
-  console.log('file: ' + req.body.file); 
+
   var project_name = req.params['name'];
-  var folder = req.body.folder;
-  var file = req.body.file;
-  projectProvider.update(project_name, {folder: folder, file: file}, function(error, project) {
+    
+  var obj = {};                      
+  obj.paths = req.body.paths;
+  obj.name = req.body.name;
+  obj.type = req.body.type;
+  obj.shareJSId = ''; // TODO generate unique ID
+  obj.createOn = new Date();
+  obj.last_modified_data = new Date();
+  
+  projectProvider.new(project_name, obj, function(error, project) {
      if (error) {
        res.send(404, {error: error});
      }
      res.send(200);
   });
   
-};
+}; 
+
+
+exports.files.rename = function(req, res, next) {
+   var project_name = req.params['name'];
+   var obj = {};
+   obj.old_name = req.body.old_name;
+   obj.new_name = req.body.new_name;
+}
 

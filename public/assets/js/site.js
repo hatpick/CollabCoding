@@ -1,3 +1,10 @@
+(function() {
+  var Collabcoding = {
+    tree_data: {}
+  };
+  window.Collabcoding = Collabcoding;
+})(window);
+
 function _(string, context) {
   return string.replace(/%\(\w+\)s/g, function(match) {
     return context[match.slice(2, -2)];
@@ -150,35 +157,9 @@ $(window).resize(function() {
 });
 
 $(document).ready(function() {
-  function createJsTree(project_name) {
-    var tree_data = {
-      attr : {
-        rel : 'root'
-      },
-      data : project_name,
-      children : [{
-        data : "html",
-        attr : {
-          rel : "folder-html"
-        }
-      }, {
-        data : "css",
-        attr : {
-          rel : "folder-css"
-        }
-      }, {
-        data : "js",
-        attr : {
-          rel : "folder-js"
-        }
-      }, {
-        data : "index.html",
-        attr : {
-          rel : "file-html"
-        }
-      }],
-      state : "open"
-    };
+        
+  function _createJsTree(tree_data){ 
+    Collabcoding.tree_data = tree_data;
     $("#browser").jstree({
       select_node : true,
       json_data : {
@@ -274,7 +255,14 @@ $(document).ready(function() {
               separator_after : false,
               label : "Rename",
               action : function(obj) {
-                this.rename(obj, function(o){console.log(o)});
+                this.rename(obj, function(obj){
+                  console.log(obj);
+                  var project_name = sessionStorage.getItem('project'); 
+                  $.post('/project/' + project_name + '/rename', obj,
+                  function() {
+                    
+                  }, 'json');
+                 });
               }
             },
             remove : {
@@ -295,6 +283,132 @@ $(document).ready(function() {
       }
     });
   }
+  
+  function createNewJsTree(project_name) {
+    var tree_data = {
+      attr : {
+        rel : 'root'
+      },
+      data : project_name,
+      children : [{
+        data : "html",
+        attr : {
+          rel : "folder-html"
+        }
+      }, {
+        data : "css",
+        attr : {
+          rel : "folder-css"
+        }
+      }, {
+        data : "js",
+        attr : {
+          rel : "folder-js"
+        }
+      }, {
+        data : "index.html",
+        attr : {
+          rel : "file-html"
+        }
+      }],
+      state : "open"
+    };
+    _createJsTree(tree_data);
+  }  
+  
+  function createJsTreeByJSON(_data){
+    var rel, ele, reg;
+    var tree_data = {
+      attr : {
+        rel : 'root'
+      },
+      data: _data.name,
+      children:[],
+      state : "open"
+     };          
+     
+     for (var key in _data.root) {
+       if (key !== 'files') {
+         if(key == 'html' || key == 'css' || key == 'js') rel = 'folder-' + key;
+         else rel = 'folder';
+          var folder = {
+            data: key,
+            attr: {
+              rel: rel
+            },
+            children: []
+          };
+          for ( var i=0; i < _data.root[key].length; i++ ) {
+           ele = _data.root[key][i];
+           if (ele.type == 'file') { 
+             folder.children.push(_generateFileChildren(ele));
+           } else {  
+             folder.children.push({
+               data: ele.name,
+               attr: {
+                 rel: rel
+               },
+               children: _generateChildren(ele)
+             });
+           }
+          } 
+          tree_data.children.push(folder); 
+       } else {
+         for ( var i=0; i < _data.root[key].length; i++ ) {
+           ele =  _data.root[key][i];
+           tree_data.children.push(_generateFileChildren(ele));
+         }
+       } 
+       
+     }
+     _createJsTree(tree_data);
+  } 
+    
+  function _generateFileChildren(ele) { 
+    var reg, rel;
+    reg = /.+\.html/;
+    if (reg.test(ele.name)) {
+      rel = 'file-html';
+    } else {
+      reg = /.+\.css/;
+      if (reg.test(ele.name)) {
+        rel = 'file-css';
+      } else {
+        rel = 'file-js';
+      }
+    } 
+    return { data: ele.name, attr: { rel: rel}};  
+  };
+  
+  function _generateChildren(folder) {
+    var ele;
+    var children = [];
+    for ( var i=0; i < folder.length; i++ ) {
+      ele = folder[i];  
+      if (ele.type == 'file') { 
+         reg = /.+\.html/;
+         if (reg.test(ele.name)) {
+           rel = 'file-html';
+         } else {
+           reg = /.+\.css/;
+           if (reg.test(ele.name)) {
+             rel = 'file-css';
+           } else {
+             rel = 'file-js';
+           }
+         }
+         children.push({
+           data: ele.name,
+           attr: {
+             rel: rel
+           }
+         });
+       } else {
+         children.push(_generateChildren(ele));
+       }
+    }
+    return;
+  };
 
   function checkQuality() {
     var options = {
@@ -421,7 +535,6 @@ $(document).ready(function() {
   }
 
   function createFile(ele) { 
-    //TODO: save new file in database
     var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>New File</p>";
     var selectContent = $("<p>").append($("<select>").append('<option><a href="#"></a></option>').append('<option value=".html"><a href="#">HTML</a></option>').append('<option value=".js"><a href="#">JavaScript</a></option>').append('<option value=".css"><a href="#">CSS</a></option>').change(function() {
       $("div input").val($("select option:selected").val());
@@ -446,12 +559,13 @@ $(document).ready(function() {
       // Create New a file
       var reg = /.+\..+/;   
       var project_name = sessionStorage.getItem('project');
-      var folder_name = $.trim(ele.children('a').text());
-      var file_name = $("div input").val();  
-      
+      var paths = $.trim(ele.children('a').text());
+      var file_name = $("div input").val(); 
+      // save file 
       $.post('/project/' + project_name + '/new', {
-        folder: folder_name,
-        file: file_name
+        paths: paths,
+        name: file_name,
+        type: 'file'
       }, function() {
         console.log('success create file: ' + file_name);
       },'json');
@@ -468,12 +582,12 @@ $(document).ready(function() {
       } else {
         type = "file-css";
       }
-      
       // create
       $("#browser").jstree("create", ele, "last", {
         data : $(".modal-body input").val(),
         attr: {rel: type}
-      }, function() {       
+      }, function(o) { 
+        Collabcoding.tree_data = this. get_json()[0];
       }, true);
       
       
@@ -502,7 +616,18 @@ $(document).ready(function() {
     }).text("Cancel")).append($("<a>").attr({
       class : "btn btn-primary"
     }).text("Create").click(function() {
-     //  TODO
+     //  TODO save folder           
+     var project_name = sessionStorage.getItem('project');
+     var paths = $.trim(ele.children('a').text());
+     var folder_name = $("div input").val(); 
+     $.post('/project/' + project_name + '/new', {
+       paths: paths,
+       name: folder_name,
+       type: 'folder'
+     }, function() {
+       console.log('success create folder: ' + folder_name);
+     }, 'json');
+     
      $("#dialog").modal('hide');
     }));
     $(".modal-header").html(dialogHeader);
@@ -510,6 +635,12 @@ $(document).ready(function() {
     $(".modal-footer").html(dialogFotter);
     $("#dialog").modal();
   }
+      
+  function openProject() {
+    // TODO
+    // fetch project list
+    
+  };
 
   $("#left-items").width($("#nav-tab").children(":first").width() * 4 + 7);
   $("#project-tree").jstree();
@@ -627,9 +758,10 @@ $(document).ready(function() {
   window.myCodeMirror = myCodeMirror;
   layout();
   
-  // FIXME: here for test project tree. After finished, reomve it.
-  createJsTree("test");
-  
+  // FIXME: here for test project tree. After finished, reomve it.  
+  $.get('/project', {name: 'test'}, function(data) {
+    createJsTreeByJSON(data);
+  })
 
   $(".btn-logout").click(function() {window.location.href='/logout'});
   
@@ -661,7 +793,7 @@ $(document).ready(function() {
         }, function() {
           console.info("success create" + $("#project_name").val());
         });
-        createJsTree($("#dialog input").val());
+        createNewJsTree($("#dialog input").val());
         $("#dialog").modal('hide');
       }
     })).append($("<button>").attr({

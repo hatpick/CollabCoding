@@ -76,26 +76,77 @@ ProjectProvider.prototype.findByName = function(name, callback) {
     });
 };
     
-
-ProjectProvider.prototype.update = function(name, data, callback) {
+ProjectProvider.prototype.new = function(name, data, callback) {
   this.getCollection(function(error, project_collection) {
     if (error) callback(error);
     else { 
       project_collection.findOne({name: name}, function(error, result) {
         if (error) callback(error);
-         var files = result.root[data.folder];
-         for ( var i=0; i < files.length; i++ ) {
-          if (files[i] == data.file) {
+         var leaf = result.root;  
+         if (!Array.isArray(data.paths)) data.paths = [data.paths];
+         for ( var i=0; i < data.paths.length; i++ ) {
+           leaf = leaf[data.paths[i]];
+         }
+         for ( var i=0; i < leaf.length; i++ ) {
+          if (leaf[i].name == data.name && leaf[i].type == data.type) {
             callback('duplicated file'); 
             return;
           }
-         }      
-         result.root[data.folder].push(data.file);
+         }  
+         var obj = {};
+         if (data.type == 'file') {
+           obj.name = data.name;
+           obj.type = data.type;
+           obj.shareJSId = data.shareJSId;
+           obj.createOn = new Date();
+           obj.last_modified_data = new Date();
+         } else {
+           // TODO folder
+         }     
+         leaf.push(obj);
          project_collection.save(result);
       });
     }
   });
+}; 
+                                           
+/**
+ * Update project information
+ * @public
+ * @param {String} name project name as a key for query
+ * @param {Object} data
+ * @config {Array} paths The file|folder paths
+ * @config {string} cur_name The new file|folder name
+ * @config {string} new_name The new file|folder name
+ * @config {string} last_modified_data The new date
+ * @param {function} [callback] The customized function to handle error
+ */
+
+ProjectProvider.prototype.update = function(name, data, callback) {
+   // db.projects.update({name: 'test', 'root.html.name': 'index.html'}, {$set:{'root.html.$.name': 'test.html'}})
+  this.getCollection(function(error, project_collection) {
+     if (error) callback(error);
+     else {
+       project_collection.findOne({name: name}, function(error, result) {
+         var leaf = result.root; 
+         var target;
+         for ( var i=0; i < data.paths.length; i++ ) { 
+           leaf = leaf[data.paths[i]];
+         }
+         for ( var i=0; i < leaf.length; i++ ) {
+           if (leaf[i].name == data.old_name && leaf[i].type == data.type) {
+              target = leaf[i];
+              break;
+           }
+         }
+         target.name = data.new_name;
+         project_collection.save(result);
+       });       
+     }
+  });
 };
+
+
 
 ProjectProvider.prototype.save = function(projects, callback) {
     this.getCollection(function(error, project_collection) {
