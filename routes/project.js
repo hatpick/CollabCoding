@@ -59,7 +59,7 @@ exports.files = {};
 exports.files.new = function(req, res, next) {
 
   var project_name = req.params['name'];
-    
+  console.log(project_name); 
   var obj = {};                      
   obj.paths = req.body.paths;
   obj.name = req.body.name;
