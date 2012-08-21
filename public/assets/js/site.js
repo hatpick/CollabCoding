@@ -157,6 +157,10 @@ $(window).resize(function() {
 });
 
 $(document).ready(function() {
+  // TODO 
+  $('#browser').bind('click', function() {
+    console.log($.jstree._focused().get_selected());
+  });
         
   function _createJsTree(tree_data){ 
     Collabcoding.tree_data = tree_data;
@@ -221,9 +225,10 @@ $(document).ready(function() {
       },
       plugins : ["themes", "json_data", "contextmenu", "types", "crrm", "ui"],    
       contextmenu : {
+        select_node: true,
         items : function(node) {
           var re = /^file.*/;
-          return {
+          return {  
             create : {
               separator_before : false,
               separator_after : true,
@@ -245,6 +250,7 @@ $(document).ready(function() {
                   separator_after : false,
                   label : "Folder",
                   action : function(obj) {
+                    console.log('test');
                     createFolder(obj);
                   }
                 }
@@ -282,6 +288,10 @@ $(document).ready(function() {
         }
       }
     });
+    
+    // $("#browser").on('a', 'contextmenu', function() {
+    //    $("#browser").jstree('select_node', this);
+    // });  
   }
   
   function createNewJsTree(project_name) {
@@ -329,14 +339,17 @@ $(document).ready(function() {
      
      for (var key in _data.root) {
        if (key !== 'files') {
-         if(key == 'html' || key == 'css' || key == 'js') rel = 'folder-' + key;
-         else rel = 'folder';
+         if (key == 'html' || key == 'css' || key == 'js') 
+          rel = 'folder-' + key;
+         else 
+          rel = 'folder';
           var folder = {
             data: key,
             attr: {
               rel: rel
             },
-            children: []
+            children: [],
+            state : "open"
           };
           for ( var i=0; i < _data.root[key].length; i++ ) {
            ele = _data.root[key][i];
@@ -346,9 +359,10 @@ $(document).ready(function() {
              folder.children.push({
                data: ele.name,
                attr: {
-                 rel: rel
+                 rel: 'folder'
                },
-               children: _generateChildren(ele)
+               children: _generateChildren(ele.children),
+               state : "open"
              });
            }
           } 
@@ -361,6 +375,7 @@ $(document).ready(function() {
        } 
        
      }
+     console.log(tree_data);
      _createJsTree(tree_data);
   } 
     
@@ -404,10 +419,18 @@ $(document).ready(function() {
            }
          });
        } else {
-         children.push(_generateChildren(ele));
+         children.push(
+           {
+              data: ele.name,
+              attr: {
+                rel: 'folder'
+              },
+              children: _generateChildren(ele.children),
+              state : "open"
+            });
        }
     }
-    return;
+    return children;
   };
 
   function checkQuality() {
@@ -559,7 +582,7 @@ $(document).ready(function() {
       // Create New a file
       var reg = /.+\..+/;   
       var project_name = sessionStorage.getItem('project');
-      var paths = $.trim(ele.children('a').text());
+      var paths = $.jstree._focused().get_path();
       var file_name = $("div input").val(); 
       // save file 
       $.post('/project/' + project_name + '/new', {
@@ -618,7 +641,7 @@ $(document).ready(function() {
     }).text("Create").click(function() {
      //  TODO save folder           
      var project_name = sessionStorage.getItem('project');
-     var paths = $.trim(ele.children('a').text());
+     var paths = $.jstree._focused().get_path();
      var folder_name = $("div input").val(); 
      $.post('/project/' + project_name + '/new', {
        paths: paths,
@@ -627,6 +650,15 @@ $(document).ready(function() {
      }, function() {
        console.log('success create folder: ' + folder_name);
      }, 'json');
+                
+     
+     // create
+     $("#browser").jstree("create", ele, "last", {
+       data : $(".modal-body input").val(),
+       attr: {rel: 'folder'}
+     }, function(o) { 
+       Collabcoding.tree_data = this. get_json()[0];
+     }, true);
      
      $("#dialog").modal('hide');
     }));
@@ -760,6 +792,7 @@ $(document).ready(function() {
   
   // FIXME: here for test project tree. After finished, reomve it.  
   $.get('/project', {name: 'test'}, function(data) {
+    sessionStorage.setItem('project', 'test');
     createJsTreeByJSON(data);
   })
 
@@ -771,7 +804,7 @@ $(document).ready(function() {
   }); 
   
   $("a[data-action=editor-new-project]").click(function() {
-    //TODO: save new project in database
+    // TODO: pop up a window, asking user close/save current project
     var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>New Project</p>";
     var dialogContent = '<input type="text" id="project_name" placeholder="Enter project name" width="100%" required/>';
 
