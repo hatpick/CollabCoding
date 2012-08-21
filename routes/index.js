@@ -24,6 +24,7 @@ module.exports = function(app) {
   app.get('/logout', account.logout);
   app.all('/signup', account.signup);
   app.get('/project', project.show);
+  app.get('/project/list', project.show);
   app.post('/project/new', project.new);
   app.post('/project/:name/new', project.files.new);
   app.post('/project/:name/rename', project.files.rename);

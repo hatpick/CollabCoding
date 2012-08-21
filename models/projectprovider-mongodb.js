@@ -85,8 +85,8 @@ ProjectProvider.prototype.new = function(name, data, callback) {
          var obj = {};
          obj.name = data.name;
          obj.type = data.type;
-         obj.createOn = new Date();
-         obj.last_modified_data = new Date();
+         obj.created_on = new Date();
+         obj.last_modified_on = new Date();
          if (data.paths.length > 1) {
            var i = 0;
            data.paths.shift();   
@@ -135,7 +135,7 @@ ProjectProvider.prototype.new = function(name, data, callback) {
  * @config {Array} paths The file|folder paths
  * @config {string} cur_name The new file|folder name
  * @config {string} new_name The new file|folder name
- * @config {string} last_modified_data The new date
+ * @config {string} last_modified_on The new date
  * @param {function} [callback] The customized function to handle error
  */
 
@@ -175,7 +175,7 @@ ProjectProvider.prototype.save = function(projects, callback) {
           if (!project.name || !project.creator || typeof(project.users)=="undefined") { 
             callback(error);
           }
-          project.created_at = new Date();
+          project.created_on = new Date();
           project.last_modified_on = new Date();
         }
 

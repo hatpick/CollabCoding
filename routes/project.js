@@ -1,8 +1,9 @@
+var hat = require('hat');
 exports.show = function(req, res) {
   projectProvider = ProjectProvider.factory();
   if (req.url == '/project/list') {    
     projectProvider.findAll(function(error, result) { 
-      res.send(result);
+      res.json(result);
     });   
   } else {    
     var project_name = req.query.name;
@@ -41,9 +42,9 @@ exports.new  = function(req, res) {
                    files: [{
                      name: 'index.html', 
                      type: "file",
-                     shareJSId: "", // TODO generate unique id
-                     createOn: new Date(),
-                     last_modified_data: new Date()
+                     shareJSId: hat(), // FIXME check unique id or not
+                     created_on: new Date(),
+                     last_modified_on: new Date()
                    }]
                  }
               }, function(error, projects) { 
@@ -59,14 +60,14 @@ exports.files = {};
 exports.files.new = function(req, res, next) {
 
   var project_name = req.params['name'];
-  console.log(project_name); 
+    
   var obj = {};                      
   obj.paths = req.body.paths;
   obj.name = req.body.name;
   obj.type = req.body.type;
-  obj.shareJSId = ''; // TODO generate unique ID
-  obj.createOn = new Date();
-  obj.last_modified_data = new Date();
+  obj.shareJSId = hat(); // FIXME check unique id or not
+  obj.created_on = new Date();
+  obj.last_modified_on = new Date();
   
   projectProvider.new(project_name, obj, function(error, project) {
      if (error) {
