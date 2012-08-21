@@ -791,8 +791,7 @@ $(document).ready(function() {
   layout();
   
   // FIXME: here for test project tree. After finished, reomve it.  
-  $.get('/project', {name: 'test'}, function(data) {
-    sessionStorage.setItem('project', 'test');
+  $.get('/project', {name: sessionStorage.getItem('project')}, function(data) {
     createJsTreeByJSON(data);
   })
 
