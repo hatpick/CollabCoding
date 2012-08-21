@@ -96,7 +96,7 @@ function reportSuccess(report) {
   $("#small-console").toggleClass("small-console-animated");
 }
 
-var randomDocName = function(length) {
+function randomDocName (length) {
   var chars, x;
   if (!length) {
     length = 10;
@@ -149,7 +149,7 @@ var layout = function() {
   }
   _height = $("#editor-area").height() - $("#doc-tab").height() - parseInt($("#doc-tab").css("margin-bottom"), 10);
   $(".tab-content").height(_height);
-  myCodeMirror.refresh();
+  // myCodeMirror.refresh();
 };
 
 $(window).resize(function() {
@@ -160,11 +160,44 @@ $(document).ready(function() {
   // TODO 
   $('#browser').bind('click', function() {
     console.log($.jstree._focused().get_selected());
+    var reg = /^file.*/;
+    
+    if (reg.test($.jstree._focused().get_selected().attr('rel'))) {
+      $('.breadcrumb').empty();
+      var paths = $.jstree._focused().get_path();
+      var li;
+      for ( var i=0; i < paths.length - 1; i++ ) {
+        li = $('<li>').append($('<a>').attr('href', '#').html(paths[i]).click(function() {
+          $.jstree._reference('#browser').select_node($('#'+$(this).text() + '_id'), true);
+        })).append('<span class="divider">/</span>');
+        $('.breadcrumb').append(li);
+      }
+      li = $('<li>').addClass('active').html(paths[i]);
+      $('.breadcrumb').append(li);
+      var elem = document.getElementById('home');
+      var myCodeMirror = editor(elem, "text/html");
+      var docName = $.jstree._focused().get_selected().attr('data-shareJSId');
+      CodeMirror.commands.selectAll(myCodeMirror);  
+      sharejs.open(docName, function(error, doc) {
+
+          if (error) {
+              console.error(error);
+              return;
+          }
+          doc.attach_cm(myCodeMirror);
+      });
+      window.myCodeMirror = myCodeMirror;
+    }
   });
         
   function _createJsTree(tree_data){ 
     Collabcoding.tree_data = tree_data;
     $("#browser").jstree({
+      "unique" : {
+                  "error_callback" : function (n, p, f) {
+                      alert("Duplicate node \"" + n + "\"!");
+                  }
+              },
       select_node : true,
       json_data : {
         data : tree_data,
@@ -223,7 +256,7 @@ $(document).ready(function() {
           }
         }
       },
-      plugins : ["themes", "json_data", "contextmenu", "types", "crrm", "ui"],    
+      plugins : ["themes", "json_data", "contextmenu", "types", "crrm", "ui", "unique", 'search'],    
       contextmenu : {
         select_node: true,
         items : function(node) {
@@ -330,7 +363,8 @@ $(document).ready(function() {
     var rel, ele, reg;
     var tree_data = {
       attr : {
-        rel : 'root'
+        rel : 'root',
+        id: _data.name + '_id'
       },
       data: _data.name,
       children:[],
@@ -346,7 +380,8 @@ $(document).ready(function() {
           var folder = {
             data: key,
             attr: {
-              rel: rel
+              rel: rel,
+             id: key + '_id'
             },
             children: [],
             state : "open"
@@ -359,7 +394,8 @@ $(document).ready(function() {
              folder.children.push({
                data: ele.name,
                attr: {
-                 rel: 'folder'
+                 rel: 'folder',
+                 id: ele.name + '_id'
                },
                children: _generateChildren(ele.children),
                state : "open"
@@ -375,7 +411,6 @@ $(document).ready(function() {
        } 
        
      }
-     console.log(tree_data);
      _createJsTree(tree_data);
   } 
     
@@ -392,7 +427,12 @@ $(document).ready(function() {
         rel = 'file-js';
       }
     } 
-    return { data: ele.name, attr: { rel: rel}};  
+    return { data: ele.name,
+              attr: {
+                rel: rel,
+                id: ele.name + '_id',
+                'data-shareJSId': ele.shareJSId
+              }};  
   };
   
   function _generateChildren(folder) {
@@ -415,7 +455,9 @@ $(document).ready(function() {
          children.push({
            data: ele.name,
            attr: {
-             rel: rel
+             rel: rel,
+             id: ele.name + '_id',
+             'data-shareJSId': ele.shareJSId             
            }
          });
        } else {
@@ -423,7 +465,8 @@ $(document).ready(function() {
            {
               data: ele.name,
               attr: {
-                rel: 'folder'
+                rel: 'folder',
+                id: ele.name + '_id'                
               },
               children: _generateChildren(ele.children),
               state : "open"
@@ -612,9 +655,11 @@ $(document).ready(function() {
       }, function(o) { 
         Collabcoding.tree_data = this. get_json()[0];
       }, true);
-      
-      
       $("#dialog").modal('hide');
+      // FIXME: b
+      $.get('/project', {name: sessionStorage.getItem('project')}, function(data) {
+        createJsTreeByJSON(data);
+      })
     }));
 
     $(".modal-header").html(dialogHeader);
@@ -667,12 +712,6 @@ $(document).ready(function() {
     $(".modal-footer").html(dialogFotter);
     $("#dialog").modal();
   }
-      
-  function openProject() {
-    // TODO
-    // fetch project list
-    
-  };
 
   $("#left-items").width($("#nav-tab").children(":first").width() * 4 + 7);
   $("#project-tree").jstree();
@@ -772,8 +811,8 @@ $(document).ready(function() {
     }
   });
   
-  // CodeMirror
-  var elem = document.getElementById("home");
+  // TODO: put into configure function CodeMirror
+  // var elem = document.getElementById("home");
   CodeMirror.commands.autocomplete = function(cm) {
     var mode = cm.getOption("mode");
     if (mode == "htmlmixed") {
@@ -784,10 +823,8 @@ $(document).ready(function() {
     } else if (mode == "javascript") {
       CodeMirror.simpleHint(cm, CodeMirror.javascriptHint);
     }
-  };
-  var myCodeMirror = editor(elem, "text/html");
-  CodeMirror.commands.selectAll(myCodeMirror);
-  window.myCodeMirror = myCodeMirror;
+  };    
+
   layout();
   
   // FIXME: here for test project tree. After finished, reomve it.  
@@ -801,7 +838,6 @@ $(document).ready(function() {
   $("a[data-action=editor-new-file]").click(function() {
     createFile(this);
   }); 
-  
   $("a[data-action=editor-new-project]").click(function() {
     // TODO: pop up a window, asking user close/save current project
     var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>New Project</p>";
@@ -838,6 +874,42 @@ $(document).ready(function() {
     $(".modal-footer").html(dialogFotter);
     $("#dialog").modal();
   });
+  $("a[data-action=editor-open-project]").click(function() {  
+    // fetch project list
+    $.get('/project/list', function(projects) {
+      var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>Open Project</p>";
+      var project_table = $('<table>').attr({'class': 'table table-striped table-bordered'});
+      project_table.html('<thead><tr><th>#</th><th>Project Name</th><th>Created On</th><th>Last Modified On</th></tr></thead>');
+      var tbody = $('<tbody>');
+      var tr;
+      for ( var i=0; i < projects.length; i++ ) {
+        tr = $('<tr>');                                                                        
+        tr.append(
+            $('<td>').html(i+1)
+           )
+          .append(
+            $('<td>').append($('<a>').attr('href','#').append(projects[i].name).click(function() {
+               // TODO: pop up close alert  
+               sessionStorage.setItem('project', $(this).text());
+               $.get('/project', {name: sessionStorage.getItem('project')}, function(data) {
+                 createJsTreeByJSON(data);
+                 $("#dialog").modal('hide');
+               })
+             })))
+          .append($('<td>').html(projects[i].created_on))
+          .append($('<td>').html(projects[i].last_modified_on));
+        tbody.append(tr);
+      }
+      project_table.append(tbody); 
+      var dialogContent = project_table;
+      $(".modal-header").html(dialogHeader);
+      $(".modal-body").html(dialogContent);
+      $(".modal-footer").html('');
+      project_table.dataTable(); 
+      $("#dialog").modal();
+    })
+    
+  })
   $("a[data-action=editor-share-code]").click(function() {
     var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>Share via this link</p>";
     var dialogContent = $("<div>").append($("<p>").text(document.location.origin + localStorage.getItem("docId"))).append($("<p>").attr("margin-bottom","5px").append($('<input>').attr({type:"text", id:"collaboratorEmail", placeholder:"Enter a valid email address", width:"100%", required:true})));
