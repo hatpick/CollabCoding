@@ -163,6 +163,12 @@ $(document).ready(function() {
     var reg = /^file.*/;
     
     if (reg.test($.jstree._focused().get_selected().attr('rel'))) {
+      var file_type = $.jstree._focused().get_selected().attr('rel');
+      var mode = "text/html";
+      if(file_type === "file-js")
+        mode = "javascript";
+      else if(file_type === "file-css")
+        mode = "css"
       $('.breadcrumb').empty();
       var paths = $.jstree._focused().get_path();
       var li;
@@ -175,7 +181,7 @@ $(document).ready(function() {
       li = $('<li>').addClass('active').html(paths[i]);
       $('.breadcrumb').append(li);
       var elem = document.getElementById('home');
-      var myCodeMirror = editor(elem, "text/html");
+      var myCodeMirror = editor(elem, mode);
       var docName = $.jstree._focused().get_selected().attr('data-shareJSId');
       CodeMirror.commands.selectAll(myCodeMirror);  
       sharejs.open(docName, function(error, doc) {
