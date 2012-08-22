@@ -183,6 +183,7 @@ $(document).ready(function() {
       var elem = document.getElementById('home');
       var myCodeMirror = editor(elem, mode);
       var docName = $.jstree._focused().get_selected().attr('data-shareJSId');
+      sessionStorage.setItem("docName", docName);
       CodeMirror.commands.selectAll(myCodeMirror);  
       sharejs.open(docName, function(error, doc) {
 
@@ -918,7 +919,8 @@ $(document).ready(function() {
   })
   $("a[data-action=editor-share-code]").click(function() {
     var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>Share via this link</p>";
-    var dialogContent = $("<div>").append($("<p>").text(document.location.origin + localStorage.getItem("docId"))).append($("<p>").attr("margin-bottom","5px").append($('<input>').attr({type:"text", id:"collaboratorEmail", placeholder:"Enter a valid email address", width:"100%", required:true})));
+    var doc_shareJSId = sessionStorage.getItem("docName");
+    var dialogContent = $("<div>").append($("<p>").text(document.location.origin + "/" + doc_shareJSId)).append($("<p>").attr("margin-bottom","5px").append($('<input>').attr({type:"text", id:"collaboratorEmail", placeholder:"Enter a valid username", width:"100%", required:true})));
 
     var dialogFotter = $("<div>").append($("<a>").attr({
       class : "btn",
@@ -926,7 +928,7 @@ $(document).ready(function() {
     }).text("Cancel")).append($("<a>").attr({
       class : "btn btn-primary"
     }).text("Share").click(function() {
-      //TODO: Send Email      
+      //TODO: Send notification to user      
     }));
     
     $(".modal-header").html(dialogHeader);
@@ -957,6 +959,18 @@ $(document).ready(function() {
       //TODO: Merge equal sections in editor area and show comments
     } 
   });
+  
+  $("a[data-action=editor-find-replace]").click(function() {
+  	//TODO: find/replace  	
+  });
+  
+  $("a[data-action=editor-find-next]").click(function() {
+  	//TODO: find next
+  });
+  
+  $("a[data-action=editor-find-previous]").click(function() {
+  	//TODO: find previous	
+  });  
   
   $("a[data-action=editor-comment-selected]").click(function() {
     commentSelection(true);
