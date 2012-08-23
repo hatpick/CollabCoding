@@ -122,8 +122,12 @@ $.fn.usedWidth = function() {
   return $(this).width() + parseInt($(this).css("margin-left"), 10) + parseInt($(this).css("margin-right"), 10);
 };
 
+$.fn.usedHeight = function() {
+  return $(this).height() + parseInt($(this).css("margin-top"), 10) + parseInt($(this).css("margin-bottom"), 10);
+};
+
 var layout = function() {
-  var _height = document.documentElement.clientHeight - $(".navbar").height() - $("#small-console").height();
+  var _height = document.documentElement.clientHeight - $(".navbar").height() - 20;
   $("#editor-area").height(_height);
   $("#left-items").height(_height);
   $(".left-splitter").height(_height);
@@ -149,7 +153,7 @@ var layout = function() {
   }
   _height = $("#left-items").height() - $("#nav-tab").height() - parseInt($("#nav-tab").css("margin-bottom"), 10);
   $(".tab-content").height(_height);
-  $(".CodeMirror").height(_height - $(".breadcrumbs").height());
+  $(".CodeMirror").height(_height - $(".breadcrumb").usedHeight());
   // myCodeMirror.refresh();
 };
 
