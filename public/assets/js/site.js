@@ -891,7 +891,7 @@ $(document).ready(function() {
     $(".modal-body").html(dialogContent);
     $(".modal-footer").html(dialogFotter); 
     
-    $("#users").autoSuggest("http://localhost:8001/users/list", {selectedItemProp: "name", searchObjProps: "name",selectedValuesProp: "user", selectionLimit: 5,startText: "Add user name here", asHtmlID: "users_list"} );
+    $("#users").autoSuggest("/users/list", {selectedItemProp: "name", searchObjProps: "name",selectedValuesProp: "user", selectionLimit: 5,startText: "Add user name here", asHtmlID: "users_list"} );
     $("#dialog").modal();
   });
   $("a[data-action=editor-open-project]").click(function() {  
