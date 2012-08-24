@@ -14,6 +14,7 @@ html
     link(rel='stylesheet', href='assets/js/codemirror/theme/neat.css', type='text/css', media='screen', charset='utf-8')
     link(rel='stylesheet', href='assets/js/codemirror/theme/rubyblue.css', type='text/css', media='screen', charset='utf-8')    
     link(rel='stylesheet', href='assets/css/DT_bootstrap.css', type='text/css', media='screen', charset='utf-8')
+    link(rel='stylesheet', href='assets/css/autoSuggest.css', type='text/css', media='screen', charset='utf-8')
     link(rel='stylesheet', href='assets/css/site.css', type='text/css', media='screen', charset='utf-8')
     script(type='text/javascript', charset='utf-8', src='assets/js/jquery-1.7.2.min.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/jquery-ui-1.8.22.js')
@@ -39,6 +40,7 @@ html
     script(type='text/javascript', src='/share/cm.js')
     script(type='text/javascript', src='assets/js/jquery.dataTables.js')
     script(type='text/javascript', src='assets/js/DT_bootstrap.js')
+    script(type='text/javascript', src='assets/js/jquery.autoSuggest.js')
     script(type='text/javascript', src='assets/js/site.js')
   body(style='overflow: hidden;')
     .container-fluid
@@ -144,7 +146,7 @@ html
                         | Zoom Out
                     li.divider
                     li
-                      a#editor-enter-fullscreen(href='JavaScript:void(0);')
+                      a(href='JavaScript:void(0);', data-action="editor-enter-fullscreen")
                         i.icon-fullscreen
                         | Enter Full Screen
                 li#menuCode.dropdown
