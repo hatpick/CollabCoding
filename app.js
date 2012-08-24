@@ -46,6 +46,7 @@ try {
     }
   });
 } catch (e) {
+  
 }
 
 options.auth = function(agent, action) {
@@ -58,5 +59,7 @@ options.auth = function(agent, action) {
 // Attach the sharejs REST and Socket.io interfaces to the server
 sharejs.attach(app, options);
 
-app.listen(8001);
-console.log('Server running at http://127.0.0.1:8001/');
+exec('mongod &', function(err, stdout, stderr) {
+  app.listen(8001);
+  console.log('Server running at http://127.0.0.1:8001/');
+});

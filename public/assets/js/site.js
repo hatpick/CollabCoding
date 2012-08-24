@@ -1,10 +1,3 @@
-(function() {
-  var Collabcoding = {
-    tree_data: {}
-  };
-  window.Collabcoding = Collabcoding;
-})(window);
-
 function _(string, context) {
   return string.replace(/%\(\w+\)s/g, function(match) {
     return context[match.slice(2, -2)];
@@ -95,19 +88,20 @@ function reportSuccess(report) {
   $("#small-console").append(success);
   $("#small-console").toggleClass("small-console-animated");
 }
+   
 
-function randomDocName (length) {
-  var chars, x;
-  if (!length) {
-    length = 10;
-  }
-  chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-=";
-  var name = [];
-  for ( x = 0; x < length; x++) {
-    name.push(chars[Math.floor(Math.random() * chars.length)]);
-  }
-  return name.join("");
-};
+// function randomDocName (length) {
+//   var chars, x;
+//   if (!length) {
+//     length = 10;
+//   }
+//   chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-=";
+//   var name = [];
+//   for ( x = 0; x < length; x++) {
+//     name.push(chars[Math.floor(Math.random() * chars.length)]);
+//   }
+//   return name.join("");
+// };
 
 var templates = {
   error : '<a style="text-decoration:none;" data-line="%(line)s" href="javascript:void(0)">Line %(line)s, Character %(character)s</a>: ' + '<code>%(code)s</code><p style="color: #b94a48">%(msg)s</p>'
@@ -152,9 +146,9 @@ var layout = function() {
     }
   }
   _height = $("#left-items").height() - $("#nav-tab").height() - parseInt($("#nav-tab").css("margin-bottom"), 10);
-  $(".tab-content").height(_height);
-  $(".CodeMirror").height(_height - $(".breadcrumb").usedHeight());
-  // myCodeMirror.refresh();
+  $(".tab-content").height(_height);   
+  // _height = document.documentElement.clientHeight - $(".navbar").height() - 20; 
+  $(".CodeMirror-wrap").height($("#project").height());
 };
 
 $(window).resize(function() {
@@ -162,6 +156,7 @@ $(window).resize(function() {
 });
 
 $(document).ready(function() {
+  window.doc = null;
   // TODO 
   $('#browser').bind('click', function() {
     console.log($.jstree._focused().get_selected());
@@ -189,21 +184,24 @@ $(document).ready(function() {
       var myCodeMirror = editor(elem, mode);
       var docName = $.jstree._focused().get_selected().attr('data-shareJSId');
       sessionStorage.setItem("docName", docName);
-      CodeMirror.commands.selectAll(myCodeMirror);  
-      sharejs.open(docName, function(error, doc) {
-
-          if (error) {
-              console.error(error);
-              return;
-          }
-          doc.attach_cm(myCodeMirror);
-      });
+      CodeMirror.commands.selectAll(myCodeMirror);
+      sharejs.open(docName, function(error, newdoc) {   
+        if (doc !== null ) {
+           doc.close();
+           doc.detach_cm();
+        };
+        doc = newdoc;
+        doc.attach_cm(myCodeMirror);            
+      });  
+      if ($(".CodeMirror.CodeMirror-wrap").size() > 1) {
+        $($(".CodeMirror.CodeMirror-wrap")[1]).remove();
+      }   
+      $(".CodeMirror-wrap").height($("#project").height());  
       window.myCodeMirror = myCodeMirror;
     }    
   });
         
   function _createJsTree(tree_data){ 
-    Collabcoding.tree_data = tree_data;
     $("#browser").jstree({
       "unique" : {
                   "error_callback" : function (n, p, f) {
@@ -309,9 +307,12 @@ $(document).ready(function() {
                 this.rename(obj, function(obj){
                   console.log(obj);
                   var project_name = sessionStorage.getItem('project'); 
-                  $.post('/project/' + project_name + '/rename', obj,
-                  function() {
-                    
+                  $.post('/project/' + project_name + '/rename', {
+                    old_name: obj.old_name,
+                    new_name: obj.new_name
+                  },
+                  function(data) {
+                    console.log(data);
                   }, 'json');
                  });
               }
@@ -724,10 +725,15 @@ $(document).ready(function() {
     $(".modal-footer").html(dialogFotter);
     $("#dialog").modal();
   }
+  
+  function cleanSessionStorage() {
+    sessionStorage.removeItem('project');
+    sessionStorage.removeItem('docName');
+  };
 
   $("#left-items").width($("#nav-tab").children(":first").width() * 4 + 7);
   $("#project-tree").jstree();
-  $("#doc-tab a:first").tab("show");
+  // $("#doc-tab a:first").tab("show");
   $("#nav-tab a:first").tab("show");
   $("#nav-tab a").click(function(e) {
     e.preventDefault();
@@ -742,12 +748,7 @@ $(document).ready(function() {
   $("#nav-tab a:first").click();
   $(".dropdown-toggle").dropdown();
 
-  $(".left-splitter-collapse-button").tooltip({
-    title : "Hide"
-  });
-  $(".right-splitter-collapse-button").tooltip({
-    title : "Hide Comments"
-  });
+
   $(".left-splitter-collapse-button").click(function() {
     if ($(this).attr("data-action") === "#hide") {
       $("#left-items").animate({
@@ -837,15 +838,17 @@ $(document).ready(function() {
     }
   };    
 
-  layout();
-  
-  // FIXME: here for test project tree. After finished, reomve it.  
+  layout(); 
+  // TODO: remove after finished
   $.get('/project', {name: sessionStorage.getItem('project')}, function(data) {
     createJsTreeByJSON(data);
-  })
+    $("#dialog").modal('hide');
+  });
 
-  $(".btn-logout").click(function() {window.location.href='/logout'});
-  
+  $(".btn-logout").click(function() {
+    cleanSessionStorage();
+    window.location.href='/logout'
+  });
   
   $("a[data-action=editor-new-file]").click(function() {
     createFile(this);
@@ -853,7 +856,7 @@ $(document).ready(function() {
   $("a[data-action=editor-new-project]").click(function() {
     // TODO: pop up a window, asking user close/save current project
     var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>New Project</p>";
-    var dialogContent = '<input type="text" id="project_name" placeholder="Enter project name" width="100%" required/>';
+    var dialogContent = '<input type="text" id="project_name" placeholder="Enter project name" width="100%" required/><br/><input type="text" id="users" width="100%" required/>';
 
     var dialogFotter = $("<div>").append($("<button>").attr({
       class : "btn btn-primary",
@@ -867,9 +870,12 @@ $(document).ready(function() {
         var project_name = $("#project_name").val();    
         // save client
         sessionStorage.setItem('project', project_name)
-        // post to server 
+        // post to server   
+        var users = $("#as-selections-users_list").children().text().split("×");
+        users.shift();
         $.post("/project/new", {
-          pname : project_name 
+          pname : project_name,
+          users: users
         }, function() {
           console.info("success create" + $("#project_name").val());
         });
@@ -883,7 +889,9 @@ $(document).ready(function() {
       }).text("Cancel"));
     $(".modal-header").html(dialogHeader);
     $(".modal-body").html(dialogContent);
-    $(".modal-footer").html(dialogFotter);
+    $(".modal-footer").html(dialogFotter); 
+    
+    $("#users").autoSuggest("http://localhost:8001/users/list", {selectedItemProp: "name", searchObjProps: "name",selectedValuesProp: "user", selectionLimit: 5,startText: "Add user name here", asHtmlID: "users_list"} );
     $("#dialog").modal();
   });
   $("a[data-action=editor-open-project]").click(function() {  
@@ -906,7 +914,7 @@ $(document).ready(function() {
                $.get('/project', {name: sessionStorage.getItem('project')}, function(data) {
                  createJsTreeByJSON(data);
                  $("#dialog").modal('hide');
-               })
+               });
              })))
           .append($('<td>').html(projects[i].created_on))
           .append($('<td>').html(projects[i].last_modified_on));
@@ -924,8 +932,9 @@ $(document).ready(function() {
   })
   $("a[data-action=editor-share-code]").click(function() {
     var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>Share via this link</p>";
+    var project_name = sessionStorage.getItem("project");
     var doc_shareJSId = sessionStorage.getItem("docName");
-    var dialogContent = $("<div>").append($("<p>").text(document.location.origin + "/" + doc_shareJSId)).append($("<p>").attr("margin-bottom","5px").append($('<input>').attr({type:"text", id:"collaboratorEmail", placeholder:"Enter a valid username", width:"100%", required:true})));
+    var dialogContent = $("<div>").append($("<p>").text(document.location.origin + "/" +  project_name + "/" + doc_shareJSId)).append($("<p>").attr("margin-bottom","5px").append($('<input>').attr({type:"text", id:"collaboratorEmail", placeholder:"Enter a valid username", width:"100%", required:true})));
 
     var dialogFotter = $("<div>").append($("<a>").attr({
       class : "btn",
@@ -941,12 +950,6 @@ $(document).ready(function() {
     $(".modal-footer").html(dialogFotter);
     $("#dialog").modal();               
   });
-  
-  $("button[data-action=editor-livepreview-toggle]").tooltip({
-    title : "Turn Live Preview On!",
-    placement : "bottom"
-  });
-  
   $("button[data-action=editor-livepreview-toggle]").click(function(){
     var live_preview_toggle = $("button[data-action=editor-livepreview-toggle]");
     var live_preview_toggle_icon = $("button[data-action=editor-livepreview-toggle] i");
@@ -964,19 +967,15 @@ $(document).ready(function() {
       //TODO: Merge equal sections in editor area and show comments
     } 
   });
-  
   $("a[data-action=editor-find-replace]").click(function() {
   	//TODO: find/replace  	
   });
-  
   $("a[data-action=editor-find-next]").click(function() {
   	//TODO: find next
   });
-  
   $("a[data-action=editor-find-previous]").click(function() {
   	//TODO: find previous	
   });  
-  
   $("a[data-action=editor-comment-selected]").click(function() {
     commentSelection(true);
   });
@@ -989,11 +988,9 @@ $(document).ready(function() {
   $("a[data-action=editor-check-quality]").click(function() {
     checkQuality();
   });
-  
-  $("a[data-action=editor-console-toggle]").tooltip({
-    title : "Show Console",
-    placement : "left"
-  });   
+  $("a[data-action=editor-enter-fullscreen]").click(function() {
+    document.documentElement.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+  });
   
   $("a[data-action=editor-console-toggle]").click(function() {
     if ($(this).attr("href") === "#show")
@@ -1001,18 +998,30 @@ $(document).ready(function() {
     else
       hideConsole($(this));
   });
+
+  /*
+    Tooltip
+  */
+  $(".left-splitter-collapse-button").tooltip({
+    title : "Hide"
+  });
+  
+  $(".right-splitter-collapse-button").tooltip({
+    title : "Hide Comments"
+  });
+  
+  $("button[data-action=editor-livepreview-toggle]").tooltip({
+    title : "Turn Live Preview On!",
+    placement : "bottom"
+  });
+  
+  $("a[data-action=editor-console-toggle]").tooltip({
+    title : "Show Console",
+    placement : "left"
+  });
+     
   $("a[data-action=editor-console-clean]").tooltip({
     title : "Clean Console",
     placement : "left"
   });
-  $("a[data-action=editor-console-clean]").click(function() {
-    var consoleDiv = $("#small-console div");
-    if (consoleDiv[0].innerHTML !== "")
-      consoleDiv[0].innerHTML = "";
-  });
-  $("#doc-tab a").click(function(e) {
-    e.preventDefault();
-    $(this).tab("show");
-  });
 });
-
