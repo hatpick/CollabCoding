@@ -848,10 +848,10 @@ $(document).ready(function() {
 
   layout(); 
   // TODO: remove after finished
-  $.get('/project', {name: sessionStorage.getItem('project')}, function(data) {
-    createJsTreeByJSON(data);
-    $("#dialog").modal('hide');
-  });
+  // $.get('/project', {name: sessionStorage.getItem('project')}, function(data) {
+    // createJsTreeByJSON(data);
+    // $("#dialog").modal('hide');
+  // });
 
   $(".btn-logout").click(function() {
     cleanSessionStorage();
