@@ -188,10 +188,10 @@ $(document).ready(function() {
       sharejs.open(docName, function(error, newdoc) {   
         if (doc !== null ) {
            doc.close();
-           doc.detach_cm();
+           doc.detach_codemirror();
         };
         doc = newdoc;
-        doc.attach_cm(myCodeMirror);            
+        doc.attach_codemirror(myCodeMirror);            
       });  
       if ($(".CodeMirror.CodeMirror-wrap").size() > 1) {
         $($(".CodeMirror.CodeMirror-wrap")[1]).remove();
