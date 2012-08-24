@@ -21,12 +21,14 @@ a img{max-width:none;height:20px}
 [class*="span"],.row-fluid [class*="span"]{float:left}
 [class*="icon-"]{margin:0 5px 0 5px}
 .close{position:relative;left:4px;top:-3px}
-.CodeMirror{height:100%;font-size:14px;background-color:#fff;opacity:.95}
+.CodeMirror{font-size:14px;background-color:#fff;opacity:.95}
 .CodeMirror-wrap{height:100%}
 .CodeMirror-gutter{font-size:14px}
 .folder-html{background:url("../img/folder-html.png") 0 0 no-repeat;padding:1px 0 1px 16px}
 .folder-css{background:url("../img/folder-css.png") 0 0 no-repeat;padding:1px 0 1px 16px}
 .folder-js{background:url("../img/folder-js.png") 0 0 no-repeat;padding:1px 0 1px 16px}
+.ui-dialog .ui-dialog-buttonpane .ui-dialog-buttonset{float:center}
+.ui-dialog-buttonset{text-align:center}
 #project{background-color:#fff}
 #shareDoc{background:transparent;border:0;color:#fff;cursor:pointer}
 #shareDoc span{margin-left:5px}
@@ -45,5 +47,3 @@ a img{max-width:none;height:20px}
 #comment-name{font-size:12px;font-weight:bold;margin-left:32px}
 #comment-time{margin:3px 0 0 32px;font-size:11px;color:#666}
 #small-console{display:block;position:relative;height:20px;z-index:11;-webkit-transition:all .5s ease;-webkit-border-radius:2px 2px 0 0;padding-top:3px;background:-webkit-gradient(linear,0% 0%,0% 100%,from(#666),to(#666),color-stop(.6,#333))}
-.ui-dialog .ui-dialog-buttonpane .ui-dialog-buttonset{float:center}
-.ui-dialog-buttonset{text-align:center}

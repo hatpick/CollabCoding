@@ -72,4 +72,11 @@ exports.signup = function(req, res) {
       }
     });
   }
+};     
+
+
+exports.list = function(req, res) {
+  AM.getAllRecords(function(err, result) {
+     res.json(result);
+  });
 };

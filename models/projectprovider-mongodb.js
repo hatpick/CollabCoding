@@ -39,13 +39,30 @@ ProjectProvider.prototype.getCollection= function(callback) {
   });
 };
 
-ProjectProvider.prototype.findAll = function(callback) {
+ProjectProvider.prototype.findAll = function(user, callback) {
     this.getCollection(function(error, project_collection) {
       if( error ) callback(error)
       else {
         project_collection.find().toArray(function(error, results) {
-          if( error ) callback(error)
-          else callback(null, results)
+          if( error ) callback(error) 
+          else { 
+            console.log(user);
+            // TODO
+            var _results = [];
+            for(var r in results) {
+               if (r.creator == user.user) {
+                 _results.push(r);
+               } else {
+                 for (var u in r.users){
+                    if (u == user.user) {
+                      _results.push(r);
+                      break;
+                    }
+                 }
+               }
+            }
+            callback(null, _results)
+          }
         });
       }
     });
@@ -125,7 +142,7 @@ ProjectProvider.prototype.new = function(name, data, callback) {
       });
     }
   });
-}; 
+};                           
                                            
 /**
  * Update project information
