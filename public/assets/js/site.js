@@ -190,7 +190,14 @@ $(document).ready(function() {
            doc.close();
            doc.detach_codemirror();
         };
+        
         doc = newdoc;
+        
+        if (error) {
+          console.error(error);
+          return;
+        }
+                
         doc.attach_codemirror(myCodeMirror);            
       });  
       if ($(".CodeMirror.CodeMirror-wrap").size() > 1) {
