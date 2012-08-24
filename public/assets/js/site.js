@@ -761,6 +761,8 @@ $(document).ready(function() {
 	$(".dropdown-toggle").dropdown();
 
 	$(".left-splitter-collapse-button").click(function() {
+		if ($("button[data-action=editor-livepreview-toggle]").attr("data-status") === "on")
+			return;
 		if ($(this).attr("data-action") === "#hide") {
 			$("#left-items").animate({
 				width : "0px",
