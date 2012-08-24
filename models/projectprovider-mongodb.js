@@ -45,17 +45,18 @@ ProjectProvider.prototype.findAll = function(user, callback) {
       else {
         project_collection.find().toArray(function(error, results) {
           if( error ) callback(error) 
-          else { 
-            console.log(user);
-            // TODO
+          else {             
             var _results = [];
-            for(var r in results) {
+            for(var i = 0 ; i < results.length ; i++) {
+               var r = results[i];  
+               console.log(r);                         
                if (r.creator == user.user) {
                  _results.push(r);
                } else {
-                 for (var u in r.users){
+                 for(var j = 0; j < r.users.length; j++){
+                 	var  u = r.users[j];
                     if (u == user.user) {
-                      _results.push(r);
+                      _results.push(r);                      
                       break;
                     }
                  }

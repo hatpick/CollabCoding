@@ -647,6 +647,10 @@ $(document).ready(function() {
       var project_name = sessionStorage.getItem('project');
       var paths = $.jstree._focused().get_path();
       var file_name = $("div input").val(); 
+      
+      if (!reg.test($("div input").val())) {
+        return;
+      }
       // save file 
       $.post('/project/' + project_name + '/new', {
         paths: paths,
@@ -656,9 +660,6 @@ $(document).ready(function() {
         console.log('success create file: ' + file_name);
       },'json');
       
-      if (!reg.test($("div input").val())) {
-        return;
-      }
       var opt = $("select option:selected").val();
       var type;
       if (opt == ".html") {
@@ -878,8 +879,8 @@ $(document).ready(function() {
         // save client
         sessionStorage.setItem('project', project_name)
         // post to server   
-        var users = $("#as-selections-users_list").children().text().split("×");
-        users.shift();
+        var users = $("#as-values-users_list").attr("value").split(",");
+        users.pop();        
         $.post("/project/new", {
           pname : project_name,
           users: users
