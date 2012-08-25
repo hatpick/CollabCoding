@@ -148,6 +148,10 @@ var layout = function() {
 	$(".tab-content").height(_height);
 	// _height = document.documentElement.clientHeight - $(".navbar").height() - 20;
 	$(".CodeMirror-wrap").height($("#project").height());
+	if ($("button[data-action=editor-livepreview-toggle]").attr("data-status") === "on") {
+		$("#live_preview_window").height($("#project").height());
+		//TODO change width of editor, preview window
+	}
 };
 
 $(window).resize(function() {
@@ -168,6 +172,13 @@ $(document).ready(function() {
 				mode = "javascript";
 			else if (file_type === "file-css")
 				mode = "css"
+
+			//enable live preview toggle button
+			if (file_type === 'file-html')
+				_switchLiveViewButton(true);
+			else
+				_switchLiveViewButton(false);
+
 			$('.breadcrumb').empty();
 			var paths = $.jstree._focused().get_path();
 			var li;
@@ -203,6 +214,7 @@ $(document).ready(function() {
 				$($(".CodeMirror.CodeMirror-wrap")[1]).remove();
 			}
 			$(".CodeMirror-wrap").height($("#project").height());
+
 			window.myCodeMirror = myCodeMirror;
 		}
 	});
@@ -990,6 +1002,87 @@ $(document).ready(function() {
 		$(".modal-footer").html(dialogFotter);
 		$("#dialog").modal();
 	});
+
+	function _switchLiveViewButton(enable) {
+		if (enable)
+			$("button[data-action=editor-livepreview-toggle]").removeAttr("disabled").removeClass("disabled");
+		else
+			$("button[data-action=editor-livepreview-toggle]").attr("disabled", "disabled").addClass("disabled");
+	}
+
+	function _toggleLiveView(toggleLiveView) {
+		//Show live preview
+		if (toggleLiveView) {
+			//Add Preview Area
+			var preview_left = $(".CodeMirror").usedWidth() + 5;
+			var preview_top = 52;
+			//$(".breadcrumb").usedHeight() + parseInt($(".breadcrumb").css("line-height"));
+			var preview_width = $(".CodeMirror").width() + 10;
+			var live_preview_iframe_content = "<!DOCTYPE html><html><head></head><body></body></html>";
+
+			var live_preview_window = $("<div>").height($(".CodeMirror").height()).attr({
+				id : "live_preview_window"
+			}).width(preview_width).css({
+				position : "absolute",
+				top : (preview_top + "px"),
+				float : "left",
+				"background-color" : "#FFFFFF",
+				"margin-left" : "10px",				
+				left : (preview_left + "px")
+			}).html("<iframe id='live_preview_target' class='preview_iframe'>" + live_preview_iframe_content + "</iframe>");
+			$("#editor-area").append(live_preview_window);
+			//TODO:Inject Content to iFrame Here
+
+			//Hide Comment Area
+			$("#right-items").hide("drop", {
+				direction : "right"
+			}, 1e3);
+			//Expand Editor/Preview Area
+			$("#editor-area").animate({
+				width : $("#editor-area").width() + $("#right-items").usedWidth() - 10
+			}, {
+				duration : 200,
+				step : function(now, fx) {
+					$(".right-splitter").css("left", ($("#left-items").is(":visible") ? $("#left-items").usedWidth() : 0) + $(".left-splitter").usedWidth() + $("#editor-area").usedWidth());
+					$(".CodeMirror").width($("#editor-area").width() / 2 - 5);
+					$("#live_preview_window").width($(".CodeMirror").width());
+					$("#live_preview_window").css({
+						left : $(".CodeMirror").width()
+					});
+				}
+			});
+
+			$(".right-splitter-collapse-button").attr("data-action", "#show").css("left", "-2px");
+			$(".right-splitter-collapse-button").data("tooltip").options.title = "Show Comments";
+			$(".right-splitter-collapse-button").data("tooltip").options.placement = "left";
+
+		}
+		//Hide live preview
+		else {
+			//Remove Preview Area
+			$("#live_preview_window").remove();
+			
+			$("#right-items").show("drop", {
+				direction : "right"
+			}, 200);			
+
+			$("#editor-area").animate({
+				width : $("#editor-area").width() - $("#right-items").usedWidth() + 10
+			}, {
+				duration : 200,
+				step : function(now, fx) {
+					$(".right-splitter").css("left", ($("#left-items").is(":visible") ? $("#left-items").usedWidth() : 0) + $(".left-splitter").usedWidth() + $("#editor-area").usedWidth());
+					$(".CodeMirror").width($("#editor-area").width());
+				}
+			});
+						
+			$(".right-splitter-collapse-button").attr("data-action", "#hide").css("left", "-1px");
+			$(".right-splitter-collapse-button").data("tooltip").options.title = "Hide Comments";
+			$(".right-splitter-collapse-button").data("tooltip").options.placement = "top";
+		}
+	}
+
+
 	$("button[data-action=editor-livepreview-toggle]").click(function() {
 		var live_preview_toggle = $("button[data-action=editor-livepreview-toggle]");
 		var live_preview_toggle_icon = $("button[data-action=editor-livepreview-toggle] i");
@@ -1000,12 +1093,14 @@ $(document).ready(function() {
 			live_preview_toggle.data("tooltip").options.title = "Turn Live Preview Off!";
 			live_preview_toggle.attr("data-status", "on")
 			//TODO: Hide comment area on right and split editor area into two equal sections
+			_toggleLiveView(true);
 
 		} else {
 			$("button[data-action=editor-livepreview-toggle] i").removeClass("icon-eye-open").addClass("icon-eye-close");
 			live_preview_toggle.data("tooltip").options.title = "Turn Live Preview On!";
 			live_preview_toggle.attr("data-status", "off")
 			//TODO: Merge equal sections in editor area and show comments
+			_toggleLiveView(false);
 
 		}
 	});
