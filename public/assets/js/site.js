@@ -40,12 +40,12 @@ function editor(id, mode) {
 			"Ctrl-Space" : "autocomplete"
 		},
 		syntax : "html",
-		profile : "xhtml",
+		profile : "xhtml",		
 		onKeyEvent : function() {
 			return zen_editor.handleKeyEvent.apply(zen_editor, arguments);
 		}
 	});
-	CodeMirror.commands.selectAll(_editor);
+	CodeMirror.commands.selectAll(_editor);	
 	return _editor;
 }
 
@@ -173,12 +173,13 @@ $(document).ready(function() {
 			else if (file_type === "file-css")
 				mode = "css"
 
-			//enable live preview toggle button
+			//enable live preview toggle button, hide live view if open
+			//TODO: hide live view
 			if (file_type === 'file-html')
 				_switchLiveViewButton(true);
 			else
 				_switchLiveViewButton(false);
-
+			
 			$('.breadcrumb').empty();
 			var paths = $.jstree._focused().get_path();
 			var li;
@@ -198,7 +199,7 @@ $(document).ready(function() {
 			sharejs.open(docName, function(error, newdoc) {
 				if (doc !== null) {
 					doc.close();
-					doc.detach_codemirror();
+					// doc.detach_codemirror();
 				};
 
 				doc = newdoc;
@@ -686,9 +687,7 @@ $(document).ready(function() {
 				attr : {
 					rel : type
 				}
-			}, function(o) {
-				Collabcoding.tree_data = this. get_json()[0];
-			}, true);
+			}, function(o){}, true);
 			$("#dialog").modal('hide');
 			// FIXME: b
 			$.get('/project', {
@@ -701,6 +700,7 @@ $(document).ready(function() {
 		$(".modal-header").html(dialogHeader);
 		$(".modal-body").html(dialogContent);
 		$(".modal-footer").html(dialogFotter);
+		
 		$("#dialog").modal();
 	}
 
@@ -738,9 +738,7 @@ $(document).ready(function() {
 				attr : {
 					rel : 'folder'
 				}
-			}, function(o) {
-				Collabcoding.tree_data = this. get_json()[0];
-			}, true);
+			}, function(o){}, true);
 
 			$("#dialog").modal('hide');
 		}));
@@ -1048,6 +1046,13 @@ $(document).ready(function() {
 			}).html("<iframe id='live_preview_target' class='preview_iframe'>" + live_preview_iframe_content + "</iframe>");
 			$("#editor-area").append(live_preview_window);
 			//TODO:Inject Content to iFrame Here
+			// myCodeMirror.setOption("onChange", function(cm, changedText){
+				// console.log(changedText.text);
+				// while(temp){
+					// temp = temp.next;
+					// console.log(temp.text);					
+				// }				
+			// });
 
 			//Hide Comment Area
 			var isCommentVisible = ($("#right-items").is(":visible"));
