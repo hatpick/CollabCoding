@@ -1050,15 +1050,16 @@ $(document).ready(function() {
 			//TODO:Inject Content to iFrame Here
 
 			//Hide Comment Area
-			var isCommentVisible = ($(".right-splitter-collapse-button").attr("data-action") === "#hide");
+			var isCommentVisible = ($("#right-items").is(":visible"));
 			if (isCommentVisible) {
 				$("#right-items").hide("drop", {
 					direction : "right"
 				}, 200);
 			}
+			
 			//Expand Editor/Preview Area
 			$("#editor-area").animate({
-				width : $("#editor-area").width() + ((isCommentVisible) ? $("#right-items").usedWidth() : 0) - (($("#left-items").is(":visible")? 0 : 10))
+				width : $("#editor-area").width() + ((isCommentVisible) ? $("#right-items").usedWidth() : 0) - 10 + (!isCommentVisible? 10 : 0)
 			}, {
 				duration : 200,
 				step : function(now, fx) {
@@ -1087,9 +1088,9 @@ $(document).ready(function() {
 					direction : "right"
 				}, 200);
 			}
-
+			
 			$("#editor-area").animate({
-				width : $("#editor-area").width() - ((!isCommentVisible) ? $("#right-items").usedWidth() : 0) + (($("#left-items").is(":visible")? 0 : 10))
+				width : $("#editor-area").width() - ((!isCommentVisible) ? $("#right-items").usedWidth() : 0) + 10 - (isCommentVisible? 10 : 0)
 			}, {
 				duration : 200,
 				step : function(now, fx) {
