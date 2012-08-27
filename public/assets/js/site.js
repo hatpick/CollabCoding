@@ -755,7 +755,7 @@ $(document).ready(function() {
 		sessionStorage.removeItem('docName');
 	};
 
-	$("#left-items").width($("#nav-tab").children(":first").width() * 4 + 7);
+	$("#left-items").width(205);
 	$("#project-tree").jstree();
 	// $("#doc-tab a:first").tab("show");
 	$("#nav-tab a:first").tab("show");
@@ -772,61 +772,74 @@ $(document).ready(function() {
 	$("#nav-tab a:first").click();
 	$(".dropdown-toggle").dropdown();
 
+	function hideLeftArea(toggleButton) {
+		$("#left-items").animate({
+			width : "0px",
+			"min-width" : "0px"
+		}, {
+			duration : 200,
+			step : function() {
+				$("#left-splitter").animate({
+					left : $("#left-items").width()
+				});
+				_original_left = $("#editor-area").position().left;
+				_new_left = $(".left-splitter").position().left + $(".left-splitter").usedWidth();
+				$("#editor-area").css("left", $(".left-splitter").position().left + $(".left-splitter").width());
+				$("#editor-area").width($("#editor-area").width() + (_original_left - _new_left));
+				$(".CodeMirror").width($("#editor-area").width());
+			}
+		});
+		toggleButton.attr("data-action", "#show").css("left", "0px");
+		$(".left-splitter-collapse-button").data("tooltip").options.title = "Show";
+		$(".left-splitter-collapse-button").data("tooltip").options.placement = "right";
+	}
+
+	function showLeftArea(toggleButton) {
+		$("#left-items").animate({
+			width : "205px",
+			"margin-left" : "5px"
+		}, {
+			duration : 200,
+			step : function() {
+				$("#left-splitter").animate({
+					left : $("#left-items").width()
+				});
+				_original_left = $("#editor-area").position().left;
+				_new_left = $(".left-splitter").position().left + $(".left-splitter").width();
+				$("#editor-area").css("left", $(".left-splitter").position().left + $(".left-splitter").width());
+				$("#editor-area").width($("#editor-area").width() + (_original_left - _new_left));
+				$(".CodeMirror").width($("#editor-area").width());
+			}
+		});
+		toggleButton.attr("data-action", "#hide").css("left", "-1px");
+		$(".left-splitter-collapse-button").data("tooltip").options.title = "Hide";
+		$(".left-splitter-collapse-button").data("tooltip").options.placement = "top";
+	}
+
+
 	$(".left-splitter-collapse-button").click(function() {
 		if ($("button[data-action=editor-livepreview-toggle]").attr("data-status") === "on")
 			return;
 		if ($(this).attr("data-action") === "#hide") {
-			$("#left-items").animate({
-				width : "0px",
-				"min-width" : "0px"
-			}, {
-				duration : 200,
-				step : function() {
-					$("#left-splitter").animate({
-						left : $("#left-items").width()
-					});
-					_original_left = $("#editor-area").position().left;
-					_new_left = $(".left-splitter").position().left + $(".left-splitter").usedWidth();
-					$("#editor-area").css("left", $(".left-splitter").position().left + $(".left-splitter").width());
-					$("#editor-area").css("width", parseInt($("#editor-area").css("width"), 10) + (_original_left - _new_left));
-				}
-			});
-			$(this).attr("data-action", "#show").css("left", "0px");
-			$(".left-splitter-collapse-button").data("tooltip").options.title = "Show";
-			$(".left-splitter-collapse-button").data("tooltip").options.placement = "right";
+			hideLeftArea($(this));
 		} else {
-			$("#left-items").animate({
-				width : $("#nav-tab").children(":first").width() * 4 + 7,
-				"min-width" : "205px"
-			}, {
-				duration : 200,
-				step : function() {
-					$("#left-splitter").animate({
-						left : $("#left-items").width()
-					});
-					_original_left = $("#editor-area").position().left;
-					_new_left = $(".left-splitter").position().left + $(".left-splitter").width();
-					$("#editor-area").css("left", $(".left-splitter").position().left + $(".left-splitter").width());
-					$("#editor-area").css("width", parseInt($("#editor-area").css("width"), 10) + (_original_left - _new_left));
-				}
-			});
-			$(this).attr("data-action", "#hide").css("left", "-1px");
-			$(".left-splitter-collapse-button").data("tooltip").options.title = "Hide";
-			$(".left-splitter-collapse-button").data("tooltip").options.placement = "top";
+			showLeftArea($(this));
 		}
 	});
 
 	function hideCommentArea(toggleButton) {
 		$("#right-items").hide("drop", {
 			direction : "right"
-		}, 1e3);
+		}, 200);
 
+		var newWidth = $("#editor-area").width() + $("#right-items").usedWidth() - 10;
 		$("#editor-area").animate({
-			width : $("#editor-area").width() + $("#right-items").usedWidth() - 10
+			width : newWidth
 		}, {
 			duration : 200,
 			step : function(now, fx) {
 				$(".right-splitter").css("left", ($("#left-items").is(":visible") ? $("#left-items").usedWidth() : 0) + $(".left-splitter").usedWidth() + $("#editor-area").usedWidth());
+				$(".CodeMirror").width(newWidth);
 			}
 		});
 
@@ -843,12 +856,15 @@ $(document).ready(function() {
 		$(".right-splitter-collapse-button").data("tooltip").options.title = "Hide Comments";
 		$(".right-splitter-collapse-button").data("tooltip").options.placement = "top";
 
+		var newWidth = $("#editor-area").width() - $("#right-items").usedWidth() + 10;
+
 		$("#editor-area").animate({
-			width : $("#editor-area").width() - $("#right-items").usedWidth() + 10
+			width : newWidth
 		}, {
 			duration : 200,
 			step : function(now, fx) {
 				$(".right-splitter").css("left", ($("#left-items").is(":visible") ? $("#left-items").usedWidth() : 0) + $(".left-splitter").usedWidth() + $("#editor-area").usedWidth());
+				$(".CodeMirror").width(newWidth);
 			}
 		});
 
@@ -1022,24 +1038,27 @@ $(document).ready(function() {
 
 			var live_preview_window = $("<div>").height($(".CodeMirror").height()).attr({
 				id : "live_preview_window"
-			}).width(preview_width).css({
+			}).css({
 				position : "absolute",
 				top : (preview_top + "px"),
 				float : "left",
 				"background-color" : "#FFFFFF",
-				"margin-left" : "10px",				
-				left : (preview_left + "px")
+				"margin-left" : "7px",
+				border : "1px solid #DDD"				
 			}).html("<iframe id='live_preview_target' class='preview_iframe'>" + live_preview_iframe_content + "</iframe>");
 			$("#editor-area").append(live_preview_window);
 			//TODO:Inject Content to iFrame Here
 
 			//Hide Comment Area
-			$("#right-items").hide("drop", {
-				direction : "right"
-			}, 1e3);
+			var isCommentVisible = ($(".right-splitter-collapse-button").attr("data-action") === "#hide");
+			if (isCommentVisible) {
+				$("#right-items").hide("drop", {
+					direction : "right"
+				}, 200);
+			}
 			//Expand Editor/Preview Area
 			$("#editor-area").animate({
-				width : $("#editor-area").width() + $("#right-items").usedWidth() - 10
+				width : $("#editor-area").width() + ((isCommentVisible) ? $("#right-items").usedWidth() : 0) - (($("#left-items").is(":visible")? 0 : 10))
 			}, {
 				duration : 200,
 				step : function(now, fx) {
@@ -1061,13 +1080,16 @@ $(document).ready(function() {
 		else {
 			//Remove Preview Area
 			$("#live_preview_window").remove();
-			
-			$("#right-items").show("drop", {
-				direction : "right"
-			}, 200);			
+
+			var isCommentVisible = $(".right-splitter-collapse-button").attr("data-action") === "#hide";
+			if (!isCommentVisible) {
+				$("#right-items").show("drop", {
+					direction : "right"
+				}, 200);
+			}
 
 			$("#editor-area").animate({
-				width : $("#editor-area").width() - $("#right-items").usedWidth() + 10
+				width : $("#editor-area").width() - ((!isCommentVisible) ? $("#right-items").usedWidth() : 0) + (($("#left-items").is(":visible")? 0 : 10))
 			}, {
 				duration : 200,
 				step : function(now, fx) {
@@ -1075,7 +1097,7 @@ $(document).ready(function() {
 					$(".CodeMirror").width($("#editor-area").width());
 				}
 			});
-						
+
 			$(".right-splitter-collapse-button").attr("data-action", "#hide").css("left", "-1px");
 			$(".right-splitter-collapse-button").data("tooltip").options.title = "Hide Comments";
 			$(".right-splitter-collapse-button").data("tooltip").options.placement = "top";
