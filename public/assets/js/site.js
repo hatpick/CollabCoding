@@ -161,6 +161,9 @@ $(window).resize(function() {
 $(document).ready(function() {
 	window.doc = null;
 	// TODO
+
+	_hotkeysHandler();	
+	
 	$('#browser').bind('click', function() {
 		console.log($.jstree._focused().get_selected());
 		var reg = /^file.*/;
@@ -911,6 +914,73 @@ $(document).ready(function() {
 	});
 	$("a[data-action=editor-new-project]").click(function() {
 		// TODO: pop up a window, asking user close/save current project
+		_newProject();
+	});
+	
+	$("a[data-action=editor-open-project]").click(function() {
+		// fetch project list
+		_openProject();
+	})
+	$("a[data-action=editor-share-code]").click(function() {
+		var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>Share via this link</p>";
+		var project_name = sessionStorage.getItem("project");
+		var doc_shareJSId = sessionStorage.getItem("docName");
+		var dialogContent = $("<div>").append($("<p>").text(document.location.origin + "/" + project_name + "/" + doc_shareJSId)).append($("<p>").attr("margin-bottom", "5px").append($('<input>').attr({
+			type : "text",
+			id : "collaboratorEmail",
+			placeholder : "Enter a valid username",
+			width : "100%",
+			required : true
+		})));
+
+		var dialogFotter = $("<div>").append($("<a>").attr({
+			class : "btn",
+			"data-dismiss" : "modal"
+		}).text("Cancel")).append($("<a>").attr({
+			class : "btn btn-primary"
+		}).text("Share").click(function() {
+			//TODO: Send notification to user
+		}));
+
+		$(".modal-header").html(dialogHeader);
+		$(".modal-body").html(dialogContent);
+		$(".modal-footer").html(dialogFotter);
+		$("#dialog").modal();
+	});
+	
+	function _openProject(){
+		$.get('/project/list', function(projects) {
+			var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>Open Project</p>";
+			var project_table = $('<table>').attr({
+				'class' : 'table table-striped table-bordered'
+			});
+			project_table.html('<thead><tr><th>#</th><th>Project Name</th><th>Created On</th><th>Last Modified On</th></tr></thead>');
+			var tbody = $('<tbody>');
+			var tr;
+			for (var i = 0; i < projects.length; i++) {
+				tr = $('<tr>');
+				tr.append($('<td>').html(i + 1)).append($('<td>').append($('<a>').attr('href', '#').append(projects[i].name).click(function() {
+					// TODO: pop up close alert
+					sessionStorage.setItem('project', $(this).text());
+					$.get('/project', {
+						name : sessionStorage.getItem('project')
+					}, function(data) {
+						createJsTreeByJSON(data);
+						$("#dialog").modal('hide');
+					});
+				}))).append($('<td>').html(projects[i].created_on)).append($('<td>').html(projects[i].last_modified_on));
+				tbody.append(tr);
+			}
+			project_table.append(tbody);
+			var dialogContent = project_table;
+			$(".modal-header").html(dialogHeader);
+			$(".modal-body").html(dialogContent);
+			$(".modal-footer").html('');
+			project_table.dataTable();
+			$("#dialog").modal();
+		})
+	}
+	function _newProject() {
 		var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>New Project</p>";
 		var dialogContent = '<input type="text" id="project_name" placeholder="Enter project name" width="100%" required/><br/><input type="text" id="users" width="100%" required/>';
 
@@ -956,72 +1026,64 @@ $(document).ready(function() {
 			asHtmlID : "users_list"
 		});
 		$("#dialog").modal();
-	});
-	$("a[data-action=editor-open-project]").click(function() {
-		// fetch project list
-		$.get('/project/list', function(projects) {
-			var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>Open Project</p>";
-			var project_table = $('<table>').attr({
-				'class' : 'table table-striped table-bordered'
-			});
-			project_table.html('<thead><tr><th>#</th><th>Project Name</th><th>Created On</th><th>Last Modified On</th></tr></thead>');
-			var tbody = $('<tbody>');
-			var tr;
-			for (var i = 0; i < projects.length; i++) {
-				tr = $('<tr>');
-				tr.append($('<td>').html(i + 1)).append($('<td>').append($('<a>').attr('href', '#').append(projects[i].name).click(function() {
-					// TODO: pop up close alert
-					sessionStorage.setItem('project', $(this).text());
-					$.get('/project', {
-						name : sessionStorage.getItem('project')
-					}, function(data) {
-						createJsTreeByJSON(data);
-						$("#dialog").modal('hide');
-					});
-				}))).append($('<td>').html(projects[i].created_on)).append($('<td>').html(projects[i].last_modified_on));
-				tbody.append(tr);
-			}
-			project_table.append(tbody);
-			var dialogContent = project_table;
-			$(".modal-header").html(dialogHeader);
-			$(".modal-body").html(dialogContent);
-			$(".modal-footer").html('');
-			project_table.dataTable();
-			$("#dialog").modal();
-		})
-	})
-	$("a[data-action=editor-share-code]").click(function() {
-		var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>Share via this link</p>";
-		var project_name = sessionStorage.getItem("project");
-		var doc_shareJSId = sessionStorage.getItem("docName");
-		var dialogContent = $("<div>").append($("<p>").text(document.location.origin + "/" + project_name + "/" + doc_shareJSId)).append($("<p>").attr("margin-bottom", "5px").append($('<input>').attr({
-			type : "text",
-			id : "collaboratorEmail",
-			placeholder : "Enter a valid username",
-			width : "100%",
-			required : true
-		})));
-
-		var dialogFotter = $("<div>").append($("<a>").attr({
-			class : "btn",
-			"data-dismiss" : "modal"
-		}).text("Cancel")).append($("<a>").attr({
-			class : "btn btn-primary"
-		}).text("Share").click(function() {
-			//TODO: Send notification to user
-		}));
-
-		$(".modal-header").html(dialogHeader);
-		$(".modal-body").html(dialogContent);
-		$(".modal-footer").html(dialogFotter);
-		$("#dialog").modal();
-	});
+	}
+	
+	function _hotkeysHandler(){		
+		var commandKey = "ctrl";
+		var metaKey = "meta";
+		var hotkeys = {
+			NEW_FILE: commandKey + "+n",
+			NEW_FOLDER: commandKey + "+n",
+			NEW_PROJECT: commandKey + "+shift+n",
+			OPEN_PROJECT: commandKey + "+o",
+			CLOSE_PROJECT: commandKey + "+w",
+			SAVE: commandKey + "+s",
+			CUT: commandKey + "+x",
+			COPY: commandKey + "+c",
+			PASTE: commandKey + "+v",
+			UNDO: commandKey + "+z",
+			REDO: commandKey + "+shift+z",
+			DELETE: "backspace",
+			SELECT_ALL: commandKey + "+a",
+			FIND: metaKey + "+f",
+			FIND_NEXT: metaKey + "+g",
+			FIND_PREVIOUS: metaKey + "+shift+g",
+			REPLACE: metaKey + "+shift+f",
+			ZOOM_IN: commandKey + "++",
+			ZOOM_OUT: commandKey + "+-",
+			ACTUAL_SIZE: commandKey + "+0",
+			FULLSCREEN: "f11",
+			COMMENT: commandKey + "+/",
+			UNCOMMENT: commandKey + "+/",
+			FORMAT_CODE: commandKey + "+l",
+			CHECK_QUALITY: commandKey + "+shift+j",
+			SHARE_CODE: commandKey + "+shift+s",
+			ABOUT: commandKey + "+i"
+		};
+		
+		$(document).bind('keyup',hotkeys.OPEN_PROJECT, function(){			
+			_openProject();			
+		});
+		
+		$(document).bind('keyup',hotkeys.NEW_PROJECT, function(){			
+			_newProject();			
+		});
+		
+		$(document).bind('keyup',hotkeys.FULLSCREEN, function(){					
+			_fullscreen();
+		});
+		//TODO: add all shortcuts/hotkeys
+	}
 
 	function _switchLiveViewButton(enable) {
 		if (enable)
 			$("button[data-action=editor-livepreview-toggle]").removeAttr("disabled").removeClass("disabled");
 		else
 			$("button[data-action=editor-livepreview-toggle]").attr("disabled", "disabled").addClass("disabled");
+	}
+	
+	function _fullscreen(){
+		document.documentElement.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
 	}
 
 	function _toggleLiveView(toggleLiveView) {
@@ -1154,7 +1216,7 @@ $(document).ready(function() {
 		checkQuality();
 	});
 	$("a[data-action=editor-enter-fullscreen]").click(function() {
-		document.documentElement.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+		_fullscreen();
 	});
 
 	$("a[data-action=editor-console-toggle]").click(function() {
