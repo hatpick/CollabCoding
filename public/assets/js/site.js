@@ -165,7 +165,6 @@ $(document).ready(function() {
 	_hotkeysHandler();	
 	
 	$('#browser').bind('click', function() {
-		console.log($.jstree._focused().get_selected());
 		var reg = /^file.*/;
 
 		if (reg.test($.jstree._focused().get_selected().attr('rel'))) {
@@ -218,7 +217,23 @@ $(document).ready(function() {
 				$($(".CodeMirror.CodeMirror-wrap")[1]).remove();
 			}
 			$(".CodeMirror-wrap").height($("#project").height());
-
+      // TODO: mongoDB
+      $.get('/project/' + sessionStorage.getItem('project') + '/' + docName, function(data) {
+        console.log('find the content');
+        console.log(data);
+        if (!data) {
+          $.post('/project/syncToMongo', {
+            shareJSId: docName,
+            content: myCodeMirror.getValue(),
+            timestamp: (new Date()).getTime()
+          }, function(_data) {
+            console.log('save a new document')
+            console.log(_data);
+          }, 'json');
+        } else {
+          myCodeMirror.setValue(data.content);
+        }
+      });
 			window.myCodeMirror = myCodeMirror;
 		}
 	});
@@ -758,7 +773,6 @@ $(document).ready(function() {
 
 	$("#left-items").width(205);
 	$("#project-tree").jstree();
-	// $("#doc-tab a:first").tab("show");
 	$("#nav-tab a:first").tab("show");
 	$("#nav-tab a").click(function(e) {
 		e.preventDefault();
@@ -772,7 +786,6 @@ $(document).ready(function() {
 	});
 	$("#nav-tab a:first").click();
 	$(".dropdown-toggle").dropdown();
-
 	function hideLeftArea(toggleButton) {
 		$("#left-items").animate({
 			width : "0px",
@@ -794,7 +807,6 @@ $(document).ready(function() {
 		$(".left-splitter-collapse-button").data("tooltip").options.title = "Show";
 		$(".left-splitter-collapse-button").data("tooltip").options.placement = "right";
 	}
-
 	function showLeftArea(toggleButton) {
 		$("#left-items").animate({
 			width : "205px",
@@ -816,8 +828,6 @@ $(document).ready(function() {
 		$(".left-splitter-collapse-button").data("tooltip").options.title = "Hide";
 		$(".left-splitter-collapse-button").data("tooltip").options.placement = "top";
 	}
-
-
 	$(".left-splitter-collapse-button").click(function() {
 		if ($("button[data-action=editor-livepreview-toggle]").attr("data-status") === "on")
 			return;
@@ -827,7 +837,6 @@ $(document).ready(function() {
 			showLeftArea($(this));
 		}
 	});
-
 	function hideCommentArea(toggleButton) {
 		$("#right-items").hide("drop", {
 			direction : "right"
@@ -848,7 +857,6 @@ $(document).ready(function() {
 		$(".right-splitter-collapse-button").data("tooltip").options.title = "Show Comments";
 		$(".right-splitter-collapse-button").data("tooltip").options.placement = "left";
 	}
-
 	function showCommentArea(toggleButton) {
 		$("#right-items").show("drop", {
 			direction : "right"
@@ -870,8 +878,6 @@ $(document).ready(function() {
 		});
 
 	}
-
-
 	$(".right-splitter-collapse-button").click(function() {
 		if ($("button[data-action=editor-livepreview-toggle]").attr("data-status") === "on")
 			return;
@@ -1060,10 +1066,10 @@ $(document).ready(function() {
 			SHARE_CODE: commandKey + "+shift+s",
 			ABOUT: commandKey + "+i"
 		};
-		
-		$(document).bind('keyup',hotkeys.OPEN_PROJECT, function(){			
-			_openProject();			
-		});
+
+    $(document).bind('keyup',hotkeys.OPEN_PROJECT, function(){      
+      _openProject();      
+    });
 		
 		$(document).bind('keyup',hotkeys.NEW_PROJECT, function(){			
 			_newProject();			
@@ -1172,7 +1178,6 @@ $(document).ready(function() {
 		}
 	}
 
-
 	$("button[data-action=editor-livepreview-toggle]").click(function() {
 		var live_preview_toggle = $("button[data-action=editor-livepreview-toggle]");
 		var live_preview_toggle_icon = $("button[data-action=editor-livepreview-toggle] i");
@@ -1197,6 +1202,7 @@ $(document).ready(function() {
 	$("a[data-action=editor-find-replace]").click(function() {
 		//TODO: find/replace
 	});
+  
 	$("a[data-action=editor-find-next]").click(function() {
 		//TODO: find next
 	});

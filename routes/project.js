@@ -1,4 +1,5 @@
 var hat = require("hat");
+var CM = require('../models/contentprovider-mongodb');
 
 exports.show = function(req, res) {
   projectProvider = ProjectProvider.factory();
@@ -87,3 +88,21 @@ exports.files.rename = function(req, res, next) {
        
 // TODO
 exports.files.share = function(req, res, next) {};
+
+exports.files.findContent = function(req, res, next) {
+  var shareJSId = req.params["id"];
+  CM.findByshareJSId(shareJSId, function(error, result){
+    res.json(result);
+  });
+};
+
+
+exports.syncToMongo = function(req, res, next) {
+  var shareJSId = req.body.shareJSId;
+  var content = req.body.content;
+  var timestamp = req.body.timestamp;
+  CM.save({shareJSId: shareJSId, content: content, timestamp: timestamp}, function(e, r){
+    console.log(e, r);
+    next(); 
+  });
+}
