@@ -3,7 +3,7 @@ var Connection = require('mongodb').Connection;
 var Server = require('mongodb').Server;
 var BSON = require('mongodb').BSON;
 var ObjectID = require('mongodb').ObjectID;
-var  projectProvider = undefined;       
+var projectProvider = undefined;       
 
 ProjectProvider = function(host, port) { 
   if (process.env.MONGOHQ_URL) { // connect to mongoHQ

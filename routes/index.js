@@ -30,6 +30,8 @@ module.exports = function(app) {
   app.post('/project/:name/new', project.files.new);
   app.post('/project/:name/:id', project.files.share);
   app.post('/project/:name/rename', project.files.rename);
+  app.get('/project/:name/:id', project.files.findContent);
+  app.post('/project/syncToMongo', project.syncToMongo)
   
 }         
 
