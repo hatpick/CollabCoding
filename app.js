@@ -54,7 +54,6 @@ options.auth = function(agent, action) {
   console.log(agent.remote);
   action.accept();
 };
-  
 
 // Attach the sharejs REST and Socket.io interfaces to the server
 sharejs.attach(app, options);
