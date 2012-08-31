@@ -35,20 +35,21 @@ require('./routes/index')(app)
 
 var options = {db: {type: 'none'}}; // See docs for options. {type: 'redis'} to enable persistance.
 
-try {
-  require('redis');
-  options.db = {type: 'redis'};
-  exec('redis-server &', function(err, stdout, stderr) {
-    console.log('stdout:' + stdout);
-    console.log('stderr:' + stderr);
-    if (error) {
-      console.log('exec error:' + error);
-    }
-  });
-} catch (e) {
-  
-}
+// try {
+//   require('redis');
+//   options.db = {type: 'redis'};
+//   exec('redis-server &', function(err, stdout, stderr) {
+//     console.log('stdout:' + stdout);
+//     console.log('stderr:' + stderr);
+//     if (error) {
+//       console.log('exec error:' + error);
+//     }
+//   });
+// } catch (e) {
+//   
+// }
 
+  options.db = {type: 'mongo'};
 options.auth = function(agent, action) {
   console.log(agent.sessionId);
   console.log(agent.remote);
