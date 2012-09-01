@@ -144,6 +144,30 @@ ProjectProvider.prototype.new = function(name, data, callback) {
     }
   });
 };                           
+                  
+ProjectProvider.prototype.delete = function(name, data, callback) {
+  console.log('Delete File:')
+  this.getCollection(function(err, project_collection) {
+    if (err) callback(err)
+    else {
+      project_collection.findOne({name: name}, function(error, result) {
+        if (error) callback(error)
+        else {
+          // TODO: find the parent arrary and delete by index
+          // var leaf = result.root; 
+          // while (data.paths.length > 1) {
+          //   leaf = leaf[data.paths[0]];
+          //   data.paths.shift();  
+          // } 
+          // if (leaf[0].name == data[0] && leaf[0].type == data[0].type) {
+          //     delete leaf[0];
+          // }
+        }
+        project_collection.save(result);
+      })
+    }
+  });
+};                  
                                            
 /**
  * Update project information

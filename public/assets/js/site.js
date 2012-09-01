@@ -160,8 +160,8 @@ $(window).resize(function() {
 
 $(document).ready(function() {
 	window.doc = null;
+  window.pid = null;
 	// TODO
-
 	_hotkeysHandler();	
 	
 	$('#browser').bind('click', function() {
@@ -217,23 +217,26 @@ $(document).ready(function() {
 				$($(".CodeMirror.CodeMirror-wrap")[1]).remove();
 			}
 			$(".CodeMirror-wrap").height($("#project").height());
-      // TODO: mongoDB
-      $.get('/project/' + sessionStorage.getItem('project') + '/' + docName, function(data) {
-        console.log('find the content');
-        console.log(data);
-        if (!data) {
-          $.post('/project/syncToMongo', {
-            shareJSId: docName,
-            content: myCodeMirror.getValue(),
-            timestamp: (new Date()).getTime()
-          }, function(_data) {
-            console.log('save a new document')
-            console.log(_data);
-          }, 'json');
-        } else {
-          myCodeMirror.setValue(data.content);
-        }
-      });
+      // mongoDB
+      // $.get('/project/' + sessionStorage.getItem('project') + '/' + docName, function(data) {
+      //         console.log('find the content');
+      //         console.log(data);
+      //         if (!data) {
+      //           $.post('/project/syncToMongo', {
+      //             shareJSId: docName,
+      //             content: myCodeMirror.getValue(),
+      //             timestamp: (new Date()).getTime()
+      //           }, function(_data) {
+      //             console.log('save a new document')
+      //             console.log(_data);
+      //           }, 'json');
+      //         } else {
+      //           myCodeMirror.setValue(data.content);
+      //         }
+      //       });
+      //       pid = window.setInterval(function() {
+      //         console.log('test')
+      //       }, 5000);
 			window.myCodeMirror = myCodeMirror;
 		}
 	});
@@ -359,11 +362,7 @@ $(document).ready(function() {
 							separator_after : false,
 							label : "Delete",
 							action : function(obj) {
-								if (this.is_selected(obj)) {
-									this.remove();
-								} else {
-									this.remove(obj);
-								}
+  							deleteElement(obj);
 							}
 						}
 					};
@@ -649,6 +648,18 @@ $(document).ready(function() {
 			showConsole($("a[data-action=editor-console-toggle]"));
 		}
 	}
+  
+  function deleteElement (ele) {
+    var project_name = sessionStorage.getItem('project');
+    var id = $.jstree._focused().get_selected().attr('data-sharejsid');
+    var paths = $.jstree._focused().get_path();
+		$.post('/project/' + project_name + '/' + id + '/delete', {
+			paths : paths,
+			type : 'file'
+		}, function() {
+			console.log('success create file: ' + file_name);
+		}, 'json');
+  }
 
 	function createFile(ele) {
 		var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>New File</p>";
@@ -905,10 +916,10 @@ $(document).ready(function() {
 
 	layout();
 	// TODO: remove after finished
-	// $.get('/project', {name: sessionStorage.getItem('project')}, function(data) {
-	// createJsTreeByJSON(data);
-	// $("#dialog").modal('hide');
-	// });
+  $.get('/project', {name: sessionStorage.getItem('project')}, function(data) {
+  createJsTreeByJSON(data);
+  $("#dialog").modal('hide');
+  });
 
 	$(".btn-logout").click(function() {
 		cleanSessionStorage();
