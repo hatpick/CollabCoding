@@ -3,7 +3,10 @@ var Connection = require('mongodb').Connection;
 var Server = require('mongodb').Server;
 var BSON = require('mongodb').BSON;
 var ObjectID = require('mongodb').ObjectID;
+var logger = require('../modules/logger')
 var projectProvider = undefined;       
+
+logger.debugLevel = 'info';
 
 ProjectProvider = function(host, port) { 
   if (process.env.MONGOHQ_URL) { // connect to mongoHQ
@@ -120,7 +123,7 @@ ProjectProvider.prototype.new = function(name, data, callback) {
              }
            }  
            for ( var i=0; i < leaf.length; i++ ) {
-            if (leaf[i].name == data.name && leaf[i].type == data.type) {
+            if (leaf[i] != null && leaf[i].name == data.name && leaf[i].type == data.type) {
               callback('duplicated file'); 
               return;
             }
@@ -146,23 +149,39 @@ ProjectProvider.prototype.new = function(name, data, callback) {
 };                           
                   
 ProjectProvider.prototype.delete = function(name, data, callback) {
-  console.log('Delete File:')
   this.getCollection(function(err, project_collection) {
     if (err) callback(err)
     else {
+      function removeElement(leaf) {
+        for (var i=0; i < leaf.length; i++) {
+          if (leaf[i] != null && leaf[i].name == data.paths[0] && leaf[i].type == data.type ) {
+            leaf.splice(i,1);
+            break;
+          }
+        }
+      };
       project_collection.findOne({name: name}, function(error, result) {
         if (error) callback(error)
         else {
-          // TODO: find the parent arrary and delete by index
-          // var leaf = result.root; 
-          // while (data.paths.length > 1) {
-          //   leaf = leaf[data.paths[0]];
-          //   data.paths.shift();  
-          // } 
-          // if (leaf[0].name == data[0] && leaf[0].type == data[0].type) {
-          //     delete leaf[0];
-          // }
+          var leaf = result.root;
+          data.paths.shift();
+          if (data.paths.length == 1) {
+            if (data.type == 'folder') {
+              logger.log('info', {info: 'inside'});
+              removeElement(leaf);
+            } else {
+              logger.log('warn', {warn: leaf.files});
+              removeElement(leaf.files);
+            }
+          } else {
+            while (data.paths.length > 1) {
+              leaf = leaf[data.paths[0]];
+              data.paths.shift();  
+            }
+            removeElement(leaf);
+          } 
         }
+        logger.log('info', {info: leaf});
         project_collection.save(result);
       })
     }
