@@ -363,6 +363,7 @@ $(document).ready(function() {
 							label : "Delete",
 							action : function(obj) {
   							deleteElement(obj);
+  							if(this.is_selected(obj)) { this.remove(); } else { this.remove(obj); }
 							}
 						}
 					};
@@ -661,7 +662,7 @@ $(document).ready(function() {
 		}, function() {
 			console.log('success create file: ' + file_name);
 		}, 'json');
-    refreshProjectTree();
+    //refreshProjectTree();
   }
 
 	function createFile(ele) {
