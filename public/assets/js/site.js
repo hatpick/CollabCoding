@@ -436,19 +436,21 @@ $(document).ready(function() {
 				};
 				for (var i = 0; i < _data.root[key].length; i++) {
 					ele = _data.root[key][i];
-					if (ele.type == 'file') {
-						folder.children.push(_generateFileChildren(ele));
-					} else {
-						folder.children.push({
-							data : ele.name,
-							attr : {
-								rel : 'folder',
-								id : ele.name + '_id'
-							},
-							children : _generateChildren(ele.children),
-							state : "open"
-						});
-					}
+          if (ele != null) {
+  					if (ele.type == 'file') {
+  						folder.children.push(_generateFileChildren(ele));
+  					} else {
+  						folder.children.push({
+  							data : ele.name,
+  							attr : {
+  								rel : 'folder',
+  								id : ele.name + '_id'
+  							},
+  							children : _generateChildren(ele.children),
+  							state : "open"
+  						});
+  					}
+          }
 				}
 				tree_data.children.push(folder);
 			} else {
@@ -659,6 +661,7 @@ $(document).ready(function() {
 		}, function() {
 			console.log('success create file: ' + file_name);
 		}, 'json');
+    refreshProjectTree();
   }
 
 	function createFile(ele) {
@@ -698,7 +701,7 @@ $(document).ready(function() {
 				name : file_name,
 				type : 'file'
 			}, function() {
-				console.log('success create file: ' + file_name);
+				console.info('success create file: ' + file_name);
 			}, 'json');
 
 			var opt = $("select option:selected").val();
@@ -718,12 +721,7 @@ $(document).ready(function() {
 				}
 			}, function(o){}, true);
 			$("#dialog").modal('hide');
-			// FIXME: b
-			$.get('/project', {
-				name : sessionStorage.getItem('project')
-			}, function(data) {
-				createJsTreeByJSON(data);
-			})
+      refreshProjectTree();
 		}));
 
 		$(".modal-header").html(dialogHeader);
@@ -733,6 +731,15 @@ $(document).ready(function() {
 		$("#dialog").modal();
 	}
 
+  function refreshProjectTree() {
+		// FIXME: find the other to refresh the tree.
+		$.get('/project', {
+			name : sessionStorage.getItem('project')
+		}, function(data) {
+			createJsTreeByJSON(data);
+		})
+  }
+  
 	function createFolder(ele) {
 		var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>New Folder</p>";
 		var dialogContent = $("<div>").css({
