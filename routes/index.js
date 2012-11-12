@@ -24,6 +24,7 @@ module.exports = function(app) {
   app.get('/logout', account.logout);
   app.all('/signup', account.signup);
   app.get('/users/list', account.list);
+  app.get('/user', account.user);
   app.get('/project', project.show);
   app.get('/project/list', project.show);
   app.post('/project/new', project.new);

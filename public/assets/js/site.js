@@ -121,6 +121,7 @@ $.fn.usedHeight = function() {
 
 var layout = function() {
 	var _height = document.documentElement.clientHeight - $(".navbar").height() - 20;
+	$("#chatArea>table>tbody>tr:first").height(_height - 160);	
 	$("#editor-area").height(_height);
 	$("#left-items").height(_height);
 	$(".left-splitter").height(_height);
@@ -160,9 +161,37 @@ $(window).resize(function() {
 
 $(document).ready(function() {
 	window.doc = null;
-  window.pid = null;
+    window.pid = null;
 	// TODO
 	_hotkeysHandler();	
+	
+	
+	//Notification Setup
+	//Notification Code
+	ns.sendNotification = function(notyMsg, type, needRefresh) {
+        now.sendNotification(notyMsg, type, needRefresh);
+        return false;
+    }
+
+    now.receiveNotification = function(notyObj, needRefresh) {
+        if (notyObj.senderId == now.core.clientId)
+            return;
+        var ntfcn = noty({
+            text : notyObj.text,
+            template : '<div class="noty_message"><span class="noty_text"></span><div class="noty_close"></div></div>',
+            type : notyObj.type,
+            theme : 'defaultTheme',
+            dismissQueue : true,
+            layout : 'bottomLeft',
+            timeout : 5000,
+            closeWith : ['button'],
+            buttons : false,
+        });
+
+        if (needRefresh)
+            refreshProjectTree();
+    }
+    //
 	
 	$('#browser').bind('click', function() {
 		var reg = /^file.*/;
@@ -325,6 +354,7 @@ $(document).ready(function() {
 									label : "File",
 									action : function(obj) {
 										createFile(obj);
+										//this.create(obj);
 									}
 								},
 								folder : {
@@ -335,6 +365,7 @@ $(document).ready(function() {
 									action : function(obj) {
 										console.log('test');
 										createFolder(obj);
+										//this.create(obj);
 									}
 								}
 							}
@@ -722,7 +753,13 @@ $(document).ready(function() {
 				}
 			}, function(o){}, true);
 			$("#dialog").modal('hide');
-      refreshProjectTree();
+			
+			//Notification
+			var notifMsg = '<span style="text-align:justify"><a href="#" class="notification-user-a">' + now.name + '</a>' + ' has created a new file <a href="#" class="notification-file-a">' + file_name + 
+			'</a> under <a class="notification-project-a" href="#">'+ sessionStorage.getItem('project') + '</a> project.</span>';
+	        ns.sendNotification(notifMsg, "information", true);	        
+	        
+      //refreshProjectTree();
 		}));
 
 		$(".modal-header").html(dialogHeader);
@@ -778,6 +815,9 @@ $(document).ready(function() {
 			}, function(o){}, true);
 
 			$("#dialog").modal('hide');
+			var notifMsg = '<span style="text-align:justify"><a href="#" class="notification-user-a">' + now.name + '</a>' + ' has created a new folder <a href="#" class="notification-file-a">' + folder_name + 
+			'</a> under <a class="notification-project-a" href="#">'+ sessionStorage.getItem('project') + '</a> project.</span>';
+	        ns.sendNotification(notifMsg, "information", true);
 		}));
 		$(".modal-header").html(dialogHeader);
 		$(".modal-body").html(dialogContent);
@@ -930,8 +970,10 @@ $(document).ready(function() {
   });
 
 	$(".btn-logout").click(function() {
-		cleanSessionStorage();
-		window.location.href = '/logout'
+		cleanSessionStorage();		
+		var notifMsg = now.name + " is offline!";
+        ns.sendNotification(notifMsg, "error");        
+		window.location.href = '/logout';		
 	});
 
 	$("a[data-action=editor-new-file]").click(function() {
@@ -1032,6 +1074,10 @@ $(document).ready(function() {
 				});
 				createNewJsTree($("#dialog input").val());
 				$("#dialog").modal('hide');
+				
+				//Notification
+				var notifMsg = '<span style="text-align:justify"><a href="#" class="notification-user-a">' + now.name + '</a>' + ' has created a new project <a class="notification-project-a" href="#">'+ sessionStorage.getItem('project') + '</a></span>';
+		        ns.sendNotification(notifMsg, "information");
 			}
 		})).append($("<button>").attr({
 			class : "btn",
@@ -1050,7 +1096,7 @@ $(document).ready(function() {
 			startText : "Add user name here",
 			asHtmlID : "users_list"
 		});
-		$("#dialog").modal();
+		$("#dialog").modal();		
 	}
 	
 	function _hotkeysHandler(){		
@@ -1218,6 +1264,11 @@ $(document).ready(function() {
 
 		}
 	});
+	
+	$('#chatStart').click(function(){
+		chatWith('Group');
+	});	
+	
 	$("a[data-action=editor-find-replace]").click(function() {
 		//TODO: find/replace
 	});
@@ -1250,6 +1301,10 @@ $(document).ready(function() {
 		else
 			hideConsole($(this));
 	});
+	
+	$("a[data-action=editor-console-clean]").click(function() {
+		$("#small-console>div").html("");
+	});
 
 	/*
 	 Tooltip
@@ -1275,5 +1330,5 @@ $(document).ready(function() {
 	$("a[data-action=editor-console-clean]").tooltip({
 		title : "Clean Console",
 		placement : "left"
-	});
+	});			
 });

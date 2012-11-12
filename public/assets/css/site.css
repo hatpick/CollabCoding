@@ -19,6 +19,7 @@ a img{max-width:none;height:20px}
 .right-splitter-collapse-button{position:relative;cursor:pointer;width:7px;height:30px;left:-1px;-webkit-border-radius:5px;background-color:#666}
 .right-splitter-collapse-button:hover{background-color:#1a1a1a}
 .small-console-animated{height:200px}
+.chatMsg{width:185px;resize:none;rows:5}
 [class*="span"],.row-fluid [class*="span"]{float:left}
 [class*="icon-"]{margin:0 5px 0 5px}
 .close{position:relative;left:4px;top:-3px}
@@ -31,7 +32,9 @@ a img{max-width:none;height:20px}
 .ui-dialog .ui-dialog-buttonpane .ui-dialog-buttonset{float:center}
 .ui-dialog-buttonset{text-align:center}
 #project{background-color:#fff}
+#chat{background-color:#fff}
 #shareDoc{background:transparent;border:0;color:#fff;cursor:pointer}
+#chatMessages{overflow-y:auto;overflow-x:hidden}
 #shareDoc span{margin-left:5px}
 .navbar{margin-bottom:0}
 .navbar-inner{background-image:transparent}
@@ -48,3 +51,23 @@ a img{max-width:none;height:20px}
 #comment-name{font-size:12px;font-weight:bold;margin-left:32px}
 #comment-time{margin:3px 0 0 32px;font-size:11px;color:#666}
 #small-console{display:block;position:relative;height:20px;z-index:11;-webkit-transition:all .5s ease;-webkit-border-radius:2px 2px 0 0;padding-top:3px;background:-webkit-gradient(linear,0% 0%,0% 100%,from(#666),to(#666),color-stop(.6,#333))}
+.chatbox{position:fixed;position:expression("absolute");width:225px;display:none}
+.chatboxhead{background-color:#08c;padding:7px;color:#fff;border-right:1px solid #08c;border-left:1px solid #08c;-webkit-border-top-left-radius:6px;-webkit-border-top-right-radius:6px}
+.chatboxblink{background-color:#176689;border-right:1px solid #176689;border-left:1px solid #176689}
+.chatboxcontent{font-size:13px;color:#333;height:200px;width:209px;overflow-y:auto;overflow-x:auto;padding:7px;border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #eee;background-color:#fff;line-height:1.3em}
+.chatboxinput{padding:5px;background-color:#fff;border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc}
+.chatboxtextarea{width:206px;height:44px;padding:3px 0 3px 3px;border:1px solid #eee;margin:1px;overflow:hidden;resize:none}
+.chatboxtextareaselected{border:2px solid #f99d39;margin:0}
+.chatboxmessage{margin-left:1em}
+.chatboxinfo{margin-left:-1em;color:#666}
+.chatboxmessagefrom{margin-left:-1em;font-weight:bold}
+.chatboxmessagecontent,.chatboxoptions{float:right}
+.chatboxoptions a{text-decoration:none;color:#fff}
+.chatboxtitle{float:left}
+.notification-count{display:none;position:fixed;height:12px;width:10px;right:115px;top:0;background-color:#f00;color:#fff;padding-bottom:4px;pading-right:1px;font-size:9px;font-weight:bold;border-radius:2px;border:1px solid #f44;border-bottom-color:#b00;border-right-color:#b00}
+.notification-a,.notification-user-a,.notification-project-a,.notification-folder-a,.notification-file-a,.notification-comment-a{text-decoration:none;font-weight:bold}
+.notification-user-a{color:#3a87ad}
+.notification-project-a{color:#3a87ad}
+.notification-folder-a{color:#3a87ad}
+.notification-file-a{color:#3a87ad}
+.notification-comment-a{color:#3a87ad}

@@ -36,6 +36,9 @@ html
     script(type='text/javascript', charset='utf-8', src='assets/js/codemirror/mode/javascript/javascript.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/codemirror/mode/css/css.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/codemirror/mode/htmlmixed/htmlmixed.js')
+    script(type='text/javascript', charset='utf-8', src='assets/js/noty/jquery.noty.js')
+    script(type='text/javascript', charset='utf-8', src='assets/js/noty/layouts/bottomLeft.js')
+    script(type='text/javascript', charset='utf-8', src='assets/js/noty/themes/default.js')
     script(type='text/javascript', src='/channel/bcsocket.js')
     script(type='text/javascript', src='/share/share.js')
     script(type='text/javascript', src='/share/cm.js')
@@ -43,7 +46,10 @@ html
     script(type='text/javascript', src='assets/js/jquery.hotkeys.js')
     script(type='text/javascript', src='assets/js/DT_bootstrap.js')
     script(type='text/javascript', src='assets/js/jquery.autoSuggest.js')
+    script(type='text/javascript', src='/nowjs/now.js')    
+    script(type='text/javascript', src='assets/js/chat.js')
     script(type='text/javascript', src='assets/js/site.js')
+    script(type='text/javascript', src='assets/js/notification.js')    
   body(style='overflow: hidden;')
     .container-fluid
       // Info Bar 
@@ -193,7 +199,8 @@ html
                   button.btn.btn-mini.btn-primary.disabled(data-action='editor-livepreview-toggle', data-status='off', disabled='disabled')
                     i.icon-eye-close.icon-white.disabled
                   button.btn.btn-mini.btn-primary.btn-ntfc
-                    i.icon-bullhorn.icon-white                  
+                    span.notification-count 0                    
+                    i.icon-bullhorn.icon-white                                      
                   button.btn.btn-small.btn-primary.dropdown-toggle(data-toggle='dropdown', href='#menuProfile')
                     i.icon-user.icon-white
                     | Profile
@@ -229,6 +236,7 @@ html
               #project.tab-pane
                 #browser
               #chat.tab-pane
+                a#chatStart Chat                
               #editor-settings.tab-pane
               #editor-deploy-project.tab-pane
         .left-splitter
@@ -256,6 +264,8 @@ html
                   a.discussion-command(href='JavaScript:void(0);') Delete
                   a.discussion-command(href='JavaScript:void(0);') Reply
                   a.discussion-command(href='JavaScript:void(0);') Resolve
+      div#chatbox.chatbox
+      audio#chatAlert(src='/assets/img/gtalk1.wav', style='display:none')        
       #small-console(style='-webkit-box-shadow: 0px -5px 10px #000000; opacity: 0.95;')
         a(href='#show', data-action='editor-console-toggle')
           i.icon-chevron-up.icon-white.pull-right

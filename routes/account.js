@@ -46,6 +46,9 @@ exports.login = function(req, res) {
   }
 };       
 
+exports.user = function(req, res) {
+    res.json(req.session.user);
+}
 
 exports.logout = function(req, res) {
   res.clearCookie('user');

@@ -105,6 +105,11 @@ a img
 
 .small-console-animated
   height: 200px
+  
+.chatMsg
+  width: 185px
+  resize: none  
+  rows: 5  
 
 [class*="span"], .row-fluid [class*="span"]
   float: left
@@ -150,12 +155,19 @@ a img
 
 #project
   background-color: #FFFFFF
+  
+#chat
+  background-color: #FFFFFF  
 
 #shareDoc
   background: transparent
   border: 0
   color: #FFFFFF
   cursor: pointer
+
+#chatMessages
+  overflow-y: auto
+  overflow-x: hidden
 
 #shareDoc span
   margin-left: 5px
@@ -237,3 +249,124 @@ a img
   -webkit-border-radius: 2px 2px 0 0
   padding-top: 3px
   background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666666), to(#666666), color-stop(0.6, #333333))
+  
+//Chat Section
+.chatbox
+  position: fixed
+  position:expression("absolute")
+  width: 225px
+  display:none
+
+.chatboxhead
+  background-color: #0088cc
+  padding:7px
+  color: #ffffff
+  border-right:1px solid #0088cc
+  border-left:1px solid #0088cc
+  -webkit-border-top-left-radius: 6px;
+  -webkit-border-top-right-radius: 6px;
+
+.chatboxblink
+  background-color: #176689
+  border-right:1px solid #176689
+  border-left:1px solid #176689
+
+.chatboxcontent  
+  font-size: 13px
+  color: #333333
+  height:200px
+  width:209px
+  overflow-y:auto
+  overflow-x:auto
+  padding:7px
+  border-left:1px solid #cccccc
+  border-right:1px solid #cccccc
+  border-bottom:1px solid #eeeeee
+  background-color: #ffffff
+  line-height: 1.3em
+
+.chatboxinput
+  padding: 5px
+  background-color: #ffffff
+  border-left:1px solid #cccccc
+  border-right:1px solid #cccccc
+  border-bottom:1px solid #cccccc
+
+.chatboxtextarea
+  width: 206px
+  height:44px
+  padding:3px 0pt 3px 3px
+  border: 1px solid #eeeeee
+  margin: 1px
+  overflow:hidden
+  resize: none
+
+.chatboxtextareaselected
+  border: 2px solid #f99d39
+  margin:0
+
+.chatboxmessage
+  margin-left:1em
+
+.chatboxinfo
+  margin-left:-1em
+  color:#666666
+
+.chatboxmessagefrom
+  margin-left:-1em
+  font-weight: bold
+
+.chatboxmessagecontent
+
+.chatboxoptions
+  float: right
+
+.chatboxoptions a
+  text-decoration: none
+  color: white
+
+.chatboxtitle
+  float: left
+
+.notification-count
+  display: none
+  position: fixed
+  height: 12px
+  width: 10px
+  right: 115px     
+  top: 0px     
+  background-color:#FF0000
+  color:#fff  
+  padding-bottom: 4px
+  pading-right: 1px  
+  font-size:9px
+  font-weight:bold
+  border-radius: 2px
+  border: 1px solid #FF4444
+  border-bottom-color: #BB0000
+  border-right-color: #BB0000
+
+.notification-a
+  text-decoration:none
+  font-weight: bold  
+
+.notification-user-a
+  @extends .notification-a
+  color: #3a87ad  
+
+.notification-project-a
+  @extends .notification-a
+  color: #3a87ad;
+  
+
+.notification-folder-a
+  @extends .notification-a
+  color: #3a87ad;
+
+.notification-file-a
+  @extends .notification-a
+  color: #3a87ad;
+
+.notification-comment-a
+  @extends .notification-a
+  color: #3a87ad;
