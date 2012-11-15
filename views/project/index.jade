@@ -6,7 +6,7 @@ html
       | CollabCoding
     link(rel='icon', href='assets/img/icon.png')
     link(rel='stylesheet', href='assets/css/bootstrap.min.css', type='text/css', media='screen', charset='utf-8')
-    link(rel='stylesheet', href='assets/css/smoothness/jquery-ui-1.8.22.custom.css', type='text/css', media='screen', charset='utf-8')
+    link(rel='stylesheet', href='assets/css/smoothness/jquery-ui-1.8.22.custom.css', type='text/css', media='screen', charset='utf-8')    
     link(rel='stylesheet', href='assets/js/codemirror/codemirror.css', type='text/css', media='screen', charset='utf-8')
     link(rel='stylesheet', href='assets/js/codemirror/util/simple-hint.css', type='text/css', media='screen', charset='utf-8')
     link(rel='stylesheet', href='assets/js/codemirror/util/dialog.css', type='text/css', media='screen', charset='utf-8')
@@ -16,12 +16,15 @@ html
     link(rel='stylesheet', href='assets/js/codemirror/theme/hatpick.css', type='text/css', media='screen', charset='utf-8')    
     link(rel='stylesheet', href='assets/css/DT_bootstrap.css', type='text/css', media='screen', charset='utf-8')
     link(rel='stylesheet', href='assets/css/autoSuggest.css', type='text/css', media='screen', charset='utf-8')
-    link(rel='stylesheet', href='assets/css/site.css', type='text/css', media='screen', charset='utf-8')
+    link(rel='stylesheet', href='assets/css/site.css', type='text/css', media='screen', charset='utf-8')    
     script(type='text/javascript', charset='utf-8', src='assets/js/jquery-1.7.2.min.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/jquery-ui-1.8.22.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/bootstrap.min.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/jquery.jstree.js')  
     script(type='text/javascript', charset='utf-8', src='assets/js/jshint.js')
+    script(type='text/javascript', charset='utf-8', src='assets/js/contextmenu/jquery.ui.position.js')
+    script(type='text/javascript', charset='utf-8', src='assets/js/contextmenu/jquery.contextMenu.js')
+    link(rel='stylesheet', href='assets/js/contextmenu/jquery.contextMenu.css', type='text/css', media='screen', charset='utf-8')
     script(type='text/javascript', charset='utf-8', src='assets/js/codemirror/codemirror.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/zen-coding/zen_codemirror.min.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/codemirror/util/formatting.js')
@@ -90,7 +93,7 @@ html
                         | Open Project
                     li.divider
                     li
-                      a(href='JavaScript:void(0);', data-action='editor-close-document') Close Project                    
+                      a(href='JavaScript:void(0);', data-action='editor-close-project') Close Project                    
                     li.divider
                     li
                       a(href='JavaScript:void(0);', data-action='editor-save-document') Save                    
@@ -236,7 +239,8 @@ html
               #project.tab-pane
                 #browser
               #chat.tab-pane
-                a#chatStart Chat                
+                a#chatStart Chat
+                //a#commentStart Comment                
               #editor-settings.tab-pane
               #editor-deploy-project.tab-pane
         .left-splitter

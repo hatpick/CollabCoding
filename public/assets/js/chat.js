@@ -61,8 +61,8 @@ $(document).ready(function() {
     };
        
     now.receiveMessage = function(msg) {
-        if($('#chatbox_Group').length == 0)
-            chatWith("Group");
+        if($('#chatbox_GroupChat').length == 0)
+            chatWith("GroupChat");
             //TODO set history        
         console.log(msg);
         var spanMsg = $('<div>').css({
@@ -82,7 +82,7 @@ $(document).ready(function() {
             'margin-bottom' : '-2px'
         }).html(msg.messageTSString)));
         $('.chatboxcontent').append(spanMsg);
-        $('#chatbox_Group .chatboxcontent').scrollTop($('#chatbox_Group .chatboxcontent')[0].scrollHeight);        
+        $('#chatbox_GroupChat .chatboxcontent').scrollTop($('#chatbox_GroupChat .chatboxcontent')[0].scrollHeight);        
         var notification = noty({
             text : msg.messageSender + ' said: ' + msg.messageBody + '<br/>'+ msg.messageTSString,
             template: '<div class="noty_message"><span class="noty_text"></span><div class="noty_close"></div></div>',
@@ -108,12 +108,12 @@ $(document).ready(function() {
     
     now.core.on('disconnect', function(){
         var notifMsg = now.name + " is offline!";
-        ns.sendNotification(notifMsg, "error");
+        ns.sendNotification(notifMsg, "error", false, 'e');
     });
 
     now.ready(function() {                 
         var notifMsg = now.name + " is online!";      
-        ns.sendNotification(notifMsg, "success");            
+        ns.sendNotification(notifMsg, "success", false, 'e');            
     });    
 });
 

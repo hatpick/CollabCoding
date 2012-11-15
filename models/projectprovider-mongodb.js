@@ -51,8 +51,7 @@ ProjectProvider.prototype.findAll = function(user, callback) {
           else {             
             var _results = [];
             for(var i = 0 ; i < results.length ; i++) {
-               var r = results[i];  
-               console.log(r);                         
+               var r = results[i];                                       
                if (r.creator == user.user) {
                  _results.push(r);
                } else {
