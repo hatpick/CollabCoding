@@ -206,14 +206,38 @@ a img
   position: absolute
   margin: 0 -5px 0 0
   -webkit-user-select: none
-  -moz-user-select: none
+  -moz-user-select: none  
 
-#comment
-  margin-left: 10px
-  border: 1px solid #AAAAAA
-  margin-top: 60px
+#editor-comment-temp
+  width: 100%    
+  height: 100%
+  top: 0px
+  margin-left: 5px
+  margin-right: 5px  
+  overflow-x: hidden
+  overflow-y: scroll
+
+#editor-comment-area
+  width: 100%      
+  background-color: #FAFAFA   
+
+#editor-comment-area-title
+  width: 100%    
+  height: 50px;      
+  font-weight: bold  
+  text-align: center
+  padding-top: 2px
+  
+.comment
+  position: absolute  
+  left: 10px
+  top: 320px
+  border: 1px solid #d9d9d9 
   min-width: 150px
   max-width: 250px
+  min-height: 100px
+  background-color: #fff
+  z-index: 500
 
 #comment img
   width: 24px

@@ -46,7 +46,7 @@ function editor(id, mode) {
         }
     });
     CodeMirror.commands.selectAll(_editor);
-    $(".CodeMirror-wrap").addClass("context-menu-one box menu-1");     
+            
     return _editor;
 }
 
@@ -176,11 +176,26 @@ $(document).ready(function() {
     window.doc = null;
     window.pid = null;
     // TODO
-    _hotkeysHandler();  
+    _hotkeysHandler();          
     
     
     //Notification Setup
     //Notification Code
+    var editor_contextmenu = [
+      {'Add Comment':{
+          onclick:function(menuItem,menu) { 
+              alert("You clicked me!");
+              var cursor = myCodeMirror.getCursor();
+              var line = cursor.line;
+              var ch = cursor.ch;
+              var comment = document.createElement("span");comment.setAttribute("id","redDot");
+              comment.style.backgroundColor = "red";comment.style.width = "15px"; comment.style.height = "15px";
+              myCodeMirror.addWidget({line:line,ch:ch}, comment, false);                     
+          },                            
+          icon:"assets/img/comments-icon.png"
+        }
+      }           
+    ];  
     ns.sendNotification = function(notyMsg, notyType, needRefresh, type) {
         now.sendNotification(notyMsg, notyType, needRefresh, type);
         return false;
@@ -256,6 +271,14 @@ $(document).ready(function() {
                 $($(".CodeMirror.CodeMirror-wrap")[1]).remove();
             }
             $(".CodeMirror-wrap").height($("#project").height());
+            $(".CodeMirror-lines").contextMenu(editor_contextmenu ,{theme:'vista'});
+            //TODO resize
+            $(".CodeMirror-lines").resize(function(e){
+               var height = $(".CodeMirror-lines").height();
+               $("#editor-comment-area").height(height);  
+            });                        
+            $(".CodeMirror-scroll").attr("id","syncOneDive");
+            new SynchDivScroll('syncOneDive', 'editor-comment-temp');
       // mongoDB
       // $.get('/project/' + sessionStorage.getItem('project') + '/' + docName, function(data) {
       //         console.log('find the content');
@@ -755,9 +778,9 @@ $(document).ready(function() {
 
             var opt = $("select option:selected").val();
             var type;
-            if (opt == ".html") {
+            if (opt === ".html") {
                 type = "file-html";
-            } else if (opt == ".js") {
+            } else if (opt === ".js") {
                 type = "file-js";
             } else {
                 type = "file-css";
@@ -792,7 +815,7 @@ $(document).ready(function() {
             name : sessionStorage.getItem('project')
         }, function(data) {
             createJsTreeByJSON(data);
-        })
+        });
   }
   
     function createFolder(ele) {
@@ -845,7 +868,7 @@ $(document).ready(function() {
     function cleanSessionStorage() {
         sessionStorage.removeItem('project');
         sessionStorage.removeItem('docName');
-    };
+    }
 
     $("#left-items").width(205);
     $("#project-tree").jstree();
@@ -969,12 +992,12 @@ $(document).ready(function() {
     // var elem = document.getElementById("home");
     CodeMirror.commands.autocomplete = function(cm) {
         var mode = cm.getOption("mode");
-        if (mode == "htmlmixed") {
+        if (mode === "htmlmixed") {
             CodeMirror.simpleHint(cm, CodeMirror.javascriptHint);
             CodeMirror.simpleHint(cm, CodeMirror.htmlHint);
-        } else if (mode == "text/html" || mode == "xml") {
+        } else if (mode === "text/html" || mode == "xml") {
             CodeMirror.simpleHint(cm, CodeMirror.htmlHint);
-        } else if (mode == "javascript") {
+        } else if (mode === "javascript") {
             CodeMirror.simpleHint(cm, CodeMirror.javascriptHint);
         }
     };
@@ -1073,7 +1096,7 @@ $(document).ready(function() {
             $(".modal-footer").html('');
             project_table.dataTable();
             $("#dialog").modal();            
-        })
+        });
     }
     
     function _closeProject() {
@@ -1099,7 +1122,7 @@ $(document).ready(function() {
             } else {
                 var project_name = $("#project_name").val();
                 // save client
-                sessionStorage.setItem('project', project_name)
+                sessionStorage.setItem('project', project_name);
                 // post to server
                 var users = $("#as-values-users_list").attr("value").split(",");
                 users.pop();
@@ -1203,7 +1226,7 @@ $(document).ready(function() {
         if (toggleLiveView) {
             live_preview_toggle_icon.removeClass("icon-eye-close").addClass("icon-eye-open");
             live_preview_toggle.data("tooltip").options.title = "Turn Live Preview Off!";
-            live_preview_toggle.attr("data-status", "on")
+            live_preview_toggle.attr("data-status", "on");
             //Add Preview Area
             var preview_left = $(".CodeMirror").usedWidth() + 5;
             var preview_top = 52;
@@ -1324,7 +1347,7 @@ $(document).ready(function() {
     $('#chatStart').click(function(){
         var pname = sessionStorage.getItem('project');
         chatWith('GroupChat');
-    });
+    });     
     
     function JumpSelectScroll(ln) {
 
@@ -1340,11 +1363,16 @@ $(document).ready(function() {
        }, 10);
     }
     
-    // $('#commentStart').click(function(){
-        // var pname = sessionStorage.getItem('project');
+    $('#commentStart').click(function(){
+        var pname = sessionStorage.getItem('project');
         // var ln = 70;                                                
-        // JumpSelectScroll(ln);             
-    // });        
+        // JumpSelectScroll(ln);            
+        var random  = new Date().getMilliseconds() 
+        random = random % 1000;
+        var comment = $("<div>").addClass("comment").css("top",random + "px");
+        console.log(random);
+        $("#editor-comment-area").append(comment);
+    });        
         
     $("a[data-action=editor-find-replace]").click(function() {
         //TODO: find/replace

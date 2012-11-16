@@ -16,15 +16,15 @@ html
     link(rel='stylesheet', href='assets/js/codemirror/theme/hatpick.css', type='text/css', media='screen', charset='utf-8')    
     link(rel='stylesheet', href='assets/css/DT_bootstrap.css', type='text/css', media='screen', charset='utf-8')
     link(rel='stylesheet', href='assets/css/autoSuggest.css', type='text/css', media='screen', charset='utf-8')
-    link(rel='stylesheet', href='assets/css/site.css', type='text/css', media='screen', charset='utf-8')    
+    link(rel='stylesheet', href='assets/css/site.css', type='text/css', media='screen', charset='utf-8')
+    link(rel='stylesheet', href='assets/js/contextmenu/jquery.contextMenu.css', type='text/css', media='screen', charset='utf-8')    
     script(type='text/javascript', charset='utf-8', src='assets/js/jquery-1.7.2.min.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/jquery-ui-1.8.22.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/bootstrap.min.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/jquery.jstree.js')  
     script(type='text/javascript', charset='utf-8', src='assets/js/jshint.js')
-    script(type='text/javascript', charset='utf-8', src='assets/js/contextmenu/jquery.ui.position.js')
-    script(type='text/javascript', charset='utf-8', src='assets/js/contextmenu/jquery.contextMenu.js')
-    link(rel='stylesheet', href='assets/js/contextmenu/jquery.contextMenu.css', type='text/css', media='screen', charset='utf-8')
+    script(type='text/javascript', charset='utf-8', src='assets/js/jquery.resize.js')    
+    script(type='text/javascript', charset='utf-8', src='assets/js/contextmenu/jquery.contextMenu.js')    
     script(type='text/javascript', charset='utf-8', src='assets/js/codemirror/codemirror.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/zen-coding/zen_codemirror.min.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/codemirror/util/formatting.js')
@@ -49,9 +49,10 @@ html
     script(type='text/javascript', src='assets/js/jquery.hotkeys.js')
     script(type='text/javascript', src='assets/js/DT_bootstrap.js')
     script(type='text/javascript', src='assets/js/jquery.autoSuggest.js')
-    script(type='text/javascript', src='/nowjs/now.js')    
+    script(type='text/javascript', src='/nowjs/now.js')
     script(type='text/javascript', src='assets/js/chat.js')
     script(type='text/javascript', src='assets/js/site.js')
+    script(type='text/javascript', src='assets/js/synchdivscroll.js')   
     script(type='text/javascript', src='assets/js/notification.js')    
   body(style='overflow: hidden;')
     .container-fluid
@@ -240,7 +241,7 @@ html
                 #browser
               #chat.tab-pane
                 a#chatStart Chat
-                //a#commentStart Comment                
+                a#commentStart Comment                
               #editor-settings.tab-pane
               #editor-deploy-project.tab-pane
         .left-splitter
@@ -252,22 +253,10 @@ html
           textarea#home.tab-pane.fade(disabled='disabled')
         .right-splitter
           .right-splitter-collapse-button(data-action='#hide')
-        #right-items.span2
-          #comment
-            div(style='background-color: #FFFFFF;')
-              div(style='padding: 5px; font-weight: normal;')
-                img(src='assets/img/silhouette.png', height='24', width='24', alt='', style='position: absolute;')
-                #comment-name
-                  | Soroush
-                #comment-time
-                  | 4:55 PM Today
-                div(style='text-align: justify; color: black; margin: auto; font-size: 12px;')
-                  | This line should be something else, having a negative value here causes a bug in front-end view.
-                div(style='margin: 4px auto;')
-                  a.discussion-command(href='JavaScript:void(0);') Edit
-                  a.discussion-command(href='JavaScript:void(0);') Delete
-                  a.discussion-command(href='JavaScript:void(0);') Reply
-                  a.discussion-command(href='JavaScript:void(0);') Resolve
+        #right-items.span2    
+          #editor-comment-area-title Discussions     
+          #editor-comment-temp
+            #editor-comment-area 
       div#chatbox.chatbox
       audio#chatAlert(src='/assets/img/gtalk1.wav', style='display:none')        
       #small-console(style='-webkit-box-shadow: 0px -5px 10px #000000; opacity: 0.95;')
