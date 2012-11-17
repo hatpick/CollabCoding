@@ -6,6 +6,9 @@ html, body
   padding-right: 0
   -webkit-user-select: none
   -moz-user-select: none
+  
+a:hover
+  text-decoration: none
 
 div
   background-color: transparent
@@ -219,7 +222,10 @@ a img
 
 #editor-comment-area
   width: 100%      
-  background-color: #FAFAFA   
+  background-color: #FAFAFA  
+  -webkit-user-select: auto
+  -moz-user-select: auto  
+  text-align: center
 
 #editor-comment-area-title
   width: 100%    
@@ -229,15 +235,38 @@ a img
   padding-top: 2px
   
 .comment
-  position: absolute  
-  left: 10px
-  top: 320px
-  border: 1px solid #d9d9d9 
-  min-width: 150px
-  max-width: 250px
-  min-height: 100px
+  position: relative  
+  left: 50px  
+  border: 1px solid #d9d9d9   
+  width: 180px
+  height: 150px
   background-color: #fff
   z-index: 500
+  outline: none !important
+  -webkit-user-select: auto
+  -moz-user-select: auto
+
+.commentContent
+  overflow-y: auto
+  overflow-x: hidden 
+  height: 100px
+  text-align: left
+  
+.commentMentionTag
+  text-decoration:none
+  font-size: 9px
+  font-color: #3399FF
+
+     
+.commentEntry
+  display: none
+  text-align: center  
+  
+.commentEntry>input
+  font-size: 9px 
+  
+.commentMarker
+  background-color: #FFFF00     
 
 #comment img
   width: 24px

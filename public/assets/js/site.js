@@ -1,4 +1,4 @@
-function _(string, context) {
+function arian(string, context) {
     return string.replace(/%\(\w+\)s/g, function(match) {
         return context[match.slice(2, -2)];
     });
@@ -12,6 +12,9 @@ function escapeHTML(text) {
     }
     return esc;
 }
+
+var sideComments = [];
+var markedLine;
 
 function listOptions(els, opts) {
     var str = "/*jshint ";
@@ -40,13 +43,13 @@ function editor(id, mode) {
             "Ctrl-Space" : "autocomplete"
         },
         syntax : "html",
-        profile : "xhtml",              
+        profile : "xhtml",
         onKeyEvent : function() {
             return zen_editor.handleKeyEvent.apply(zen_editor, arguments);
         }
     });
     CodeMirror.commands.selectAll(_editor);
-            
+
     return _editor;
 }
 
@@ -54,20 +57,20 @@ function reportFailure(report) {
     var errors = $("#small-console div");
     var item;
     errors[0].innerHTML = "";
-    errors.append(_(editorMessage.errorMessage, {
+    errors.append(arian(editorMessage.errorMessage, {
         message : "JSHint has found " + report.errors.length + " potential problems in your code."
     }));
     for (var i = 0, err; err = report.errors[i]; i++) {
-        if (!err.scope || err.scope === "(main)") {            
-            errors.append(_('<li><p>' + templates.error + '</p></li>', {
-              line: err.line,
-              code: err.evidence ? escapeHTML(err.evidence) : '&lt;no code&gt;',
-              msg:  err.reason
+        if (!err.scope || err.scope === "(main)") {
+            errors.append(arian('<li><p>' + templates.error + '</p></li>', {
+                line : err.line,
+                code : err.evidence ? escapeHTML(err.evidence) : '&lt;no code&gt;',
+                msg : err.reason
             }));
             myCodeMirror.setMarker(err.line - 1, "<span style=\"color: #900\">●</span> %N%");
         } else {
             myCodeMirror.setMarker(err.line - 1, "<span style=\"color: #900\">●</span> %N%");
-            errors.append(_("<li><p>" + templates.error + "</p></li>", {
+            errors.append(arian("<li><p>" + templates.error + "</p></li>", {
                 line : err.line,
                 character : err.character,
                 code : $.trim(err.evidence) ? $.trim(escapeHTML(err.evidence)) : "",
@@ -94,7 +97,7 @@ function reportFailure(report) {
 function reportSuccess(report) {
     var success = $("#small-console div");
     success[0].innerHTML = "";
-    success.append(_(editorMessage.successMessage, {
+    success.append(arian(editorMessage.successMessage, {
         message : "Good job! JSHint hasn't found any problems with your code."
     }));
     $("#small-console").append(success);
@@ -133,7 +136,7 @@ $.fn.usedHeight = function() {
 
 var layout = function() {
     var _height = document.documentElement.clientHeight - $(".navbar").height() - 20;
-    $("#chatArea>table>tbody>tr:first").height(_height - 160);  
+    $("#chatArea>table>tbody>tr:first").height(_height - 160);
     $("#editor-area").height(_height);
     $("#left-items").height(_height);
     $(".left-splitter").height(_height);
@@ -176,26 +179,26 @@ $(document).ready(function() {
     window.doc = null;
     window.pid = null;
     // TODO
-    _hotkeysHandler();          
-    
-    
+    _hotkeysHandler();
+
     //Notification Setup
     //Notification Code
-    var editor_contextmenu = [
-      {'Add Comment':{
-          onclick:function(menuItem,menu) { 
-              alert("You clicked me!");
-              var cursor = myCodeMirror.getCursor();
-              var line = cursor.line;
-              var ch = cursor.ch;
-              var comment = document.createElement("span");comment.setAttribute("id","redDot");
-              comment.style.backgroundColor = "red";comment.style.width = "15px"; comment.style.height = "15px";
-              myCodeMirror.addWidget({line:line,ch:ch}, comment, false);                     
-          },                            
-          icon:"assets/img/comments-icon.png"
+    var editor_contextmenu = [{
+        'Add Comment' : {
+            onclick : function(menuItem, menu) {
+                // alert("You clicked me!");
+                var cursor = myCodeMirror.getCursor();
+                var line = cursor.line;
+                var ch = cursor.ch;
+
+                createComment({
+                    line : line,
+                    ch : ch
+                }, "test");
+            },
+            icon : "assets/img/comments-icon.png"
         }
-      }           
-    ];  
+    }];
     ns.sendNotification = function(notyMsg, notyType, needRefresh, type) {
         now.sendNotification(notyMsg, notyType, needRefresh, type);
         return false;
@@ -219,10 +222,15 @@ $(document).ready(function() {
         if (needRefresh)
             refreshProjectTree();
     }
-    //
-    
+
+    $(".CodeMirror-lines").resize(function(e) {
+        var _height = $(".CodeMirror").height();
+        var realHeight = parseInt($(".CodeMirror-scroll>div").css("min-height").substring(0, $(".CodeMirror-scroll>div").css("min-height").length - 2), 10);
+        (realHeight > _height) ? $("#editor-comment-area").height(realHeight) : $("#editor-comment-area").height(_height);        
+    });
+
     $('#browser').bind('click', function() {
-        var reg = /^file.*/;        
+        var reg = /^file.*/;
 
         if (reg.test($.jstree._focused().get_selected().attr('rel'))) {
             var file_type = $.jstree._focused().get_selected().attr('rel');
@@ -234,8 +242,7 @@ $(document).ready(function() {
 
             //enable live preview toggle button, hide live view if open
             //TODO: hide live view
-            
-            
+
             $('.breadcrumb').empty();
             var paths = $.jstree._focused().get_path();
             var li;
@@ -271,41 +278,45 @@ $(document).ready(function() {
                 $($(".CodeMirror.CodeMirror-wrap")[1]).remove();
             }
             $(".CodeMirror-wrap").height($("#project").height());
-            $(".CodeMirror-lines").contextMenu(editor_contextmenu ,{theme:'vista'});
+            $(".CodeMirror-lines").contextMenu(editor_contextmenu, {
+                theme : 'vista'
+            });
+
             //TODO resize
-            $(".CodeMirror-lines").resize(function(e){
-               var height = $(".CodeMirror-lines").height();
-               $("#editor-comment-area").height(height);  
-            });                        
-            $(".CodeMirror-scroll").attr("id","syncOneDive");
+            $(".CodeMirror-scrollbar").attr("id", "syncOneDive");
             new SynchDivScroll('syncOneDive', 'editor-comment-temp');
-      // mongoDB
-      // $.get('/project/' + sessionStorage.getItem('project') + '/' + docName, function(data) {
-      //         console.log('find the content');
-      //         console.log(data);
-      //         if (!data) {
-      //           $.post('/project/syncToMongo', {
-      //             shareJSId: docName,
-      //             content: myCodeMirror.getValue(),
-      //             timestamp: (new Date()).getTime()
-      //           }, function(_data) {
-      //             console.log('save a new document')
-      //             console.log(_data);
-      //           }, 'json');
-      //         } else {
-      //           myCodeMirror.setValue(data.content);
-      //         }
-      //       });
-      //       pid = window.setInterval(function() {
-      //         console.log('test')
-      //       }, 5000);
+
+            $(".CodeMirror-lines").resize(function(e) {
+                var _height = $(".CodeMirror").height();
+                var realHeight = parseInt($(".CodeMirror-scroll>div").css("min-height").substring(0, $(".CodeMirror-scroll>div").css("min-height").length - 2), 10);
+                (realHeight > _height) ? $("#editor-comment-area").height(realHeight) : $("#editor-comment-area").height(_height);                
+            });
+            // mongoDB
+            // $.get('/project/' + sessionStorage.getItem('project') + '/' + docName, function(data) {
+            //         console.log('find the content');
+            //         console.log(data);
+            //         if (!data) {
+            //           $.post('/project/syncToMongo', {
+            //             shareJSId: docName,
+            //             content: myCodeMirror.getValue(),
+            //             timestamp: (new Date()).getTime()
+            //           }, function(_data) {
+            //             console.log('save a new document')
+            //             console.log(_data);
+            //           }, 'json');
+            //         } else {
+            //           myCodeMirror.setValue(data.content);
+            //         }
+            //       });
+            //       pid = window.setInterval(function() {
+            //         console.log('test')
+            //       }, 5000);
             window.myCodeMirror = myCodeMirror;
-            if (file_type === 'file-html'){
-                _switchLiveViewButton(true);                
+            if (file_type === 'file-html') {
+                _switchLiveViewButton(true);
+            } else {
+                _switchLiveViewButton(false);
             }
-            else {
-                _switchLiveViewButton(false);                
-            }            
             _toggleLiveView(false);
         }
     });
@@ -402,8 +413,7 @@ $(document).ready(function() {
                                     icon : false,
                                     separator_after : false,
                                     label : "Folder",
-                                    action : function(obj) {
-                                        console.log('test');
+                                    action : function(obj) {                                        
                                         createFolder(obj);
                                         //this.create(obj);
                                     }
@@ -415,14 +425,12 @@ $(document).ready(function() {
                             separator_after : false,
                             label : "Rename",
                             action : function(obj) {
-                                this.rename(obj, function(obj) {
-                                    console.log(obj);
+                                this.rename(obj, function(obj) {                                    
                                     var project_name = sessionStorage.getItem('project');
                                     $.post('/project/' + project_name + '/rename', {
                                         old_name : obj.old_name,
                                         new_name : obj.new_name
-                                    }, function(data) {
-                                        console.log(data);
+                                    }, function(data) {                                        
                                     }, 'json');
                                 });
                             }
@@ -433,8 +441,12 @@ $(document).ready(function() {
                             separator_after : false,
                             label : "Delete",
                             action : function(obj) {
-                            deleteElement(obj);
-                            if(this.is_selected(obj)) { this.remove(); } else { this.remove(obj); }
+                                deleteElement(obj);
+                                if (this.is_selected(obj)) {
+                                    this.remove();
+                                } else {
+                                    this.remove(obj);
+                                }
                             }
                         }
                     };
@@ -508,21 +520,21 @@ $(document).ready(function() {
                 };
                 for (var i = 0; i < _data.root[key].length; i++) {
                     ele = _data.root[key][i];
-          if (ele != null) {
-                    if (ele.type == 'file') {
-                        folder.children.push(_generateFileChildren(ele));
-                    } else {
-                        folder.children.push({
-                            data : ele.name,
-                            attr : {
-                                rel : 'folder',
-                                id : ele.name + '_id'
-                            },
-                            children : _generateChildren(ele.children),
-                            state : "open"
-                        });
+                    if (ele != null) {
+                        if (ele.type == 'file') {
+                            folder.children.push(_generateFileChildren(ele));
+                        } else {
+                            folder.children.push({
+                                data : ele.name,
+                                attr : {
+                                    rel : 'folder',
+                                    id : ele.name + '_id'
+                                },
+                                children : _generateChildren(ele.children),
+                                state : "open"
+                            });
+                        }
                     }
-          }
                 }
                 tree_data.children.push(folder);
             } else {
@@ -700,7 +712,7 @@ $(document).ready(function() {
                 } else {
                     var uncomment_error = $("#small-console div");
                     uncomment_error[0].innerHTML = "";
-                    uncomment_error.append(_(editorMessage.errorMessage, {
+                    uncomment_error.append(arian(editorMessage.errorMessage, {
                         message : "Selected text is not a comment to be uncommented. Please select a commented text block to uncomment."
                     }));
                     $("#small-console").toggleClass("small-console-animated");
@@ -711,30 +723,29 @@ $(document).ready(function() {
             var comment_error = $("#small-console div");
             comment_error[0].innerHTML = "";
             if (isComment)
-                comment_error.append(_(editorMessage.errorMessage, {
+                comment_error.append(arian(editorMessage.errorMessage, {
                     message : "Please select uncommented text you want to comment."
                 }));
             else
-                comment_error.append(_(editorMessage.errorMessage, {
+                comment_error.append(arian(editorMessage.errorMessage, {
                     message : "Please select commented text you want to uncomment."
                 }));
             $("#small-console").toggleClass("small-console-animated");
             showConsole($("a[data-action=editor-console-toggle]"));
         }
     }
-  
-  function deleteElement (ele) {
-    var project_name = sessionStorage.getItem('project');
-    var id = $.jstree._focused().get_selected().attr('data-sharejsid');
-    var paths = $.jstree._focused().get_path();
+
+    function deleteElement(ele) {
+        var project_name = sessionStorage.getItem('project');
+        var id = $.jstree._focused().get_selected().attr('data-sharejsid');
+        var paths = $.jstree._focused().get_path();
         $.post('/project/' + project_name + '/' + id + '/delete', {
             paths : paths,
             type : 'file'
-        }, function() {
-            console.log('success create file: ' + file_name);
+        }, function() {            
         }, 'json');
-    //refreshProjectTree();
-  }
+        //refreshProjectTree();
+    }
 
     function createFile(ele) {
         var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>New File</p>";
@@ -791,33 +802,33 @@ $(document).ready(function() {
                 attr : {
                     rel : type
                 }
-            }, function(o){}, true);
+            }, function(o) {
+            }, true);
             $("#dialog").modal('hide');
-            
+
             //Notification
-            var notifMsg = '<span style="text-align:justify"><a href="#" class="notification-user-a">' + now.name + '</a>' + ' has created a new file <a href="#" class="notification-file-a">' + file_name + 
-            '</a> under <a class="notification-project-a" href="#">'+ sessionStorage.getItem('project') + '</a> project.</span>';
-            ns.sendNotification(notifMsg, "information", true, 'g');         
-            
-      //refreshProjectTree();
+            var notifMsg = '<span style="text-align:justify"><a href="#" class="notification-user-a">' + now.name + '</a>' + ' has created a new file <a href="#" class="notification-file-a">' + file_name + '</a> under <a class="notification-project-a" href="#">' + sessionStorage.getItem('project') + '</a> project.</span>';
+            ns.sendNotification(notifMsg, "information", true, 'g');
+
+            //refreshProjectTree();
         }));
 
         $(".modal-header").html(dialogHeader);
         $(".modal-body").html(dialogContent);
         $(".modal-footer").html(dialogFotter);
-        
+
         $("#dialog").modal();
     }
 
-  function refreshProjectTree() {
+    function refreshProjectTree() {
         // FIXME: find the other to refresh the tree.
         $.get('/project', {
             name : sessionStorage.getItem('project')
         }, function(data) {
             createJsTreeByJSON(data);
         });
-  }
-  
+    }
+
     function createFolder(ele) {
         var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>New Folder</p>";
         var dialogContent = $("<div>").css({
@@ -842,8 +853,7 @@ $(document).ready(function() {
                 paths : paths,
                 name : folder_name,
                 type : 'folder'
-            }, function() {
-                console.log('success create folder: ' + folder_name);
+            }, function() {                
             }, 'json');
 
             // create
@@ -852,11 +862,11 @@ $(document).ready(function() {
                 attr : {
                     rel : 'folder'
                 }
-            }, function(o){}, true);
+            }, function(o) {
+            }, true);
 
             $("#dialog").modal('hide');
-            var notifMsg = '<span style="text-align:justify"><a href="#" class="notification-user-a">' + now.name + '</a>' + ' has created a new folder <a href="#" class="notification-file-a">' + folder_name + 
-            '</a> under <a class="notification-project-a" href="#">'+ sessionStorage.getItem('project') + '</a> project.</span>';
+            var notifMsg = '<span style="text-align:justify"><a href="#" class="notification-user-a">' + now.name + '</a>' + ' has created a new folder <a href="#" class="notification-file-a">' + folder_name + '</a> under <a class="notification-project-a" href="#">' + sessionStorage.getItem('project') + '</a> project.</span>';
             ns.sendNotification(notifMsg, "information", true, 'g');
         }));
         $(".modal-header").html(dialogHeader);
@@ -869,6 +879,7 @@ $(document).ready(function() {
         sessionStorage.removeItem('project');
         sessionStorage.removeItem('docName');
     }
+
 
     $("#left-items").width(205);
     $("#project-tree").jstree();
@@ -906,6 +917,7 @@ $(document).ready(function() {
         $(".left-splitter-collapse-button").data("tooltip").options.title = "Show";
         $(".left-splitter-collapse-button").data("tooltip").options.placement = "right";
     }
+
     function showLeftArea(toggleButton) {
         $("#left-items").animate({
             width : "205px",
@@ -927,6 +939,8 @@ $(document).ready(function() {
         $(".left-splitter-collapse-button").data("tooltip").options.title = "Hide";
         $(".left-splitter-collapse-button").data("tooltip").options.placement = "top";
     }
+
+
     $(".left-splitter-collapse-button").click(function() {
         if ($("button[data-action=editor-livepreview-toggle]").attr("data-status") === "on")
             return;
@@ -956,6 +970,7 @@ $(document).ready(function() {
         $(".right-splitter-collapse-button").data("tooltip").options.title = "Show Comments";
         $(".right-splitter-collapse-button").data("tooltip").options.placement = "left";
     }
+
     function showCommentArea(toggleButton) {
         $("#right-items").show("drop", {
             direction : "right"
@@ -977,6 +992,8 @@ $(document).ready(function() {
         });
 
     }
+
+
     $(".right-splitter-collapse-button").click(function() {
         if ($("button[data-action=editor-livepreview-toggle]").attr("data-status") === "on")
             return;
@@ -1004,16 +1021,18 @@ $(document).ready(function() {
 
     layout();
     // TODO: remove after finished
-  $.get('/project', {name: sessionStorage.getItem('project')}, function(data) {
-  createJsTreeByJSON(data);
-  $("#dialog").modal('hide');
-  });
+    $.get('/project', {
+        name : sessionStorage.getItem('project')
+    }, function(data) {
+        createJsTreeByJSON(data);
+        $("#dialog").modal('hide');
+    });
 
     $(".btn-logout").click(function() {
-        cleanSessionStorage();      
+        cleanSessionStorage();
         var notifMsg = now.name + " is offline!";
-        ns.sendNotification(notifMsg, "error", false, 'e');        
-        window.location.href = '/logout';       
+        ns.sendNotification(notifMsg, "error", false, 'e');
+        window.location.href = '/logout';
     });
 
     $("a[data-action=editor-new-file]").click(function() {
@@ -1023,18 +1042,17 @@ $(document).ready(function() {
         // TODO: pop up a window, asking user close/save current project
         _newProject();
     });
-    
+
     $("a[data-action=editor-open-project]").click(function() {
         // fetch project list
         _openProject();
     });
-    
+
     $("a[data-action=editor-close-project]").click(function() {
         // fetch project list
         _closeProject();
     });
-    
-    
+
     $("a[data-action=editor-share-code]").click(function() {
         var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>Share via this link</p>";
         var project_name = sessionStorage.getItem("project");
@@ -1061,9 +1079,8 @@ $(document).ready(function() {
         $(".modal-footer").html(dialogFotter);
         $("#dialog").modal();
     });
-    
-    
-    function _openProject(){
+
+    function _openProject() {
         $.get('/project/list', function(projects) {
             var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>Open Project</p>";
             var project_table = $('<table>').attr({
@@ -1082,9 +1099,9 @@ $(document).ready(function() {
                     }, function(data) {
                         createJsTreeByJSON(data);
                         $("#dialog").modal('hide');
-                        
-                        //TODO "Now" Group Change, Remove User From Old Group                        
-                        now.changeProjectGroup(sessionStorage.getItem('project'));                        
+
+                        //TODO "Now" Group Change, Remove User From Old Group
+                        now.changeProjectGroup(sessionStorage.getItem('project'));
                     });
                 }))).append($('<td>').html(projects[i].created_on)).append($('<td>').html(projects[i].last_modified_on));
                 tbody.append(tr);
@@ -1095,18 +1112,18 @@ $(document).ready(function() {
             $(".modal-body").html(dialogContent);
             $(".modal-footer").html('');
             project_table.dataTable();
-            $("#dialog").modal();            
+            $("#dialog").modal();
         });
     }
-    
+
     function _closeProject() {
-        //TODO clear the tree, clear the editor, clear the comments, change roomnow.changeProjectGroup(undefined);     
-        now.changeProjectGroup(undefined);     
+        //TODO clear the tree, clear the editor, clear the comments, change roomnow.changeProjectGroup(undefined);
+        now.changeProjectGroup(undefined);
         $("#browser").html('');
         $("#chat.tab-pane").html('');
-        sessionStorage.clear();           
+        sessionStorage.clear();
     }
-    
+
     function _newProject() {
         var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>New Project</p>";
         var dialogContent = '<input type="text" id="project_name" placeholder="Enter project name" width="100%" required/><br/><input type="text" id="users" width="100%" required/>';
@@ -1134,9 +1151,9 @@ $(document).ready(function() {
                 });
                 createNewJsTree($("#dialog input").val());
                 $("#dialog").modal('hide');
-                
+
                 //Notification
-                var notifMsg = '<span style="text-align:justify"><a href="#" class="notification-user-a">' + now.name + '</a>' + ' has created a new project <a class="notification-project-a" href="#">'+ sessionStorage.getItem('project') + '</a></span>';
+                var notifMsg = '<span style="text-align:justify"><a href="#" class="notification-user-a">' + now.name + '</a>' + ' has created a new project <a class="notification-project-a" href="#">' + sessionStorage.getItem('project') + '</a></span>';
                 ns.sendNotification(notifMsg, "information", false, 'e');
             }
         })).append($("<button>").attr({
@@ -1156,51 +1173,51 @@ $(document).ready(function() {
             startText : "Add user name here",
             asHtmlID : "users_list"
         });
-        $("#dialog").modal();       
+        $("#dialog").modal();
     }
-    
-    function _hotkeysHandler(){     
+
+    function _hotkeysHandler() {
         var commandKey = "ctrl";
         var metaKey = "meta";
         var hotkeys = {
-            NEW_FILE: commandKey + "+n",
-            NEW_FOLDER: commandKey + "+n",
-            NEW_PROJECT: commandKey + "+shift+n",
-            OPEN_PROJECT: commandKey + "+o",
-            CLOSE_PROJECT: commandKey + "+w",
-            SAVE: commandKey + "+s",
-            CUT: commandKey + "+x",
-            COPY: commandKey + "+c",
-            PASTE: commandKey + "+v",
-            UNDO: commandKey + "+z",
-            REDO: commandKey + "+shift+z",
-            DELETE: "backspace",
-            SELECT_ALL: commandKey + "+a",
-            FIND: metaKey + "+f",
-            FIND_NEXT: metaKey + "+g",
-            FIND_PREVIOUS: metaKey + "+shift+g",
-            REPLACE: metaKey + "+shift+f",
-            ZOOM_IN: commandKey + "++",
-            ZOOM_OUT: commandKey + "+-",
-            ACTUAL_SIZE: commandKey + "+0",
-            FULLSCREEN: "f11",
-            COMMENT: commandKey + "+/",
-            UNCOMMENT: commandKey + "+/",
-            FORMAT_CODE: commandKey + "+l",
-            CHECK_QUALITY: commandKey + "+shift+j",
-            SHARE_CODE: commandKey + "+shift+s",
-            ABOUT: commandKey + "+i"
+            NEW_FILE : commandKey + "+n",
+            NEW_FOLDER : commandKey + "+n",
+            NEW_PROJECT : commandKey + "+shift+n",
+            OPEN_PROJECT : commandKey + "+o",
+            CLOSE_PROJECT : commandKey + "+w",
+            SAVE : commandKey + "+s",
+            CUT : commandKey + "+x",
+            COPY : commandKey + "+c",
+            PASTE : commandKey + "+v",
+            UNDO : commandKey + "+z",
+            REDO : commandKey + "+shift+z",
+            DELETE : "backspace",
+            SELECT_ALL : commandKey + "+a",
+            FIND : metaKey + "+f",
+            FIND_NEXT : metaKey + "+g",
+            FIND_PREVIOUS : metaKey + "+shift+g",
+            REPLACE : metaKey + "+shift+f",
+            ZOOM_IN : commandKey + "++",
+            ZOOM_OUT : commandKey + "+-",
+            ACTUAL_SIZE : commandKey + "+0",
+            FULLSCREEN : "f11",
+            COMMENT : commandKey + "+/",
+            UNCOMMENT : commandKey + "+/",
+            FORMAT_CODE : commandKey + "+l",
+            CHECK_QUALITY : commandKey + "+shift+j",
+            SHARE_CODE : commandKey + "+shift+s",
+            ABOUT : commandKey + "+i"
         };
 
-    $(document).bind('keyup',hotkeys.OPEN_PROJECT, function(){      
-      _openProject();      
-    });
-        
-        $(document).bind('keyup',hotkeys.NEW_PROJECT, function(){           
-            _newProject();          
+        $(document).bind('keyup', hotkeys.OPEN_PROJECT, function() {
+            _openProject();
         });
-        
-        $(document).bind('keyup',hotkeys.FULLSCREEN, function(){                    
+
+        $(document).bind('keyup', hotkeys.NEW_PROJECT, function() {
+            _newProject();
+        });
+
+        $(document).bind('keyup', hotkeys.FULLSCREEN, function() {
             _fullscreen();
         });
         //TODO: add all shortcuts/hotkeys
@@ -1208,14 +1225,13 @@ $(document).ready(function() {
 
     function _switchLiveViewButton(enable) {
         if (enable) {
-            $("button[data-action=editor-livepreview-toggle]").removeAttr("disabled").removeClass("disabled");            
-        }
-        else {            
+            $("button[data-action=editor-livepreview-toggle]").removeAttr("disabled").removeClass("disabled");
+        } else {
             $("button[data-action=editor-livepreview-toggle]").attr("disabled", "disabled").addClass("disabled");
         }
     }
-    
-    function _fullscreen(){
+
+    function _fullscreen() {
         document.documentElement.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
     }
 
@@ -1242,16 +1258,16 @@ $(document).ready(function() {
                 float : "left",
                 "background-color" : "#FFFFFF",
                 "margin-left" : "7px",
-                border : "1px solid #DDD"               
+                border : "1px solid #DDD"
             }).html("<iframe id='live_preview_target' class='preview_iframe'>" + live_preview_iframe_content + "</iframe>");
             $("#editor-area").append(live_preview_window);
             //TODO:Inject Content to iFrame Here
             // myCodeMirror.setOption("onChange", function(cm, changedText){
-                // console.log(changedText.text);
-                // while(temp){
-                    // temp = temp.next;
-                    // console.log(temp.text);                  
-                // }                
+            // console.log(changedText.text);
+            // while(temp){
+            // temp = temp.next;
+            // console.log(temp.text);
+            // }
             // });
 
             //Hide Comment Area
@@ -1259,26 +1275,26 @@ $(document).ready(function() {
             pt.open();
             pt.close();
             $('body', pt).append(myCodeMirror.getValue());
-            
+
             myCodeMirror.setOption("onChange", function(cm, change) {
                 var preview = $('#live_preview_target')[0].contentWindow.document;
                 preview.open();
                 preview.close();
-                
+
                 var html = cm.getValue();
-               $('body', preview).append(html);
+                $('body', preview).append(html);
             });
-            
+
             var isCommentVisible = ($("#right-items").is(":visible"));
             if (isCommentVisible) {
                 $("#right-items").hide("drop", {
                     direction : "right"
                 }, 200);
             }
-            
+
             //Expand Editor/Preview Area
             $("#editor-area").animate({
-                width : $("#editor-area").width() + ((isCommentVisible) ? $("#right-items").usedWidth() : 0) - 10 + (!isCommentVisible? 10 : 0)
+                width : $("#editor-area").width() + ((isCommentVisible) ? $("#right-items").usedWidth() : 0) - 10 + (!isCommentVisible ? 10 : 0)
             }, {
                 duration : 200,
                 step : function(now, fx) {
@@ -1311,9 +1327,9 @@ $(document).ready(function() {
                     direction : "right"
                 }, 200);
             }
-            
+
             $("#editor-area").animate({
-                width : $("#editor-area").width() - ((!isCommentVisible) ? $("#right-items").usedWidth() : 0) + 10 - (isCommentVisible? 10 : 0)
+                width : $("#editor-area").width() - ((!isCommentVisible) ? $("#right-items").usedWidth() : 0) + 10 - ( isCommentVisible ? 10 : 0)
             }, {
                 duration : 200,
                 step : function(now, fx) {
@@ -1328,56 +1344,236 @@ $(document).ready(function() {
         }
     }
 
+
     $("button[data-action=editor-livepreview-toggle]").click(function() {
         var live_preview_toggle = $("button[data-action=editor-livepreview-toggle]");
         var live_preview_toggle_icon = $("button[data-action=editor-livepreview-toggle] i");
         var ea_original_width = $("#editor-area").width();
 
-        if (live_preview_toggle.attr("data-status") === 'off') {            
+        if (live_preview_toggle.attr("data-status") === 'off') {
             //TODO: Hide comment area on right and split editor area into two equal sections
             _toggleLiveView(true);
 
-        } else {            
+        } else {
             //TODO: Merge equal sections in editor area and show comments
             _toggleLiveView(false);
 
         }
     });
-    
-    $('#chatStart').click(function(){
+
+    $('#chatStart').click(function() {
         var pname = sessionStorage.getItem('project');
         chatWith('GroupChat');
-    });     
-    
+    });
+
     function JumpSelectScroll(ln) {
 
-    // editor.getLineHandle does not help as it does not return the reference of line.
-    var ll = myCodeMirror.getLine(ln).length;
-    myCodeMirror.setSelection({line:ln, ch:0}, {line:ln,ch:ll});    
-    window.setTimeout(function() {
-           myCodeMirror.setLineClass(ln, null, "top-me");
-           var line = $('.CodeMirror-lines .top-me');
-           var h = line.parent();
-    
-           $('.CodeMirror-scroll').scrollTop(0).scrollTop(line.offset().top - $('.CodeMirror-scroll').offset().top);
-       }, 10);
+        // editor.getLineHandle does not help as it does not return the reference of line.
+        var ll = myCodeMirror.getLine(ln).length;
+        myCodeMirror.setSelection({
+            line : ln,
+            ch : 0
+        }, {
+            line : ln,
+            ch : ll
+        });
+        window.setTimeout(function() {
+            myCodeMirror.setLineClass(ln, null, "top-me");
+            var line = $('.CodeMirror-lines .top-me');
+            var h = line.parent();
+
+            $('.CodeMirror-scroll').scrollTop(0).scrollTop(line.offset().top - $('.CodeMirror-scroll').offset().top);
+        }, 10);
     }
-    
-    $('#commentStart').click(function(){
+
+    function createComment(position, content) {
+        //TODO BUGGY, Top wont set correctly
         var pname = sessionStorage.getItem('project');
-        // var ln = 70;                                                
-        // JumpSelectScroll(ln);            
-        var random  = new Date().getMilliseconds() 
-        random = random % 1000;
-        var comment = $("<div>").addClass("comment").css("top",random + "px");
-        console.log(random);
-        $("#editor-comment-area").append(comment);
-    });        
-        
+
+        var line = position.line;
+        var ch = position.ch;
+
+        var count = 0;
+
+        for (var i = 0; i < sideComments.length; i++) {
+            var sco = sideComments[i];
+            if (sco.lineNumber < line)
+                count++;
+        }
+
+        var commentTop = (line - count) * 14 + 6;
+
+        var commentIcon = $("<div>").attr({
+            "data-line-number" : line + 1,
+            "tabindex" : "-1"
+        }).css({
+            "outline" : "none",
+            "position" : "relative",
+            "left" : "30px",
+            "top" : commentTop + "px",
+            "background-image" : "url('assets/img/comments-icon.png')",
+            "height" : "14px",
+            "width" : "14px"
+        }).tooltip({
+            title : "Show Discussion!"
+        });
+
+        var comment = $("<div>").attr({
+            "data-line-number" : line + 1,
+            "tabindex" : "-1"
+        }).attr("editor-comment-isopen", false).html($("<table>").css({
+            "width" : "100%",
+            "height" : "100%"
+        }).append($("<tbody>").append($("<tr>").append($("<td>").append($("<div>").addClass("commentContent")))).append($("<tr>").append($("<td>").attr("valign", "bottom").append($("<div>").addClass("commentEntry").append($("<input>").css({
+            "margin" : "2px auto",
+            "width" : "160px"
+        }).attr({
+            'placeholder' : 'Reply to this comment...',
+            'type' : 'text'
+        }).keydown(function(e) {
+            if (e.which === 13) {
+                //TODO save comment
+                var ts = new Date();
+                var tsstring = "On " + ts.toDateString() + " at " + ts.toLocaleTimeString();
+                var content = $(this).val().split(" ");
+                
+                var finalContent = '';
+                $.each(content, function(index, value){
+                    var tempATag;
+                    if(value.indexOf('@') == 0) {
+                       tempATag = '<a href="#" class="commentMentionTag">' + value.substring(1, value.length) + '</a>';                        
+                    } 
+                    else
+                       tempATag = value;                    
+                   finalContent += (' ' + tempATag);
+                });
+
+                var commentItem = $('<div>').css({
+                    'text-aling' : 'justify',
+                    'margin' : '1px',
+                    '-webkit-border-radius' : '2px',
+                    'background-color' : '#fefefe',
+                    'border' : '1px solid #fdfdfd',
+                }).append($('<p>').css('margin', '2px').html($('<span>').css({
+                    'font-weight' : 'bold',
+                    'font-size' : '9px'
+                }).html("Soroush").append($('<span>').css({
+                    'font-weight' : 'normal',
+                    'font-size' : '9px'
+                }).html(': ' + finalContent))).append($('<p>').css({
+                    'font-size' : '8px',
+                    'text-align' : 'left',
+                    'margin-bottom' : '-1px'
+                }).html(tsstring)));
+
+                var commentContent = $(this).parents().eq(3).find("tr div.commentContent");
+                $(commentContent).append(commentItem);
+
+                $(this).val('');
+                //TODO notifications
+            }
+        }))))))).prepend($("<div>").css({
+            'position' : 'absolute',
+            'left' : '174px',
+            'top' : '-8px'
+        }).html("<i class='icon-remove'></i>").click(function(e) {
+            $($(this).parents().eq(0)).hide(200);
+            $($(this).parents().eq(0)).attr("editor-comment-isopen", false);
+
+            markedLine.clear();
+        })).addClass("comment").css({
+            "display" : "none",
+            "top" : "0px"
+        });
+
+        commentIcon.click(function(e) {
+            if ($(e.srcElement).attr('class') === 'icon-remove' || e.srcElement.tagName === 'INPUT' || e.srcElement.tagName === 'A')
+                return false;
+
+            var comment = $(this).find(".comment");
+
+            if ($(comment).attr("editor-comment-isopen") !== true) {
+                $(comment).attr("editor-comment-isopen", true);
+                $(comment).show(200);
+            }
+            
+            $($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry>input").triggeredAutocomplete({
+                source: "/users/mentionList",            
+                minLength: 2,
+                allowDuplicates: false,
+                trigger: "@",
+                hidden: '#hidden_inputbox'                       
+            })
+
+            var editorLN = $(comment).attr('data-line-number') - 1;
+            var editorLine = myCodeMirror.getLine(editorLN);
+            markedLine = myCodeMirror.markText({
+                line : editorLN,
+                ch : 0
+            }, {
+                line : editorLN,
+                ch : editorLine.length
+            }, "commentMarker");
+
+            for (var i = 0; i < sideComments.length; i++) {
+                var sco = sideComments[i];
+                if (sco.lineNumber != line)
+                    $(sco.commentDom).hide(200);
+            }
+
+            if ($($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry").css('display') === 'block') {
+                $(this).tooltip({
+                    title : "Show Discussion!"
+                });
+
+                $(comment).css({
+                    "background-color" : "#fff",
+                }).animate({
+                    left : '+=25'
+                }, 250);
+
+                $($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry").css({
+                    "display" : "none"
+                });
+            } else {
+                $(this).tooltip({
+                    title : "Hide Discussion!"
+                });
+
+                $(comment).css({
+                    "background-color" : "#feef9c",
+                }).animate({
+                    left : '-=25'
+                }, 250);
+
+                $($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry").css({
+                    "display" : "block"
+                });
+
+                $($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry>input").focus();
+            }
+        });
+
+        //TODO check for previous comments entered
+        // commentIcon.blur(function(e){
+        // $(this).tooltip({
+        // title : "Show Discussion!"
+        // }).find("div").css("display","none");
+        // });
+
+        var commentIconObg = {};
+        commentIconObg.lineNumber = line;
+        commentIconObg.commentDom = comment;
+        sideComments.push(commentIconObg);
+
+        commentIcon.append(comment);
+        $("#editor-comment-area").append(commentIcon);
+    };
+
     $("a[data-action=editor-find-replace]").click(function() {
         //TODO: find/replace
     });
-  
+
     $("a[data-action=editor-find-next]").click(function() {
         //TODO: find next
     });
@@ -1406,7 +1602,7 @@ $(document).ready(function() {
         else
             hideConsole($(this));
     });
-    
+
     $("a[data-action=editor-console-clean]").click(function() {
         $("#small-console>div").html("");
     });
@@ -1435,5 +1631,5 @@ $(document).ready(function() {
     $("a[data-action=editor-console-clean]").tooltip({
         title : "Clean Console",
         placement : "left"
-    });         
+    });
 });

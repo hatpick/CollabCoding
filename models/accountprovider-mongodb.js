@@ -143,6 +143,16 @@ AM.getAllRecords = function(callback)
   });
 };
 
+AM.getMentionList = function(callback)
+{
+    AM.accounts.find().toArray(
+        function(e, res) {
+            if(e) callback(e)
+            else callback(null, res)
+        }
+    )
+}
+
 AM.delAllRecords = function(id, callback) 
 {
   AM.accounts.remove(); // reset accounts collection for testing //

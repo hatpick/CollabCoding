@@ -1,4 +1,5 @@
 html,body{background-color:#ebebeb;width:100%;height:100%;padding-left:0;padding-right:0;-webkit-user-select:none;-moz-user-select:none}
+a:hover{text-decoration:none}
 div{background-color:transparent}
 a img{max-width:none;height:20px}
 .center{text-align:center;vertical-align:middle}
@@ -45,9 +46,14 @@ a img{max-width:none;height:20px}
 #editor{padding:0;width:100%;height:750px}
 #right-items{position:absolute;margin:0 -5px 0 0;-webkit-user-select:none;-moz-user-select:none}
 #editor-comment-temp{width:100%;height:100%;top:0;margin-left:5px;margin-right:5px;overflow-x:hidden;overflow-y:scroll}
-#editor-comment-area{width:100%;background-color:#fafafa}
+#editor-comment-area{width:100%;background-color:#fafafa;-webkit-user-select:auto;-moz-user-select:auto;text-align:center}
 #editor-comment-area-title{width:100%;height:50px;font-weight:bold;text-align:center;padding-top:2px}
-.comment{position:absolute;left:10px;top:320px;border:1px solid #d9d9d9;min-width:150px;max-width:250px;min-height:100px;background-color:#fff;z-index:500}
+.comment{position:relative;left:50px;border:1px solid #d9d9d9;width:180px;height:150px;background-color:#fff;z-index:500;outline:none !important;-webkit-user-select:auto;-moz-user-select:auto}
+.commentContent{overflow-y:auto;overflow-x:hidden;height:100px;text-align:left}
+.commentMentionTag{text-decoration:none;font-size:9px;font-color:#39f}
+.commentEntry{display:none;text-align:center}
+.commentEntry>input{font-size:9px}
+.commentMarker{background-color:#ff0}
 #comment img{width:24px;height:24px;float:left;position:relative}
 #comment div{background-color:#fff;font-size:12px;font-weight:bold}
 #comment div div{font-size:12px;font-weight:bold}
