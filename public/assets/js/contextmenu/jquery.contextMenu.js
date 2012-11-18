@@ -42,7 +42,7 @@
         offsetY:0,
         appendTo:'body',
         direction:'down',
-        constrainToScreen:true,
+        constrainToScreen:true,        
                 
         showTransition:'show',
         hideTransition:'hide',
@@ -133,7 +133,7 @@
             $t.append($tr.append($td.append($div)))
             return $t;
         },
-        
+               
         // Create an individual menu item
         createMenuItem: function(label,obj) {
             var cmenu = this;
@@ -199,7 +199,7 @@
         beforeShow: function() { return true; },
         
         // Show the context menu
-        show: function(t,e) {
+        show: function(t,e) {            
             var cmenu=this, x=e.pageX, y=e.pageY;
             cmenu.target = t; // Preserve the object that triggered this context menu so menu item click methods can see it
             if (cmenu.beforeShow()!==false) {

@@ -14,7 +14,6 @@ function escapeHTML(text) {
 }
 
 var sideComments = [];
-var markedLine;
 
 function listOptions(els, opts) {
     var str = "/*jshint ";
@@ -117,6 +116,8 @@ function reportSuccess(report) {
 //   return name.join("");
 // };
 
+var cmPosition = {};
+
 var templates = {
     error : '<a style="text-decoration:none;" data-line="%(line)s" href="javascript:void(0)">Line %(line)s, Character %(character)s</a>: ' + '<code>%(code)s</code><p style="color: #b94a48">%(msg)s</p>'
 };
@@ -187,13 +188,15 @@ $(document).ready(function() {
         'Add Comment' : {
             onclick : function(menuItem, menu) {
                 // alert("You clicked me!");
-                var cursor = myCodeMirror.getCursor();
-                var line = cursor.line;
-                var ch = cursor.ch;
+                // var cursor = myCodeMirror.getCursor();
+                // var line = cursor.line;
+                // var ch = cursor.ch;
+                
+                var cursor = myCodeMirror.coordsChar(cmPosition);                                
 
                 createComment({
-                    line : line,
-                    ch : ch
+                    line : cursor.line,
+                    ch : cursor.ch
                 }, "test");
             },
             icon : "assets/img/comments-icon.png"
@@ -227,7 +230,7 @@ $(document).ready(function() {
         var _height = $(".CodeMirror").height();
         var realHeight = parseInt($(".CodeMirror-scroll>div").css("min-height").substring(0, $(".CodeMirror-scroll>div").css("min-height").length - 2), 10);
         (realHeight > _height) ? $("#editor-comment-area").height(realHeight) : $("#editor-comment-area").height(_height);        
-    });
+    });        
 
     $('#browser').bind('click', function() {
         var reg = /^file.*/;
@@ -277,10 +280,18 @@ $(document).ready(function() {
             if ($(".CodeMirror.CodeMirror-wrap").size() > 1) {
                 $($(".CodeMirror.CodeMirror-wrap")[1]).remove();
             }
-            $(".CodeMirror-wrap").height($("#project").height());
+            $(".CodeMirror-wrap").height($("#project").height());                        
+            
+            $(".CodeMirror-lines").mousedown(function(e){
+               if(e.which === 3){
+                   cmPosition.x = e.clientX;
+                   cmPosition.y = e.clientY;
+               }                            
+            });
+            
             $(".CodeMirror-lines").contextMenu(editor_contextmenu, {
                 theme : 'vista'
-            });
+            });                        
 
             //TODO resize
             $(".CodeMirror-scrollbar").attr("id", "syncOneDive");
@@ -291,6 +302,7 @@ $(document).ready(function() {
                 var realHeight = parseInt($(".CodeMirror-scroll>div").css("min-height").substring(0, $(".CodeMirror-scroll>div").css("min-height").length - 2), 10);
                 (realHeight > _height) ? $("#editor-comment-area").height(realHeight) : $("#editor-comment-area").height(_height);                
             });
+                        
             // mongoDB
             // $.get('/project/' + sessionStorage.getItem('project') + '/' + docName, function(data) {
             //         console.log('find the content');
@@ -1276,7 +1288,7 @@ $(document).ready(function() {
             pt.close();
             $('body', pt).append(myCodeMirror.getValue());
 
-            myCodeMirror.setOption("onChange", function(cm, change) {
+            myCodeMirror.setOption("onChange", function(cm, change) {                
                 var preview = $('#live_preview_target')[0].contentWindow.document;
                 preview.open();
                 preview.close();
@@ -1477,10 +1489,13 @@ $(document).ready(function() {
             'left' : '174px',
             'top' : '-8px'
         }).html("<i class='icon-remove'></i>").click(function(e) {
+            var editorLN = $($(this).parents().eq(0)).attr('data-line-number');
             $($(this).parents().eq(0)).hide(200);
             $($(this).parents().eq(0)).attr("editor-comment-isopen", false);
 
-            markedLine.clear();
+            var editorLN = $($(this).parents().eq(0)).attr('data-line-number') - 1;
+            myCodeMirror.setLineClass(editorLN, null);
+            //TODO de-highlight line
         })).addClass("comment").css({
             "display" : "none",
             "top" : "0px"
@@ -1506,14 +1521,7 @@ $(document).ready(function() {
             })
 
             var editorLN = $(comment).attr('data-line-number') - 1;
-            var editorLine = myCodeMirror.getLine(editorLN);
-            markedLine = myCodeMirror.markText({
-                line : editorLN,
-                ch : 0
-            }, {
-                line : editorLN,
-                ch : editorLine.length
-            }, "commentMarker");
+            myCodeMirror.setLineClass(editorLN, 'commentMarker');                                                
 
             for (var i = 0; i < sideComments.length; i++) {
                 var sco = sideComments[i];
@@ -1559,12 +1567,20 @@ $(document).ready(function() {
         // $(this).tooltip({
         // title : "Show Discussion!"
         // }).find("div").css("display","none");
-        // });
+        // });                
 
         var commentIconObg = {};
         commentIconObg.lineNumber = line;
         commentIconObg.commentDom = comment;
         sideComments.push(commentIconObg);
+        
+        myCodeMirror.onDeleteLine(line, function(cm){            
+            $.each(sideComments, function(index, sideComment){
+                if(sideComment.lineNumber === line){
+                    $($(sideComment.commentDom).parent()).remove();
+                }                    
+            });               
+        });
 
         commentIcon.append(comment);
         $("#editor-comment-area").append(commentIcon);

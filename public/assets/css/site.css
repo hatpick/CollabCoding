@@ -53,7 +53,7 @@ a img{max-width:none;height:20px}
 .commentMentionTag{text-decoration:none;font-size:9px;font-color:#39f}
 .commentEntry{display:none;text-align:center}
 .commentEntry>input{font-size:9px}
-.commentMarker{background-color:#ff0}
+.commentMarker{background-color:#ffffa8 !important}
 #comment img{width:24px;height:24px;float:left;position:relative}
 #comment div{background-color:#fff;font-size:12px;font-weight:bold}
 #comment div div{font-size:12px;font-weight:bold}
