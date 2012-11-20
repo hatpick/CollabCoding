@@ -48,6 +48,7 @@ function editor(id, mode) {
         }
     });
     CodeMirror.commands.selectAll(_editor);
+    Inlet(_editor);
 
     return _editor;
 }
@@ -191,8 +192,8 @@ $(document).ready(function() {
                 // var cursor = myCodeMirror.getCursor();
                 // var line = cursor.line;
                 // var ch = cursor.ch;
-                
-                var cursor = myCodeMirror.coordsChar(cmPosition);                                
+
+                var cursor = myCodeMirror.coordsChar(cmPosition);
 
                 createComment({
                     line : cursor.line,
@@ -229,8 +230,8 @@ $(document).ready(function() {
     $(".CodeMirror-lines").resize(function(e) {
         var _height = $(".CodeMirror").height();
         var realHeight = parseInt($(".CodeMirror-scroll>div").css("min-height").substring(0, $(".CodeMirror-scroll>div").css("min-height").length - 2), 10);
-        (realHeight > _height) ? $("#editor-comment-area").height(realHeight) : $("#editor-comment-area").height(_height);        
-    });        
+        (realHeight > _height) ? $("#editor-comment-area").height(realHeight) : $("#editor-comment-area").height(_height);
+    });
 
     $('#browser').bind('click', function() {
         var reg = /^file.*/;
@@ -280,18 +281,18 @@ $(document).ready(function() {
             if ($(".CodeMirror.CodeMirror-wrap").size() > 1) {
                 $($(".CodeMirror.CodeMirror-wrap")[1]).remove();
             }
-            $(".CodeMirror-wrap").height($("#project").height());                        
-            
-            $(".CodeMirror-lines").mousedown(function(e){
-               if(e.which === 3){
-                   cmPosition.x = e.clientX;
-                   cmPosition.y = e.clientY;
-               }                            
+            $(".CodeMirror-wrap").height($("#project").height());
+
+            $(".CodeMirror-lines").mousedown(function(e) {
+                if (e.which === 3) {
+                    cmPosition.x = e.clientX;
+                    cmPosition.y = e.clientY;
+                }
             });
-            
+
             $(".CodeMirror-lines").contextMenu(editor_contextmenu, {
                 theme : 'vista'
-            });                        
+            });
 
             //TODO resize
             $(".CodeMirror-scrollbar").attr("id", "syncOneDive");
@@ -300,9 +301,9 @@ $(document).ready(function() {
             $(".CodeMirror-lines").resize(function(e) {
                 var _height = $(".CodeMirror").height();
                 var realHeight = parseInt($(".CodeMirror-scroll>div").css("min-height").substring(0, $(".CodeMirror-scroll>div").css("min-height").length - 2), 10);
-                (realHeight > _height) ? $("#editor-comment-area").height(realHeight) : $("#editor-comment-area").height(_height);                
+                (realHeight > _height) ? $("#editor-comment-area").height(realHeight) : $("#editor-comment-area").height(_height);
             });
-                        
+
             // mongoDB
             // $.get('/project/' + sessionStorage.getItem('project') + '/' + docName, function(data) {
             //         console.log('find the content');
@@ -425,7 +426,7 @@ $(document).ready(function() {
                                     icon : false,
                                     separator_after : false,
                                     label : "Folder",
-                                    action : function(obj) {                                        
+                                    action : function(obj) {
                                         createFolder(obj);
                                         //this.create(obj);
                                     }
@@ -437,12 +438,12 @@ $(document).ready(function() {
                             separator_after : false,
                             label : "Rename",
                             action : function(obj) {
-                                this.rename(obj, function(obj) {                                    
+                                this.rename(obj, function(obj) {
                                     var project_name = sessionStorage.getItem('project');
                                     $.post('/project/' + project_name + '/rename', {
                                         old_name : obj.old_name,
                                         new_name : obj.new_name
-                                    }, function(data) {                                        
+                                    }, function(data) {
                                     }, 'json');
                                 });
                             }
@@ -754,7 +755,7 @@ $(document).ready(function() {
         $.post('/project/' + project_name + '/' + id + '/delete', {
             paths : paths,
             type : 'file'
-        }, function() {            
+        }, function() {
         }, 'json');
         //refreshProjectTree();
     }
@@ -865,7 +866,7 @@ $(document).ready(function() {
                 paths : paths,
                 name : folder_name,
                 type : 'folder'
-            }, function() {                
+            }, function() {
             }, 'json');
 
             // create
@@ -1288,7 +1289,7 @@ $(document).ready(function() {
             pt.close();
             $('body', pt).append(myCodeMirror.getValue());
 
-            myCodeMirror.setOption("onChange", function(cm, change) {                
+            myCodeMirror.setOption("onChange", function(cm, change) {
                 var preview = $('#live_preview_target')[0].contentWindow.document;
                 preview.open();
                 preview.close();
@@ -1436,7 +1437,19 @@ $(document).ready(function() {
         }).attr("editor-comment-isopen", false).html($("<table>").css({
             "width" : "100%",
             "height" : "100%"
-        }).append($("<tbody>").append($("<tr>").append($("<td>").append($("<div>").addClass("commentContent")))).append($("<tr>").append($("<td>").attr("valign", "bottom").append($("<div>").addClass("commentEntry").append($("<input>").css({
+        }).append($("<tbody>").append($("<tr>").append($("<td>").append($("<div>").addClass("commentContent").prepend($("<div>").css({
+            'position' : 'absolute',
+            'left' : '174px',
+            'top' : '-8px',
+        }).html("<i class='icon-remove'></i>").click(function(e) {
+            var editorLN = $($(this).parents().eq(5)).attr('data-line-number');
+            $($(this).parents().eq(5)).hide(200);
+            $($(this).parents().eq(5)).attr("editor-comment-isopen", false);
+
+            var editorLN = $($(this).parents().eq(5)).attr('data-line-number') - 1;
+            myCodeMirror.setLineClass(editorLN, null);
+            //TODO de-highlight line
+        }))))).append($("<tr>").append($("<td>").attr("valign", "bottom").append($("<div>").addClass("commentEntry").append($("<input>").css({
             "margin" : "2px auto",
             "width" : "160px"
         }).attr({
@@ -1448,16 +1461,15 @@ $(document).ready(function() {
                 var ts = new Date();
                 var tsstring = "On " + ts.toDateString() + " at " + ts.toLocaleTimeString();
                 var content = $(this).val().split(" ");
-                
+
                 var finalContent = '';
-                $.each(content, function(index, value){
+                $.each(content, function(index, value) {
                     var tempATag;
-                    if(value.indexOf('@') == 0) {
-                       tempATag = '<a href="#" class="commentMentionTag">' + value.substring(1, value.length) + '</a>';                        
-                    } 
-                    else
-                       tempATag = value;                    
-                   finalContent += (' ' + tempATag);
+                    if (value.indexOf('@') == 0) {
+                        tempATag = '<a href="#" class="commentMentionTag">' + value.substring(1, value.length) + '</a>';
+                    } else
+                        tempATag = value;
+                    finalContent += (' ' + tempATag);
                 });
 
                 var commentItem = $('<div>').css({
@@ -1469,7 +1481,7 @@ $(document).ready(function() {
                 }).append($('<p>').css('margin', '2px').html($('<span>').css({
                     'font-weight' : 'bold',
                     'font-size' : '9px'
-                }).html("Soroush").append($('<span>').css({
+                }).html(now.user).append($('<span>').css({
                     'font-weight' : 'normal',
                     'font-size' : '9px'
                 }).html(': ' + finalContent))).append($('<p>').css({
@@ -1484,19 +1496,7 @@ $(document).ready(function() {
                 $(this).val('');
                 //TODO notifications
             }
-        }))))))).prepend($("<div>").css({
-            'position' : 'absolute',
-            'left' : '174px',
-            'top' : '-8px'
-        }).html("<i class='icon-remove'></i>").click(function(e) {
-            var editorLN = $($(this).parents().eq(0)).attr('data-line-number');
-            $($(this).parents().eq(0)).hide(200);
-            $($(this).parents().eq(0)).attr("editor-comment-isopen", false);
-
-            var editorLN = $($(this).parents().eq(0)).attr('data-line-number') - 1;
-            myCodeMirror.setLineClass(editorLN, null);
-            //TODO de-highlight line
-        })).addClass("comment").css({
+        }))))))).addClass("comment").css({
             "display" : "none",
             "top" : "0px"
         });
@@ -1511,6 +1511,9 @@ $(document).ready(function() {
                 $(comment).attr("editor-comment-isopen", true);
                 $(comment).show(200);
             }
+
+            var editorLN = $(comment).attr('data-line-number') - 1;
+            myCodeMirror.setLineClass(editorLN, 'commentMarker');
             
             $($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry>input").triggeredAutocomplete({
                 source: "/users/mentionList",            
@@ -1518,15 +1521,14 @@ $(document).ready(function() {
                 allowDuplicates: false,
                 trigger: "@",
                 hidden: '#hidden_inputbox'                       
-            })
-
-            var editorLN = $(comment).attr('data-line-number') - 1;
-            myCodeMirror.setLineClass(editorLN, 'commentMarker');                                                
+            });
 
             for (var i = 0; i < sideComments.length; i++) {
                 var sco = sideComments[i];
-                if (sco.lineNumber != line)
-                    $(sco.commentDom).hide(200);
+                if (sco.lineNumber != line){
+                    $(sco.commentDom).hide(200);                    
+                    myCodeMirror.setLineClass(sco.lineNumber, null);
+                }
             }
 
             if ($($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry").css('display') === 'block') {
@@ -1567,19 +1569,22 @@ $(document).ready(function() {
         // $(this).tooltip({
         // title : "Show Discussion!"
         // }).find("div").css("display","none");
-        // });                
+        // });
 
         var commentIconObg = {};
         commentIconObg.lineNumber = line;
         commentIconObg.commentDom = comment;
         sideComments.push(commentIconObg);
-        
-        myCodeMirror.onDeleteLine(line, function(cm){            
-            $.each(sideComments, function(index, sideComment){
-                if(sideComment.lineNumber === line){
+
+        myCodeMirror.onDeleteLine(line, function(cm) {
+            var deleteIndex;
+            $.each(sideComments, function(index, sideComment) {
+                if (sideComment.lineNumber === line) {
                     $($(sideComment.commentDom).parent()).remove();
-                }                    
-            });               
+                    deleteIndex = index;
+                }
+            });
+            sideComments.slice(deleteIndex);
         });
 
         commentIcon.append(comment);

@@ -44,6 +44,7 @@ $(document).ready(function() {
 
     $.get('/user', function(user) {
         cs.setName(user.name);
+        cs.setUser(user.user);
     });
 
     //Chat
@@ -52,6 +53,11 @@ $(document).ready(function() {
 
     cs.setName = function(name) {
         now.name = name;
+        return false;
+    };
+    
+    cs.setUser = function(user) {
+        now.user = user;
         return false;
     };        
 
