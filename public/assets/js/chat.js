@@ -69,7 +69,8 @@ $(document).ready(function() {
     now.receiveMessage = function(msg) {
         if($('#chatbox_GroupChat').length == 0)
             chatWith("GroupChat");
-            //TODO set history        
+            
+        $('#chatbox_GroupChat').css('display', 'block');        
         console.log(msg);
         var spanMsg = $('<div>').css({
             'margin' : '5px',
@@ -109,7 +110,7 @@ $(document).ready(function() {
             }
         });
         var alert = document.getElementById("chatAlert");
-        alert.play();      
+        if (msg.senderId !== now.core.clientId) alert.play();      
     };        
     
     now.core.on('disconnect', function(){
@@ -214,46 +215,6 @@ function createChatBox(chatboxtitle, minimizeChatBox) {
     });
 
     $("#chatbox_" + chatboxtitle).show();
-}
-
-function chatHeartbeat() {
-
-    var itemsfound = 0;
-
-    if (windowFocus == false) {
-
-        var blinkNumber = 0;
-        var titleChanged = 0;
-        for (x in newMessagesWin) {
-            if (newMessagesWin[x] == true) {++blinkNumber;
-                if (blinkNumber >= blinkOrder) {
-                    document.title = x + ' says...';
-                    titleChanged = 1;
-                    break;
-                }
-            }
-        }
-
-        if (titleChanged == 0) {
-            document.title = originalTitle;
-            blinkOrder = 0;
-        } else {++blinkOrder;
-        }
-
-    } else {
-        for (x in newMessagesWin) {
-            newMessagesWin[x] = false;
-        }
-    }
-
-    for (x in newMessages) {
-        if (newMessages[x] == true) {
-            if (chatboxFocus[x] == false) {
-                //FIXME: add toggle all or none policy, otherwise it looks funny
-                $('#chatbox_' + x + ' .chatboxhead').toggleClass('chatboxblink');
-            }
-        }
-    }
 }
 
 function closeChatBox(chatboxtitle) {

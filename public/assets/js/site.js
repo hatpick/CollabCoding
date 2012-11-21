@@ -47,7 +47,7 @@ function editor(id, mode) {
             return zen_editor.handleKeyEvent.apply(zen_editor, arguments);
         }
     });
-    CodeMirror.commands.selectAll(_editor);
+    //CodeMirror.commands.selectAll(_editor);
     Inlet(_editor);
 
     return _editor;
@@ -184,7 +184,7 @@ $(document).ready(function() {
     _hotkeysHandler();
 
     //Notification Setup
-    //Notification Code
+    
     var editor_contextmenu = [{
         'Add Comment' : {
             onclick : function(menuItem, menu) {
@@ -262,11 +262,11 @@ $(document).ready(function() {
             var myCodeMirror = editor(elem, mode);
             var docName = $.jstree._focused().get_selected().attr('data-shareJSId');
             sessionStorage.setItem("docName", docName);
-            CodeMirror.commands.selectAll(myCodeMirror);
-            sharejs.open(docName, function(error, newdoc) {
+            //CodeMirror.commands.selectAll(myCodeMirror);
+            sharejs.open(docName, 'text', function(error, newdoc) {
                 if (doc !== null) {
                     doc.close();
-                    // doc.detach_codemirror();
+                    doc.detach_cm();
                 };
 
                 doc = newdoc;
@@ -276,7 +276,7 @@ $(document).ready(function() {
                     return;
                 }
 
-                doc.attach_codemirror(myCodeMirror);
+                doc.attach_cm(myCodeMirror);
             });
             if ($(".CodeMirror.CodeMirror-wrap").size() > 1) {
                 $($(".CodeMirror.CodeMirror-wrap")[1]).remove();
