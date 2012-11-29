@@ -74,6 +74,31 @@ a img
 .CodeMirror-scroll
   height: 100%
 
+.CodeMirror-comments
+  
+.CodeMirror-commentsGutter
+  width: 200px  
+  font: Helvetica
+  background-color: #fff
+  border-right: 1px solid #dbdbdb
+
+.CodeMirror-commentsiconsGutter
+  width: 16px
+  margin-left: 1px !important
+
+.CodeMirror-commentsicons  
+  outline: none    
+  background-image: url('../img/comments-icon.png')
+  height: 14px
+  width: 14px
+
+.CodeMirror-commentitem
+  text-aling : justify
+  margin : 1px
+  -webkit-border-radius : 2px
+  background-color : #fefefe
+  border : 1px solid #fdfdfd
+  
 .left-splitter
   width: 5px
   float: left
@@ -116,7 +141,35 @@ a img
 .chatMsg
   width: 185px
   resize: none  
-  rows: 5  
+  rows: 5
+  
+.cu-list
+  width:195px            
+  margin: 5px     
+  text-align:center
+  overflow-x: hidden
+  overflow-y: auto
+  list-style-type: none    
+
+.cu-status-available
+  width: 12px
+  height: 12px
+  -webkit-border-radius: 10px
+  border : 1px solid #fefefe    
+  background-color: #00CC00
+
+.cu-status-busy
+  width: 12px
+  height: 12px
+  -webkit-border-radius: 10px  
+  border : 1px solid #fefefe
+  background-color: #FF0000
+  
+.cu-item
+  padding: 5px
+  
+.cu-item:hover
+  background-color: #E6E6E6    
 
 [class*="span"], .row-fluid [class*="span"]
   float: left
@@ -243,18 +296,24 @@ a img
   font-weight: bold  
   text-align: center
   padding-top: 2px
+
+#chat-start
+  margin-top: 10px
   
-.comment
-  position: relative  
-  left: 50px  
+.comment      
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif
   border: 1px solid #d9d9d9   
   width: 180px
-  height: 150px
-  background-color: #fff
-  z-index: 500
+  height: 150px  
+  z-index: 500 !important
   outline: none !important
   -webkit-user-select: auto
   -moz-user-select: auto
+  display : none
+  background-color : #feef9c
+  -webkit-box-shadow : 2px 2px 10px #000
+  -moz-box-shadow : 2px 2px 10px #000
+  margin-left : 5px !important
 
 .commentContent
   overflow-y: auto
@@ -268,8 +327,7 @@ a img
   font-color: #3399FF
 
      
-.commentEntry
-  display: none
+.commentEntry  
   text-align: center  
   
 .commentEntry>input

@@ -35,6 +35,7 @@ html
     script(type='text/javascript', charset='utf-8', src='assets/js/zen-coding/zen_codemirror.min.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/codemirror/util/formatting.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/codemirror/util/closetag.js')
+    script(type='text/javascript', charset='utf-8', src='assets/js/codemirror/util/matchbrackets.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/codemirror/util/simple-hint.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/codemirror/util/javascript-hint.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/codemirror/util/html-hint.js')
@@ -50,7 +51,7 @@ html
     script(type='text/javascript', charset='utf-8', src='assets/js/noty/layouts/bottomLeft.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/noty/themes/default.js')
     script(type='text/javascript', src='/channel/bcsocket.js')
-    script(type='text/javascript', src='/share/share.js')
+    script(type='text/javascript', src='/share/share.js')    
     script(type='text/javascript', src='/share/cm.js')
     script(type='text/javascript', src='assets/js/jquery.dataTables.js')
     script(type='text/javascript', src='assets/js/jquery.hotkeys.js')
@@ -246,9 +247,14 @@ html
               // project tree
               #project.tab-pane
                 #browser
-              #chat.tab-pane
-                a#chatStart Chat
-                a#commentStart Comment                
+              #chat.tab-pane(style="overflow-x:hidden")
+                table(style='width:100;height:100%;')
+                  tr(align='center')
+                    td(valign='top')
+                      ul#chat-users-list.cu-list
+                  tr(align='center', style="text-align='center'; height: 60px")
+                    td(valign='midle', style="text-align='center'")
+                      a#chat-start.btn.btn-primary Start Chat
               #editor-settings.tab-pane
               #editor-deploy-project.tab-pane
         .left-splitter
@@ -257,13 +263,7 @@ html
           ul.breadcrumb
             li
               a(href='#') 
-          textarea#home.tab-pane.fade(disabled='disabled')          
-        .right-splitter
-          .right-splitter-collapse-button(data-action='#hide')
-        #right-items.span2    
-          #editor-comment-area-title Discussions     
-          #editor-comment-temp
-            #editor-comment-area 
+          textarea#home.tab-pane.fade(disabled='disabled')
       div#chatbox.chatbox
       audio#chatAlert(src='/assets/img/gtalk1.wav', style='display:none')        
       #small-console(style='-webkit-box-shadow: 0px -5px 10px #000000; opacity: 0.95;z-index:5001')

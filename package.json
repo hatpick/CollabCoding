@@ -17,6 +17,7 @@
   "license": "MIT",
   "dependencies": {
     "share": "*",
+    "ot": "0.0.10",
     "connect": "~1",
     "express": "3.x",
     "jade": "*",

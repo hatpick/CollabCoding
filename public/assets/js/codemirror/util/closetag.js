@@ -26,8 +26,9 @@
 	/** Array of tag names where an end tag is forbidden. */
 	CodeMirror.defaults['closeTagVoid'] = ['area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr'];
 
-	function innerState(cm, state) {
-		return CodeMirror.innerMode(cm.getMode(), state).state;
+	function innerXMLState(cm, state) {
+		var inner = CodeMirror.innerMode(cm.getMode(), state);
+		if (inner.mode.name == "xml") return inner.state;
 	}
 
 
@@ -43,37 +44,16 @@
 		if (!cm.getOption('closeTagEnabled')) {
 			throw CodeMirror.Pass;
 		}
-		
-		/*
-		 * Relevant structure of token:
-		 *
-		 * htmlmixed
-		 * 		className
-		 * 		state
-		 * 			htmlState
-		 * 				type
-		 *				tagName
-		 * 				context
-		 * 					tagName
-		 * 			mode
-		 * 
-		 * xml
-		 * 		className
-		 * 		state
-		 * 			tagName
-		 * 			type
-		 */
-		
 		var pos = cm.getCursor();
 		var tok = cm.getTokenAt(pos);
-		var state = innerState(cm, tok.state);
+		var state = innerXMLState(cm, tok.state);
 
 		if (state) {
 			
 			if (ch == '>') {
 				var type = state.type;
 				
-				if (tok.className == 'tag' && type == 'closeTag') {
+				if (tok.type == 'tag' && type == 'closeTag') {
 					throw CodeMirror.Pass; // Don't process the '>' at the end of an end-tag.
 				}
 			
@@ -82,11 +62,11 @@
 				cm.setCursor(pos);
 		
 				tok = cm.getTokenAt(cm.getCursor());
-				state = innerState(cm, tok.state);
+				state = innerXMLState(cm, tok.state);
 				if (!state) throw CodeMirror.Pass;
 				var type = state.type;
 
-				if (tok.className == 'tag' && type != 'selfcloseTag') {
+				if (tok.type == 'tag' && type != 'selfcloseTag') {
 					var tagName = state.tagName;
 					if (tagName.length > 0 && shouldClose(cm, vd, tagName)) {
 						insertEndTag(cm, indent, pos, tagName);
@@ -99,7 +79,7 @@
 				cm.replaceSelection("");
 			
 			} else if (ch == '/') {
-				if (tok.className == 'tag' && tok.string == '<') {
+				if (tok.type == 'tag' && tok.string == '<') {
 					var ctx = state.context, tagName = ctx ? ctx.tagName : '';
 					if (tagName.length > 0) {
 						completeEndTag(cm, pos, tagName);

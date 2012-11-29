@@ -51,9 +51,7 @@ var options = {db: {type: 'none'}}; // See docs for options. {type: 'redis'} to 
 // }
 
   options.db = {type: 'mongo'};
-options.auth = function(agent, action) {
-  console.log(agent.sessionId);
-  console.log(agent.remote);
+  options.auth = function(agent, action) {  
   action.accept();
 };
 

@@ -101,10 +101,12 @@ exports.list = function(req, res) {
 
 exports.mentionList = function(req, res) {
     AM.getMentionList(function(err, result) {
-        var term = req.param('term');        
+        var term = req.param('term');
+        var who = req.session.user.user;
+              
         jsonObj = [];
         for (var i = 0; i < result.length; i++) {
-            if (result[i].name.indexOf(term) !== -1 || result[i].email.indexOf(term) !== -1 || result[i].user.indexOf(term) !== -1)
+            if ((result[i].name.indexOf(term) !== -1 || result[i].email.indexOf(term) !== -1 || result[i].user.indexOf(term) !== -1) && result[i].user !== who)
                 jsonObj.push({
                     'label' : result[i].name,
                     'value' : result[i].user,

@@ -4,6 +4,9 @@ function arian(string, context) {
     });
 }
 
+String.prototype.capitalize = function() {
+    return this.charAt(0).toUpperCase() + this.slice(1);
+}
 function escapeHTML(text) {
     var esc = text;
     var re = [[/&/g, "&amp;"], [/</g, "&lt;"], [/>/g, "&gt;"]];
@@ -14,6 +17,7 @@ function escapeHTML(text) {
 }
 
 var sideComments = [];
+var currentDocumentPath = '';
 
 function listOptions(els, opts) {
     var str = "/*jshint ";
@@ -45,9 +49,10 @@ function editor(id, mode) {
         profile : "xhtml",
         onKeyEvent : function() {
             return zen_editor.handleKeyEvent.apply(zen_editor, arguments);
-        }
+        },
+        gutters : ["CodeMirror-commentsGutter", "CodeMirror-commentsiconsGutter", "CodeMirror-linenumbers"]
     });
-    //CodeMirror.commands.selectAll(_editor);
+        
     Inlet(_editor);
 
     return _editor;
@@ -67,9 +72,9 @@ function reportFailure(report) {
                 code : err.evidence ? escapeHTML(err.evidence) : '&lt;no code&gt;',
                 msg : err.reason
             }));
-            myCodeMirror.setMarker(err.line - 1, "<span style=\"color: #900\">●</span> %N%");
+            myCodeMirror.setGutterMarker(err.line - 1, "<span style=\"color: #900\">●</span> %N%");
         } else {
-            myCodeMirror.setMarker(err.line - 1, "<span style=\"color: #900\">●</span> %N%");
+            myCodeMirror.setGutterMarker(err.line - 1, "<span style=\"color: #900\">●</span> %N%");
             errors.append(arian("<li><p>" + templates.error + "</p></li>", {
                 line : err.line,
                 character : err.character,
@@ -142,26 +147,14 @@ var layout = function() {
     $("#editor-area").height(_height);
     $("#left-items").height(_height);
     $(".left-splitter").height(_height);
-    $(".right-splitter").height(_height);
+    //$(".right-splitter").height(_height);
     $(".left-splitter-collapse-button").css("margin-top", _height / 2);
-    $(".right-splitter-collapse-button").css("margin-top", _height / 2);
+    //$(".right-splitter-collapse-button").css("margin-top", _height / 2);
     $(".tab-pane").css("height", "100%");
-    $("#right-items").height(_height);
+    //$("#right-items").height(_height);
     $("#editor-area").css("left", $(".left-splitter").position().left + $(".left-splitter").usedWidth());
-    $("#editor-area").css("width", document.documentElement.clientWidth - ($("#right-items").is(":visible") ? 300 : 10) - ($("#left-items").is(":visible") ? $("#left-items").usedWidth() : 0) - $(".left-splitter").usedWidth() - $(".right-splitter").usedWidth());
-    if ($("#left-items").is(":visible")) {
-        if ($("#right-items").is(":visible")) {
-            $("#right-items").css("left", $("#left-items").usedWidth() + $(".left-splitter").usedWidth() + $("#editor-area").usedWidth() + $(".right-splitter").usedWidth());
-            $(".right-splitter").css("left", $("#left-items").usedWidth() + $(".left-splitter").usedWidth() + $("#editor-area").usedWidth());
-            $("#right-items").css("width", 300);
-        }
-    } else {
-        if ($("#right-items").is(":visible")) {
-            $("#right-items").css("left", $(".left-splitter").usedWidth() + $("#editor-area").usedWidth() + $(".right-splitter").usedWidth());
-        } else {
-            $(".right-splitter").css("left", $(".left-splitter").usedWidth() + $("#editor-area").usedWidth() + 4);
-        }
-    }
+    $("#editor-area").css("width", document.documentElement.clientWidth - 10 - ($("#left-items").is(":visible") ? $("#left-items").usedWidth() : 0) - $(".left-splitter").usedWidth());
+
     _height = $("#left-items").height() - $("#nav-tab").height() - parseInt($("#nav-tab").css("margin-bottom"), 10);
     $(".tab-content").height(_height);
     // _height = document.documentElement.clientHeight - $(".navbar").height() - 20;
@@ -184,7 +177,7 @@ $(document).ready(function() {
     _hotkeysHandler();
 
     //Notification Setup
-    
+
     var editor_contextmenu = [{
         'Add Comment' : {
             onclick : function(menuItem, menu) {
@@ -195,10 +188,7 @@ $(document).ready(function() {
 
                 var cursor = myCodeMirror.coordsChar(cmPosition);
 
-                createComment({
-                    line : cursor.line,
-                    ch : cursor.ch
-                }, "test");
+                createComment(cursor.line + 1, null, "You");
             },
             icon : "assets/img/comments-icon.png"
         }
@@ -209,7 +199,7 @@ $(document).ready(function() {
     }
 
     now.receiveNotification = function(notyObj, needRefresh) {
-        if (notyObj.senderId == now.core.clientId)
+        if (notyObj.senderId === now.core.clientId)
             return;
         var ntfcn = noty({
             text : notyObj.text,
@@ -226,12 +216,26 @@ $(document).ready(function() {
         if (needRefresh)
             refreshProjectTree();
     }
-
-    $(".CodeMirror-lines").resize(function(e) {
-        var _height = $(".CodeMirror").height();
-        var realHeight = parseInt($(".CodeMirror-scroll>div").css("min-height").substring(0, $(".CodeMirror-scroll>div").css("min-height").length - 2), 10);
-        (realHeight > _height) ? $("#editor-comment-area").height(realHeight) : $("#editor-comment-area").height(_height);
-    });
+    
+    now.receiveComment = function(comment, sid){
+        if(sid === now.core.clientId) return;
+        if(currentDocumentPath === comment.path){
+            appendComment(comment);            
+        }                                                    
+    }
+    /*$(".CodeMirror-lines").resize(function(e) {
+     var _height = $(".CodeMirror").height();
+     var realHeight = parseInt($(".CodeMirror-scroll>div").css("min-height").substring(0, $(".CodeMirror-scroll>div").css("min-height").length - 2), 10);
+     (realHeight > _height) ? $("#editor-comment-area").height(realHeight) : $("#editor-comment-area").height(_height);
+     });*/
+    
+    function getFilePath(paths) {
+        var currentdocumentpath = '';
+        $.each(paths, function(i, doc){
+           currentdocumentpath += doc + '*'; 
+        });
+        return currentdocumentpath.substring(0, currentdocumentpath.length-1);
+    }
 
     $('#browser').bind('click', function() {
         var reg = /^file.*/;
@@ -245,8 +249,8 @@ $(document).ready(function() {
                 mode = "css"
 
             //enable live preview toggle button, hide live view if open
-            //TODO: hide live view
-
+            //TODO: hide live view            
+            
             $('.breadcrumb').empty();
             var paths = $.jstree._focused().get_path();
             var li;
@@ -266,7 +270,7 @@ $(document).ready(function() {
             sharejs.open(docName, 'text', function(error, newdoc) {
                 if (doc !== null) {
                     doc.close();
-                    doc.detach_cm();
+                    doc.detach_codemirror();
                 };
 
                 doc = newdoc;
@@ -276,7 +280,7 @@ $(document).ready(function() {
                     return;
                 }
 
-                doc.attach_cm(myCodeMirror);
+                doc.attach_codemirror(myCodeMirror);
             });
             if ($(".CodeMirror.CodeMirror-wrap").size() > 1) {
                 $($(".CodeMirror.CodeMirror-wrap")[1]).remove();
@@ -285,24 +289,27 @@ $(document).ready(function() {
 
             $(".CodeMirror-lines").mousedown(function(e) {
                 if (e.which === 3) {
-                    cmPosition.x = e.clientX;
-                    cmPosition.y = e.clientY;
+                    cmPosition.left = e.clientX;
+                    cmPosition.top = e.clientY;
                 }
             });
 
             $(".CodeMirror-lines").contextMenu(editor_contextmenu, {
                 theme : 'vista'
             });
+            
+            currentDocumentPath = getFilePath(paths);
+            console.log(currentDocumentPath);
 
-            //TODO resize
-            $(".CodeMirror-scrollbar").attr("id", "syncOneDive");
+            //TODO resize SynchDivScroll
+            /*$(".CodeMirror-scrollbar").attr("id", "syncOneDive");
             new SynchDivScroll('syncOneDive', 'editor-comment-temp');
 
             $(".CodeMirror-lines").resize(function(e) {
-                var _height = $(".CodeMirror").height();
-                var realHeight = parseInt($(".CodeMirror-scroll>div").css("min-height").substring(0, $(".CodeMirror-scroll>div").css("min-height").length - 2), 10);
-                (realHeight > _height) ? $("#editor-comment-area").height(realHeight) : $("#editor-comment-area").height(_height);
-            });
+            var _height = $(".CodeMirror").height();
+            var realHeight = parseInt($(".CodeMirror-scroll>div").css("min-height").substring(0, $(".CodeMirror-scroll>div").css("min-height").length - 2), 10);
+            (realHeight > _height) ? $("#editor-comment-area").height(realHeight) : $("#editor-comment-area").height(_height);
+            });*/
 
             // mongoDB
             // $.get('/project/' + sessionStorage.getItem('project') + '/' + docName, function(data) {
@@ -820,7 +827,7 @@ $(document).ready(function() {
             $("#dialog").modal('hide');
 
             //Notification
-            var notifMsg = '<span style="text-align:justify"><a href="#" class="notification-user-a">' + now.name + '</a>' + ' has created a new file <a href="#" class="notification-file-a">' + file_name + '</a> under <a class="notification-project-a" href="#">' + sessionStorage.getItem('project') + '</a> project.</span>';
+            var notifMsg = '<span style="text-align:justify"><a href="#" class="notification-user-a">' + now.user.name + '</a>' + ' has created a new file <a href="#" class="notification-file-a">' + file_name + '</a> under <a class="notification-project-a" href="#">' + sessionStorage.getItem('project') + '</a> project.</span>';
             ns.sendNotification(notifMsg, "information", true, 'g');
 
             //refreshProjectTree();
@@ -879,7 +886,7 @@ $(document).ready(function() {
             }, true);
 
             $("#dialog").modal('hide');
-            var notifMsg = '<span style="text-align:justify"><a href="#" class="notification-user-a">' + now.name + '</a>' + ' has created a new folder <a href="#" class="notification-file-a">' + folder_name + '</a> under <a class="notification-project-a" href="#">' + sessionStorage.getItem('project') + '</a> project.</span>';
+            var notifMsg = '<span style="text-align:justify"><a href="#" class="notification-user-a">' + now.user.name + '</a>' + ' has created a new folder <a href="#" class="notification-file-a">' + folder_name + '</a> under <a class="notification-project-a" href="#">' + sessionStorage.getItem('project') + '</a> project.</span>';
             ns.sendNotification(notifMsg, "information", true, 'g');
         }));
         $(".modal-header").html(dialogHeader);
@@ -963,60 +970,59 @@ $(document).ready(function() {
             showLeftArea($(this));
         }
     });
-    function hideCommentArea(toggleButton) {
-        $("#right-items").hide("drop", {
-            direction : "right"
-        }, 200);
+    /*function hideCommentArea(toggleButton) {
+    $("#right-items").hide("drop", {
+    direction : "right"
+    }, 200);
 
-        var newWidth = $("#editor-area").width() + $("#right-items").usedWidth() - 10;
-        $("#editor-area").animate({
-            width : newWidth
-        }, {
-            duration : 200,
-            step : function(now, fx) {
-                $(".right-splitter").css("left", ($("#left-items").is(":visible") ? $("#left-items").usedWidth() : 0) + $(".left-splitter").usedWidth() + $("#editor-area").usedWidth());
-                $(".CodeMirror").width(newWidth);
-            }
-        });
+    var newWidth = $("#editor-area").width() + $("#right-items").usedWidth() - 10;
+    $("#editor-area").animate({
+    width : newWidth
+    }, {
+    duration : 200,
+    step : function(now, fx) {
+    $(".right-splitter").css("left", ($("#left-items").is(":visible") ? $("#left-items").usedWidth() : 0) + $(".left-splitter").usedWidth() + $("#editor-area").usedWidth());
+    $(".CodeMirror").width(newWidth);
+    }
+    });
 
-        toggleButton.attr("data-action", "#show").css("left", "-2px");
-        $(".right-splitter-collapse-button").data("tooltip").options.title = "Show Comments";
-        $(".right-splitter-collapse-button").data("tooltip").options.placement = "left";
+    toggleButton.attr("data-action", "#show").css("left", "-2px");
+    $(".right-splitter-collapse-button").data("tooltip").options.title = "Show Comments";
+    $(".right-splitter-collapse-button").data("tooltip").options.placement = "left";
     }
 
     function showCommentArea(toggleButton) {
-        $("#right-items").show("drop", {
-            direction : "right"
-        }, 200);
-        toggleButton.attr("data-action", "#hide").css("left", "-1px");
-        $(".right-splitter-collapse-button").data("tooltip").options.title = "Hide Comments";
-        $(".right-splitter-collapse-button").data("tooltip").options.placement = "top";
+    $("#right-items").show("drop", {
+    direction : "right"
+    }, 200);
+    toggleButton.attr("data-action", "#hide").css("left", "-1px");
+    $(".right-splitter-collapse-button").data("tooltip").options.title = "Hide Comments";
+    $(".right-splitter-collapse-button").data("tooltip").options.placement = "top";
 
-        var newWidth = $("#editor-area").width() - $("#right-items").usedWidth() + 10;
+    var newWidth = $("#editor-area").width() - $("#right-items").usedWidth() + 10;
 
-        $("#editor-area").animate({
-            width : newWidth
-        }, {
-            duration : 200,
-            step : function(now, fx) {
-                $(".right-splitter").css("left", ($("#left-items").is(":visible") ? $("#left-items").usedWidth() : 0) + $(".left-splitter").usedWidth() + $("#editor-area").usedWidth());
-                $(".CodeMirror").width(newWidth);
-            }
-        });
+    $("#editor-area").animate({
+    width : newWidth
+    }, {
+    duration : 200,
+    step : function(now, fx) {
+    $(".right-splitter").css("left", ($("#left-items").is(":visible") ? $("#left-items").usedWidth() : 0) + $(".left-splitter").usedWidth() + $("#editor-area").usedWidth());
+    $(".CodeMirror").width(newWidth);
+    }
+    });
 
     }
 
-
     $(".right-splitter-collapse-button").click(function() {
-        if ($("button[data-action=editor-livepreview-toggle]").attr("data-status") === "on")
-            return;
+    if ($("button[data-action=editor-livepreview-toggle]").attr("data-status") === "on")
+    return;
 
-        if ($(this).attr("data-action") === "#hide") {
-            hideCommentArea($(this));
-        } else {
-            showCommentArea($(this));
-        }
-    });
+    if ($(this).attr("data-action") === "#hide") {
+    hideCommentArea($(this));
+    } else {
+    showCommentArea($(this));
+    }
+    });*/
 
     // TODO: put into configure function CodeMirror
     // var elem = document.getElementById("home");
@@ -1043,9 +1049,11 @@ $(document).ready(function() {
 
     $(".btn-logout").click(function() {
         cleanSessionStorage();
-        var notifMsg = now.name + " is offline!";
+        var notifMsg = now.user.name + " is offline!";
         ns.sendNotification(notifMsg, "error", false, 'e');
         window.location.href = '/logout';
+
+        //TODO update chat list
     });
 
     $("a[data-action=editor-new-file]").click(function() {
@@ -1093,6 +1101,8 @@ $(document).ready(function() {
         $("#dialog").modal();
     });
 
+    var users;
+
     function _openProject() {
         $.get('/project/list', function(projects) {
             var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>Open Project</p>";
@@ -1115,6 +1125,7 @@ $(document).ready(function() {
 
                         //TODO "Now" Group Change, Remove User From Old Group
                         now.changeProjectGroup(sessionStorage.getItem('project'));
+                        now.sayHi();
                     });
                 }))).append($('<td>').html(projects[i].created_on)).append($('<td>').html(projects[i].last_modified_on));
                 tbody.append(tr);
@@ -1129,12 +1140,26 @@ $(document).ready(function() {
         });
     }
 
+
+    now.updateList = function(users) {
+        $("#chat-users-list").html("");
+        $.each(users, function(index, user) {
+            var cuItem = $("<div>").attr("chat-user-id", user._id).addClass("cu-item").append($("<table>").css({
+                'width' : '100%',
+                'height' : '100%',
+                'text-align' : 'center'
+            }).append($("<tr>").attr('align', 'center').append($("<td>").css("width", "20px").append($("<div>").addClass("cu-status-available"))).append($("<td>").css("width", "20px").append("<img src=assets/img/silhouette.png></img>")).append($("<td>").attr('valign', 'center').append($("<a>").text(user.user).addClass("text-info")))));
+            $("#chat-users-list").append($("<li>").html(cuItem));
+        });
+    }
     function _closeProject() {
         //TODO clear the tree, clear the editor, clear the comments, change roomnow.changeProjectGroup(undefined);
         now.changeProjectGroup(undefined);
+        now.sayBye();
         $("#browser").html('');
         $("#chat.tab-pane").html('');
         sessionStorage.clear();
+        currentDocumentPath = '';
     }
 
     function _newProject() {
@@ -1166,7 +1191,7 @@ $(document).ready(function() {
                 $("#dialog").modal('hide');
 
                 //Notification
-                var notifMsg = '<span style="text-align:justify"><a href="#" class="notification-user-a">' + now.name + '</a>' + ' has created a new project <a class="notification-project-a" href="#">' + sessionStorage.getItem('project') + '</a></span>';
+                var notifMsg = '<span style="text-align:justify"><a href="#" class="notification-user-a">' + now.user.user + '</a>' + ' has created a new project <a class="notification-project-a" href="#">' + sessionStorage.getItem('project') + '</a></span>';
                 ns.sendNotification(notifMsg, "information", false, 'e');
             }
         })).append($("<button>").attr({
@@ -1298,20 +1323,20 @@ $(document).ready(function() {
                 $('body', preview).append(html);
             });
 
-            var isCommentVisible = ($("#right-items").is(":visible"));
+            /*var isCommentVisible = ($("#right-items").is(":visible"));
             if (isCommentVisible) {
-                $("#right-items").hide("drop", {
-                    direction : "right"
-                }, 200);
-            }
+            $("#right-items").hide("drop", {
+            direction : "right"
+            }, 200);
+            }*/
 
             //Expand Editor/Preview Area
             $("#editor-area").animate({
-                width : $("#editor-area").width() + ((isCommentVisible) ? $("#right-items").usedWidth() : 0) - 10 + (!isCommentVisible ? 10 : 0)
+                width : $("#editor-area").width() //Check this damn thing here!
             }, {
                 duration : 200,
                 step : function(now, fx) {
-                    $(".right-splitter").css("left", ($("#left-items").is(":visible") ? $("#left-items").usedWidth() : 0) + $(".left-splitter").usedWidth() + $("#editor-area").usedWidth());
+                    //$(".right-splitter").css("left", ($("#left-items").is(":visible") ? $("#left-items").usedWidth() : 0) + $(".left-splitter").usedWidth() + $("#editor-area").usedWidth());
                     $(".CodeMirror").width($("#editor-area").width() / 2 - 5);
                     $("#live_preview_window").width($(".CodeMirror").width());
                     $("#live_preview_window").css({
@@ -1320,9 +1345,9 @@ $(document).ready(function() {
                 }
             });
 
-            $(".right-splitter-collapse-button").attr("data-action", "#show").css("left", "-2px");
-            $(".right-splitter-collapse-button").data("tooltip").options.title = "Show Comments";
-            $(".right-splitter-collapse-button").data("tooltip").options.placement = "left";
+            /*$(".right-splitter-collapse-button").attr("data-action", "#show").css("left", "-2px");
+             $(".right-splitter-collapse-button").data("tooltip").options.title = "Show Comments";
+             $(".right-splitter-collapse-button").data("tooltip").options.placement = "left";*/
 
         }
         //Hide live preview
@@ -1331,29 +1356,29 @@ $(document).ready(function() {
             live_preview_toggle.data("tooltip").options.title = "Turn Live Preview On!";
             live_preview_toggle.attr("data-status", "off");
             //Remove Preview Area
-            myCodeMirror.setOption("onChange", undefined);
+            myCodeMirror.setOption("onChange", null);
             $("#live_preview_window").remove();
 
-            var isCommentVisible = $(".right-splitter-collapse-button").attr("data-action") === "#hide";
-            if (!isCommentVisible) {
-                $("#right-items").show("drop", {
-                    direction : "right"
-                }, 200);
-            }
+            /*var isCommentVisible = $(".right-splitter-collapse-button").attr("data-action") === "#hide";
+             if (!isCommentVisible) {
+             $("#right-items").show("drop", {
+             direction : "right"
+             }, 200);
+             }*/
 
             $("#editor-area").animate({
-                width : $("#editor-area").width() - ((!isCommentVisible) ? $("#right-items").usedWidth() : 0) + 10 - ( isCommentVisible ? 10 : 0)
+                width : $("#editor-area").width() //Check this damn thing here
             }, {
                 duration : 200,
                 step : function(now, fx) {
-                    $(".right-splitter").css("left", ($("#left-items").is(":visible") ? $("#left-items").usedWidth() : 0) + $(".left-splitter").usedWidth() + $("#editor-area").usedWidth());
+                    //$(".right-splitter").css("left", ($("#left-items").is(":visible") ? $("#left-items").usedWidth() : 0) + $(".left-splitter").usedWidth() + $("#editor-area").usedWidth());
                     $(".CodeMirror").width($("#editor-area").width());
                 }
             });
 
-            $(".right-splitter-collapse-button").attr("data-action", "#hide").css("left", "-1px");
-            $(".right-splitter-collapse-button").data("tooltip").options.title = "Hide Comments";
-            $(".right-splitter-collapse-button").data("tooltip").options.placement = "top";
+            /*$(".right-splitter-collapse-button").attr("data-action", "#hide").css("left", "-1px");
+             $(".right-splitter-collapse-button").data("tooltip").options.title = "Hide Comments";
+             $(".right-splitter-collapse-button").data("tooltip").options.placement = "top";*/
         }
     }
 
@@ -1374,7 +1399,7 @@ $(document).ready(function() {
         }
     });
 
-    $('#chatStart').click(function() {
+    $('#chat-start').click(function() {
         var pname = sessionStorage.getItem('project');
         chatWith('GroupChat');
     });
@@ -1391,65 +1416,64 @@ $(document).ready(function() {
             ch : ll
         });
         window.setTimeout(function() {
-            myCodeMirror.setLineClass(ln, null, "top-me");
+            myCodeMirror.addLineClass(ln, "wrap", "top-me");
             var line = $('.CodeMirror-lines .top-me');
             var h = line.parent();
 
             $('.CodeMirror-scroll').scrollTop(0).scrollTop(line.offset().top - $('.CodeMirror-scroll').offset().top);
         }, 10);
+    }    
+    
+    function appendComment(comment) {
+        if($('#' + comment.cid).size() === 0) {
+            createComment(comment.line, comment.content, comment.who);
+        }
+                
+        var ts = new Date(comment.timestamp);
+        var tsstring = "On " + ts.toDateString() + " at " + ts.toLocaleTimeString();
+        var content = comment.content;
+        
+        var commentItem = $('<div>').addClass('CodeMirror-commentitem').append($('<p>').css('margin', '2px').html($('<span>').css({
+            'font-weight' : 'bold',
+            'font-size': '10px',
+            'font-color': '#3399FF'
+        }).html(comment.who).append($('<span>').css({
+            'font-weight' : 'normal',
+            'font-size' : '10px'
+        }).html(': ' + comment.content))).append($('<p>').css({
+            'font-size' : '8px',
+            'text-align' : 'left',
+            'margin-bottom' : '-1px'
+        }).html(tsstring)));
+
+        var commentContent = $('#' + comment.cid).find("table tbody tr div.commentContent");
+        $(commentContent).append(commentItem);                
     }
 
-    function createComment(position, content) {
-        //TODO BUGGY, Top wont set correctly
-        var pname = sessionStorage.getItem('project');
-
-        var line = position.line;
-        var ch = position.ch;
-
-        var count = 0;
-
-        for (var i = 0; i < sideComments.length; i++) {
-            var sco = sideComments[i];
-            if (sco.lineNumber < line)
-                count++;
-        }
-
-        var commentTop = (line - count) * 14 + 6;
-
+    function createComment(line, content, who) {
+        //TODO Add Database Model tricky! :-/
+        var dln = line;
+        hideComments(dln);
+        var pname = sessionStorage.getItem('project');                  
+        
         var commentIcon = $("<div>").attr({
-            "data-line-number" : line + 1,
+            "data-line-number" : dln,
             "tabindex" : "-1"
-        }).css({
-            "outline" : "none",
-            "position" : "relative",
-            "left" : "30px",
-            "top" : commentTop + "px",
-            "background-image" : "url('assets/img/comments-icon.png')",
-            "height" : "14px",
-            "width" : "14px"
-        }).tooltip({
+        }).addClass("CodeMirror-commentsicons").tooltip({
             title : "Show Discussion!"
         });
 
+        myCodeMirror.addLineClass(dln - 1, 'wrap', 'commentMarker');        
+
         var comment = $("<div>").attr({
-            "data-line-number" : line + 1,
+            "data-line-number" : dln,
+            "id" : "comment-" + dln,
             "tabindex" : "-1"
-        }).attr("editor-comment-isopen", false).html($("<table>").css({
+        }).attr("editor-comment-isopen", "true").html($("<table>").css({            
             "width" : "100%",
             "height" : "100%"
-        }).append($("<tbody>").append($("<tr>").append($("<td>").append($("<div>").addClass("commentContent").prepend($("<div>").css({
-            'position' : 'absolute',
-            'left' : '174px',
-            'top' : '-8px',
-        }).html("<i class='icon-remove'></i>").click(function(e) {
-            var editorLN = $($(this).parents().eq(5)).attr('data-line-number');
-            $($(this).parents().eq(5)).hide(200);
-            $($(this).parents().eq(5)).attr("editor-comment-isopen", false);
-
-            var editorLN = $($(this).parents().eq(5)).attr('data-line-number') - 1;
-            myCodeMirror.setLineClass(editorLN, null);
-            //TODO de-highlight line
-        }))))).append($("<tr>").append($("<td>").attr("valign", "bottom").append($("<div>").addClass("commentEntry").append($("<input>").css({
+        }).append($("<tbody>").append($("<tr>").append($("<td>").append($("<div>").addClass("commentContent"))))
+        .append($("<tr>").append($("<td>").attr("valign", "bottom").append($("<div>").addClass("commentEntry").append($("<input>").css({
             "margin" : "2px auto",
             "width" : "160px"
         }).attr({
@@ -1457,139 +1481,102 @@ $(document).ready(function() {
             'type' : 'text'
         }).keydown(function(e) {
             if (e.which === 13) {
-                //TODO save comment
+                
+                var taggedUsers = [];
+                content = $(this).val().split(' ');
                 var ts = new Date();
-                var tsstring = "On " + ts.toDateString() + " at " + ts.toLocaleTimeString();
-                var content = $(this).val().split(" ");
 
                 var finalContent = '';
                 $.each(content, function(index, value) {
                     var tempATag;
                     if (value.indexOf('@') == 0) {
-                        tempATag = '<a href="#" class="commentMentionTag">' + value.substring(1, value.length) + '</a>';
+                        tempATag = '<a href="#" class="commentMentionTag">' + value.slice(1) + '</a>';
+                        taggedUsers.push(value.slice(1));
                     } else
                         tempATag = value;
                     finalContent += (' ' + tempATag);
                 });
 
-                var commentItem = $('<div>').css({
-                    'text-aling' : 'justify',
-                    'margin' : '1px',
-                    '-webkit-border-radius' : '2px',
-                    'background-color' : '#fefefe',
-                    'border' : '1px solid #fdfdfd',
-                }).append($('<p>').css('margin', '2px').html($('<span>').css({
-                    'font-weight' : 'bold',
-                    'font-size' : '9px'
-                }).html(now.user).append($('<span>').css({
-                    'font-weight' : 'normal',
-                    'font-size' : '9px'
-                }).html(': ' + finalContent))).append($('<p>').css({
-                    'font-size' : '8px',
-                    'text-align' : 'left',
-                    'margin-bottom' : '-1px'
-                }).html(tsstring)));
-
-                var commentContent = $(this).parents().eq(3).find("tr div.commentContent");
-                $(commentContent).append(commentItem);
-
+                var nowComment = {};
+                nowComment.content = finalContent;
+                nowComment.who = now.user.user;
+                nowComment.line = $($(this).parents()[5]).attr('data-line-number');
+                nowComment.timestamp = ts;
+                nowComment.taggedUsers = taggedUsers;
+                nowComment.path = currentDocumentPath;
+                nowComment.cid = $($(this).parents()[5]).attr('id');
+                
                 $(this).val('');
-                //TODO notifications
+                appendComment(nowComment);
+                now.sendComment(nowComment);                
             }
-        }))))))).addClass("comment").css({
-            "display" : "none",
-            "top" : "0px"
+        }))))))).addClass("comment");                 
+        
+        $($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry>input").triggeredAutocomplete({
+                source : "/users/mentionList",
+                minLength : 2,
+                allowDuplicates : false,
+                trigger : "@",
+                hidden : '#hidden_inputbox'
+        });
+        
+        $(comment).click(function(e){                     
+            $($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry>input").focus();
         });
 
-        commentIcon.click(function(e) {
-            if ($(e.srcElement).attr('class') === 'icon-remove' || e.srcElement.tagName === 'INPUT' || e.srcElement.tagName === 'A')
-                return false;
+        commentIcon.click(function(e) {            
+            var editorLN = $(this).attr('data-line-number');
+            var comment = $("#comment-" + editorLN);
 
-            var comment = $(this).find(".comment");
-
-            if ($(comment).attr("editor-comment-isopen") !== true) {
-                $(comment).attr("editor-comment-isopen", true);
-                $(comment).show(200);
-            }
-
-            var editorLN = $(comment).attr('data-line-number') - 1;
-            myCodeMirror.setLineClass(editorLN, 'commentMarker');
-            
-            $($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry>input").triggeredAutocomplete({
-                source: "/users/mentionList",            
-                minLength: 2,
-                allowDuplicates: false,
-                trigger: "@",
-                hidden: '#hidden_inputbox'                       
-            });
-
-            for (var i = 0; i < sideComments.length; i++) {
-                var sco = sideComments[i];
-                if (sco.lineNumber != line){
-                    $(sco.commentDom).hide(200);                    
-                    myCodeMirror.setLineClass(sco.lineNumber, null);
-                }
-            }
-
-            if ($($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry").css('display') === 'block') {
+            if ($(comment).attr("editor-comment-isopen") === "true") {             
+                $(comment).attr("editor-comment-isopen", "false");
+                myCodeMirror.removeLineClass(editorLN - 1, 'wrap', 'commentMarker');                
+                $(comment).hide(400);
                 $(this).tooltip({
                     title : "Show Discussion!"
                 });
+                return false;                                
+            }                        
 
-                $(comment).css({
-                    "background-color" : "#fff",
-                }).animate({
-                    left : '+=25'
-                }, 250);
-
-                $($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry").css({
-                    "display" : "none"
-                });
-            } else {
-                $(this).tooltip({
-                    title : "Hide Discussion!"
-                });
-
-                $(comment).css({
-                    "background-color" : "#feef9c",
-                }).animate({
-                    left : '-=25'
-                }, 250);
-
-                $($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry").css({
-                    "display" : "block"
-                });
-
-                $($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry>input").focus();
-            }
+            hideComments(editorLN);
+                                                                            
+            $(this).tooltip({
+                title : "Hide Discussion!"
+            });                
+            myCodeMirror.addLineClass(editorLN - 1, 'wrap', 'commentMarker');
+            $(comment).attr("editor-comment-isopen", "true");
+            $(comment).show(400);
+            
+            $($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry>input").focus();                
         });
-
-        //TODO check for previous comments entered
-        // commentIcon.blur(function(e){
-        // $(this).tooltip({
-        // title : "Show Discussion!"
-        // }).find("div").css("display","none");
-        // });
 
         var commentIconObg = {};
-        commentIconObg.lineNumber = line;
+        commentIconObg.lineNumber = dln;
         commentIconObg.commentDom = comment;
         sideComments.push(commentIconObg);
-
-        myCodeMirror.onDeleteLine(line, function(cm) {
-            var deleteIndex;
-            $.each(sideComments, function(index, sideComment) {
-                if (sideComment.lineNumber === line) {
-                    $($(sideComment.commentDom).parent()).remove();
-                    deleteIndex = index;
-                }
-            });
-            sideComments.slice(deleteIndex);
+                 
+        var lineHandle = myCodeMirror.getLineHandle(dln - 1);
+        myCodeMirror.on("delete", function(cm, line) {
+            cm.setGutterMarker(lineHandle, "CodeMirror-commentsiconsGutter", null);
         });
 
-        commentIcon.append(comment);
-        $("#editor-comment-area").append(commentIcon);
+        myCodeMirror.setGutterMarker(lineHandle, "CodeMirror-commentsGutter", comment.get(0));
+        myCodeMirror.setGutterMarker(lineHandle, "CodeMirror-commentsiconsGutter", commentIcon.get(0));
+        //set focus on entry        
+        $(comment).show(400);
+        $($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry>input").focus();        
     };
+
+    function hideComments(ln){
+        for (var i = 0; i < sideComments.length; i++) {
+                var sco = sideComments[i];
+                if (sco.lineNumber !== ln) {
+                    $(sco.commentDom).attr("editor-comment-isopen", "false");
+                    $(sco.commentDom).hide(200);                    
+                    myCodeMirror.removeLineClass(sco.lineNumber-1, "wrap", 'commentMarker');
+                }
+            }
+    }
 
     $("a[data-action=editor-find-replace]").click(function() {
         //TODO: find/replace
@@ -1635,9 +1622,9 @@ $(document).ready(function() {
         title : "Hide"
     });
 
-    $(".right-splitter-collapse-button").tooltip({
-        title : "Hide Comments"
-    });
+    /*$(".right-splitter-collapse-button").tooltip({
+     title : "Hide Comments"
+     });*/
 
     $("button[data-action=editor-livepreview-toggle]").tooltip({
         title : "Turn Live Preview On!",
