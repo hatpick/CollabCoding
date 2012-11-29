@@ -42,24 +42,22 @@ $(document).ready(function() {
         document.title = originalTitle;
     });
 
-    $.get('/user', function(user) {
-        cs.setName(user.name);
-        cs.setUser(user.user);
+    $.get('/user', function(user) {        
+        cs.setUser(user);
     });
 
     //Chat
     cs = document.chatServer = {};   
     ns = document.notificationServer = {}; 
 
-    cs.setName = function(name) {
-        now.name = name;
-        return false;
-    };
-    
     cs.setUser = function(user) {
         now.user = user;
         return false;
-    };        
+    };            
+    
+    cs.getUser = function() {
+        return now.user;
+    }
 
     cs.sendMessage = function(msgText) {
         now.sendMessage(msgText);
@@ -111,16 +109,16 @@ $(document).ready(function() {
         });
         var alert = document.getElementById("chatAlert");
         if (msg.senderId !== now.core.clientId) alert.play();      
-    };        
+    };                
     
-    now.core.on('disconnect', function(){
-        var notifMsg = now.name + " is offline!";
+    now.core.on('disconnect', function(){                
+        var notifMsg = now.user.user + " is offline!";
         ns.sendNotification(notifMsg, "error", false, 'e');
     });
 
     now.ready(function() {                 
-        var notifMsg = now.name + " is online!";      
-        ns.sendNotification(notifMsg, "success", false, 'e');            
+        var notifMsg = now.user.user + " is online!";      
+        ns.sendNotification(notifMsg, "success", false, 'e');                    
     });    
 });
 
