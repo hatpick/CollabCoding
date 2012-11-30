@@ -51,7 +51,7 @@ $(document).ready(function() {
     ns = document.notificationServer = {}; 
 
     cs.setUser = function(user) {
-        now.user = user;
+        now.user = user;        
         return false;
     };            
     

@@ -1125,7 +1125,7 @@ $(document).ready(function() {
 
                         //TODO "Now" Group Change, Remove User From Old Group
                         now.changeProjectGroup(sessionStorage.getItem('project'));
-                        now.sayHi();
+                        //now.sayHi();
                     });
                 }))).append($('<td>').html(projects[i].created_on)).append($('<td>').html(projects[i].last_modified_on));
                 tbody.append(tr);
@@ -1143,21 +1143,21 @@ $(document).ready(function() {
 
     now.updateList = function(users) {
         $("#chat-users-list").html("");
-        $.each(users, function(index, user) {
+        var pname = sessionStorage.getItem('project');
+        $.each(users[pname], function(index, user) {
             var cuItem = $("<div>").attr("chat-user-id", user._id).addClass("cu-item").append($("<table>").css({
                 'width' : '100%',
                 'height' : '100%',
                 'text-align' : 'center'
-            }).append($("<tr>").attr('align', 'center').append($("<td>").css("width", "20px").append($("<div>").addClass("cu-status-available"))).append($("<td>").css("width", "20px").append("<img src=assets/img/silhouette.png></img>")).append($("<td>").attr('valign', 'center').append($("<a>").text(user.user).addClass("text-info")))));
+            }).append($("<tr>").attr('align', 'center').append($("<td>").css("width", "20px").append($("<div>").addClass("cu-status-available"))).append($("<td>").css("width", "20px").append("<img src=assets/img/silhouette.png></img>")).append($("<td>").css({'text-align':'left','padding-left':'20px'}).attr('valign', 'middle').append($("<a>").text(user.user).addClass("text-info")))));
             $("#chat-users-list").append($("<li>").html(cuItem));
         });
     }
     function _closeProject() {
         //TODO clear the tree, clear the editor, clear the comments, change roomnow.changeProjectGroup(undefined);
-        now.changeProjectGroup(undefined);
-        now.sayBye();
+        now.changeProjectGroup(undefined);        
         $("#browser").html('');
-        $("#chat.tab-pane").html('');
+        $("#chat.tab-pane>table>tbody>tr>td>ul").html('');
         sessionStorage.clear();
         currentDocumentPath = '';
     }
