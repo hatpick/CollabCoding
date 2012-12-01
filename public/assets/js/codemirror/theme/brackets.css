@@ -1,0 +1,41 @@
+.CodeMirror pre{line-height:inherit;}
+.CodeMirror-scroll{background-color:#f8f8f8;}
+.platform-mac .CodeMirror-scroll{color:#535353;line-height:15px;font-size:12px;font-family:'SourceCodePro',monospace;}
+.platform-win .CodeMirror-scroll{color:#535353;line-height:15px;font-size:12px;font-family:'SourceCodePro',monospace;}
+.cm-s-default .CodeMirror-cursor{border-left:1px solid black !important;}
+.cm-s-default span.cm-keyword{color:#446fbd;}
+.cm-s-default span.cm-atom{color:#f18900;}
+.cm-s-default span.cm-number{color:#738d00;}
+.cm-s-default span.cm-def{color:#8757ad;}
+.cm-s-default span.cm-variable{color:#535353;}
+.cm-s-default span.cm-variable-2{color:#535353;}
+.cm-s-default span.cm-variable-3{color:#535353;}
+.cm-s-default span.cm-property{color:#8757ad;}
+.cm-s-default span.cm-operator{color:#535353;}
+.cm-s-default span.cm-comment{color:#a2a2a2;}
+.cm-s-default span.cm-string{color:#f18900;}
+.cm-s-default span.cm-string-2{color:#f18900;}
+.cm-s-default span.cm-meta{color:#535353;}
+.cm-s-default span.cm-error{color:#dc322f;}
+.cm-s-default span.cm-qualifier{color:#446fbd;}
+.cm-s-default span.cm-builtin{color:#446fbd;}
+.cm-s-default span.cm-bracket{color:#535353;}
+.cm-s-default span.cm-tag{color:#446fbd;}
+.cm-s-default span.cm-attribute{color:#738d00;}
+.cm-s-default span.cm-header{color:#d33682;}
+.cm-s-default span.cm-quote{color:#446fbd;}
+.cm-s-default span.cm-hr{color:#f18900;}
+.cm-s-default span.cm-link{color:#8757ad;}
+.cm-s-default span.cm-rangeinfo{color:#6c71c4;}
+.cm-s-default span.cm-minus{color:#dc322f;}
+.cm-s-default span.cm-plus{color:#859900;}
+.cm-s-default span.CodeMirror-matchingbracket{color:#535353 !important;background-color:#e6e6e6;}
+.cm-s-default span.CodeMirror-nonmatchingbracket{color:#535353 !important;}
+.cm-s-default .CodeMirror-gutter-text{color:#a2a2a2;padding-top:0px;padding-bottom:0px;}
+.CodeMirror .CodeMirror pre.CodeMirror-cursor{visibility:hidden;}
+.CodeMirror .CodeMirror .CodeMirror-focused pre.CodeMirror-cursor{visibility:visible;}
+.CodeMirror .CodeMirror div.CodeMirror-selected{background:#d9d9d9;}
+.CodeMirror .CodeMirror .CodeMirror-focused div.CodeMirror-selected{background:#d2dcf8;}
+span.cm-em{font-style:normal;}
+span.cm-header,span.cm-strong{font-weight:normal;}
+span.cm-emstrong{font-style:normal;font-weight:normal;}

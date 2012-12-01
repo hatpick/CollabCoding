@@ -205,7 +205,7 @@ $(document).ready(function() {
             text : notyObj.text,
             template : '<div class="noty_message"><span class="noty_text"></span><div class="noty_close"></div></div>',
             type : notyObj.type,
-            theme : 'defaultTheme',
+            theme : 'brackets',
             dismissQueue : true,
             layout : 'bottomLeft',
             timeout : 5000,

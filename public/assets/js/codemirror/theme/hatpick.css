@@ -1,9 +1,0 @@
-.cm-s-hatpick span.cm-comment { color: #a86; }
-.cm-s-hatpick span.cm-keyword { line-height: 1.2em; color: blue; }
-.cm-s-hatpick span.cm-string { color: #a22; }
-.cm-s-hatpick span.cm-builtin { line-height: 1.2em; font-weight: bold; color: #077; }
-.cm-s-hatpick span.cm-special { line-height: 1.2em; font-weight: bold; color: #0aa; }
-.cm-s-hatpick span.cm-variable { color: black; }
-.cm-s-hatpick span.cm-number, .cm-s-hatpick span.cm-atom { color: #3a3; }
-.cm-s-hatpick span.cm-meta {color: #555;}
-.cm-s-hatpick span.cm-link { color: #3a3; }
