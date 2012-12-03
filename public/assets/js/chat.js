@@ -42,7 +42,7 @@ $(document).ready(function() {
         document.title = originalTitle;
     });
 
-    $.get('/user', function(user) {        
+    $.get('/user', function(user) {             
         cs.setUser(user);
     });
 
@@ -50,7 +50,9 @@ $(document).ready(function() {
     cs = document.chatServer = {};   
     ns = document.notificationServer = {}; 
 
-    cs.setUser = function(user) {
+    cs.setUser = function(user) {        
+        user.currentDocument = 'undefined';
+        username = user;
         now.user = user;        
         return false;
     };            

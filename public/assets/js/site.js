@@ -1,3 +1,29 @@
+var errBookmarks = [];
+var commentBookmarks = [];
+var errorIcons = [];
+var widgets = [];
+    
+function updateHints(editor) {
+    editor.operation(function() {
+        for (var i = 0; i < errBookmarks.length; ++i) {
+            $(errBookmarks[i].dom).remove();                        
+        }                
+        editor.clearGutter("CodeMirror-errorGutter");                                
+        errBookmarks.length = 0;
+        errorIcons.length = 0;
+
+        JSHINT(editor.getValue());        
+        for (var i = 0; i < JSHINT.errors.length; ++i) {            
+            var err = JSHINT.errors[i];            
+            if (!err)
+                continue;                        
+            var bm = addBookmarks("error", err.line, editor);            
+            $(bm.dom).tooltip({title: err.line + ": " + err.reason, placement: "left"});
+            //addGutterError(err.line, editor);                     
+        }              
+    });    
+}
+
 function arian(string, context) {
     return string.replace(/%\(\w+\)s/g, function(match) {
         return context[match.slice(2, -2)];
@@ -45,12 +71,13 @@ function editor(id, mode) {
             },
             "Ctrl-Space" : "autocomplete"
         },
-        syntax : "html",
+        syntax : "html",        
+        matchBrackets: true,
         profile : "xhtml",
         onKeyEvent : function() {
             return zen_editor.handleKeyEvent.apply(zen_editor, arguments);
         },
-        gutters : ["CodeMirror-commentsGutter", "CodeMirror-commentsiconsGutter", "CodeMirror-linenumbers"]
+        gutters : ["CodeMirror-commentsGutter", "CodeMirror-commentsiconsGutter", "CodeMirror-errorGutter", "CodeMirror-linenumbers"]
     });
         
     Inlet(_editor);
@@ -58,7 +85,92 @@ function editor(id, mode) {
     return _editor;
 }
 
-function reportFailure(report) {
+function clearMarker(cm, type) {
+    if(type === 'error'){
+        $.each(errBookmarks, function(i, errBookmark){
+            cm.removeLineClass(errBookmark.line - 1, "wrap", "errorMarker");                        
+        });                
+    }
+    else if(type === 'comment') {
+        $.each(commentBookmarks, function(i, commentBookmark){
+            cm.removeLineClass(commentBookmark.line - 1, "wrap", "commentMarker");                        
+        });
+    }    
+}
+
+function addGutterError(dln, cm){
+    var errorMarker;
+    var errorMarkerDom = $("<span>").addClass('CodeMirror-erroriconGutter').text("●");
+    cm.setGutterMarker(dln-1, "CodeMirror-errorGutter", $(errorMarkerDom).get(0));
+    
+    errorMarker.dom = errorMarkerDom;
+    errorMarker.line = dln;
+    
+    errorIcons.push(errorMarker);
+}
+
+function _sortByLine(a, b) {
+    var lineA = a.line;
+    var lineB = b.line;
+            
+    return ((lineA < lineB) ? -1 : ((lineA > lineB) ? 1 : 0));
+}
+
+function _wherebookmark(dln) {
+    var allBookmarks = errBookmarks.concat(commentBookmarks);
+    allBookmarks = allBookmarks.sort(_sortByLine);
+            
+    for(var i = 0; i< allBookmarks.length; i++){
+        bkmrk = allBookmarks[i];        
+        if(bkmrk.line > dln){                        
+            if(i === 0) return i;
+            return i;
+        }         
+    }
+    return -1;            
+}
+
+function addBookmarks(type, dln, cm) {        
+    var marker, className, bookmarks;
+    var bookmarkHeight = $("#bookmarksArea").height();
+    var editorHeight = myCodeMirror.lineCount();      
+    var mapPers;
+    if(editorHeight * 14 > bookmarkHeight * 2)          
+        mapPers = (bookmarkHeight) / (editorHeight);
+    else
+        mapPers = (editorHeight * 14) / (bookmarkHeight);            
+            
+    var top = mapPers * (dln);
+    
+    if(type === 'error'){
+        bookmarks = errBookmarks;
+        className = "CodeMirror-bookmarksIconError";
+        marker = "errorMarker";        
+    } else if(type === 'comment') {        
+        bookmarks = commentBookmarks;
+        marker = "commentMarker";
+        className = "CodeMirror-bookmarksIconComment";
+    }                         
+    var bookmark = $("<div>").addClass(className).attr("data-line", dln).css("top", top).click(function(){
+        var line = $(this).attr("data-line") - 1;                        
+        clearMarker(cm, type);             
+        cm.addLineClass(line, "wrap", marker);        
+                
+        cm.scrollIntoView({line:line+30,ch:0});                      
+    });
+    
+    var bookmarkObj = {line: (dln), dom: bookmark, type: type};    
+    var index = _wherebookmark(dln);
+    console.log(index);
+    if(index !== -1 && type === 'comment')
+        $("#bookmarksArea div:nth-child("+ index +")").after(bookmark);    
+    else
+        $("#bookmarksArea").append(bookmark);
+    bookmarks.push(bookmarkObj);    
+    return bookmarkObj;
+}
+
+function reportFailure(report, cm) {
     var errors = $("#small-console div");
     var item;
     errors[0].innerHTML = "";
@@ -71,21 +183,23 @@ function reportFailure(report) {
                 line : err.line,
                 code : err.evidence ? escapeHTML(err.evidence) : '&lt;no code&gt;',
                 msg : err.reason
-            }));
-            myCodeMirror.setGutterMarker(err.line - 1, "<span style=\"color: #900\">●</span> %N%");
-        } else {
-            myCodeMirror.setGutterMarker(err.line - 1, "<span style=\"color: #900\">●</span> %N%");
+            }));            
+            var bm = addBookmarks("error", err.line, cm);
+            $(bm.dom).tooltip({title: err.reason, placement: "left"});
+        } else {            
             errors.append(arian("<li><p>" + templates.error + "</p></li>", {
                 line : err.line,
                 character : err.character,
                 code : $.trim(err.evidence) ? $.trim(escapeHTML(err.evidence)) : "",
                 msg : err.reason
             }));
+            var bm = addBookmarks("error", err.line, cm);
+            $(bm.dom).tooltip({title: err.reason, placement: "left", delay: {show: 100, hide: 500}});
         }
         $("a[data-line=" + err.line + "]").bind("click", function(ev) {
             var line = $(this).attr("data-line") - 1;
-            var str = myCodeMirror.getLine(line);
-            myCodeMirror.setSelection({
+            var str = cm.getLine(line);
+            cm.setSelection({
                 line : line,
                 ch : 0
             }, {
@@ -146,14 +260,21 @@ var layout = function() {
     $("#chatArea>table>tbody>tr:first").height(_height - 160);
     $("#editor-area").height(_height);
     $("#left-items").height(_height);
-    $(".left-splitter").height(_height);
-    //$(".right-splitter").height(_height);
-    $(".left-splitter-collapse-button").css("margin-top", _height / 2);
-    //$(".right-splitter-collapse-button").css("margin-top", _height / 2);
+    $(".left-splitter").height(_height);    
+    $(".left-splitter-collapse-button").css("margin-top", _height / 2);    
     $(".tab-pane").css("height", "100%");
-    //$("#right-items").height(_height);
+    $("#right-items").height(_height - 52);
+    $("#right-items>div").height(_height - 52);    
     $("#editor-area").css("left", $(".left-splitter").position().left + $(".left-splitter").usedWidth());
-    $("#editor-area").css("width", document.documentElement.clientWidth - 10 - ($("#left-items").is(":visible") ? $("#left-items").usedWidth() : 0) - $(".left-splitter").usedWidth());
+    $("#editor-area").css("width", document.documentElement.clientWidth - 10 - ($("#left-items").is(":visible") ? $("#left-items").usedWidth() : 0) - $(".left-splitter").usedWidth() - 15);
+    
+    if ($("#left-items").is(":visible")) {
+        $("#right-items").css("left", $("#left-items").usedWidth() + $(".left-splitter").usedWidth() + $("#editor-area").usedWidth());            
+        $("#right-items").css("width", 15);            
+    }
+    else {        
+        $("#right-items").css("left", $(".left-splitter").usedWidth() + $("#editor-area").usedWidth());                    
+    }
 
     _height = $("#left-items").height() - $("#nav-tab").height() - parseInt($("#nav-tab").css("margin-bottom"), 10);
     $(".tab-content").height(_height);
@@ -163,10 +284,12 @@ var layout = function() {
         $("#live_preview_window").height($("#project").height());
         //TODO change width of editor, preview window
     }
+           
 };
 
 $(window).resize(function() {
     layout();
+    myCodeMirror.refresh();
 });
 
 $(document).ready(function() {
@@ -204,8 +327,7 @@ $(document).ready(function() {
         var ntfcn = noty({
             text : notyObj.text,
             template : '<div class="noty_message"><span class="noty_text"></span><div class="noty_close"></div></div>',
-            type : notyObj.type,
-            theme : 'brackets',
+            type : notyObj.type,            
             dismissQueue : true,
             layout : 'bottomLeft',
             timeout : 5000,
@@ -215,7 +337,7 @@ $(document).ready(function() {
 
         if (needRefresh)
             refreshProjectTree();
-    }
+    }        
     
     now.receiveComment = function(comment, sid){
         if(sid === now.core.clientId) return;
@@ -254,6 +376,7 @@ $(document).ready(function() {
             $('.breadcrumb').empty();
             var paths = $.jstree._focused().get_path();
             var li;
+            currentDocumentPath = getFilePath(paths);
             for (var i = 0; i < paths.length - 1; i++) {
                 li = $('<li>').append($('<a>').attr('href', '#').html(paths[i]).click(function() {
                     $.jstree._reference('#browser').select_node($('#' + $(this).text() + '_id'), true);
@@ -298,8 +421,18 @@ $(document).ready(function() {
                 theme : 'vista'
             });
             
-            currentDocumentPath = getFilePath(paths);
-            console.log(currentDocumentPath);
+            $("#right-items").css("display", "block");
+            $("#right-items>div").html("");
+            
+            var user = username;
+            user.currentDocument = currentDocumentPath.replace(/\*/g,'/');
+            now.updateCurrentDoc(username, user.currentDocument);
+            
+            var waiting;
+            myCodeMirror.on('change', function(cm){
+               clearTimeout(waiting);
+               wating = setTimeout(updateHints(cm), 300); 
+            });
 
             //TODO resize SynchDivScroll
             /*$(".CodeMirror-scrollbar").attr("id", "syncOneDive");
@@ -657,7 +790,7 @@ $(document).ready(function() {
         if (JSHINT(myCodeMirror.getValue(), options))
             reportSuccess(JSHINT.data());
         else
-            reportFailure(JSHINT.data());
+            reportFailure(JSHINT.data(), myCodeMirror);
         showConsole($("#small-console a"));
     }
 
@@ -1048,7 +1181,7 @@ $(document).ready(function() {
     });
 
     $(".btn-logout").click(function() {
-        cleanSessionStorage();
+        cleanSessionStorage();        
         var notifMsg = now.user.name + " is offline!";
         ns.sendNotification(notifMsg, "error", false, 'e');
         window.location.href = '/logout';
@@ -1142,14 +1275,24 @@ $(document).ready(function() {
 
 
     now.updateList = function(users) {
+        function getDocPathName(docPath){
+            if(docPath === 'undefined') return {doc:"nothing", path:""};
+            var path = docPath.split("/");
+            var doc = path.splice(path.length-1);            
+            return {doc:doc[0], path:path.join("/")};
+        }
         $("#chat-users-list").html("");
         var pname = sessionStorage.getItem('project');
         $.each(users[pname], function(index, user) {
+            var docPath = getDocPathName(user.currentDocument);            
             var cuItem = $("<div>").attr("chat-user-id", user._id).addClass("cu-item").append($("<table>").css({
                 'width' : '100%',
                 'height' : '100%',
                 'text-align' : 'center'
-            }).append($("<tr>").attr('align', 'center').append($("<td>").css("width", "20px").append($("<div>").addClass("cu-status-available"))).append($("<td>").css("width", "20px").append("<img src=assets/img/silhouette.png></img>")).append($("<td>").css({'text-align':'left','padding-left':'20px'}).attr('valign', 'middle').append($("<a>").text(user.user).addClass("text-info")))));
+            }).append($("<tr>").attr('align', 'center').append($("<td>").css("width", "20px").append($("<div>").addClass("cu-status-available"))).append($("<td>").css("width", "20px")
+                .append("<img src=assets/img/silhouette.png></img>")).append($("<td>").css({'text-align':'left','padding-left':'5px'}).attr('valign', 'middle')
+                .append($("<a>").css({"font-weight":"bold", "font-size":"12px"}).text(user.user + " ").addClass("text-info"))))
+                .append($("<tr>").tooltip({title:docPath.path, placement:"bottom"}).attr('align', 'left').append($("<td colspan='3'>").append($("<span>").css({"font-size":"10px"}).addClass("text-warning").text("Editing " + docPath.doc)))));
             $("#chat-users-list").append($("<li>").html(cuItem));
         });
     }
@@ -1157,7 +1300,12 @@ $(document).ready(function() {
         //TODO clear the tree, clear the editor, clear the comments, change roomnow.changeProjectGroup(undefined);
         now.changeProjectGroup(undefined);        
         $("#browser").html('');
+        $("#editor-area>div.CodeMirror").remove();
+        $("#editor-area>div.inlet_slider").remove();
+        $("#editor-area>ul").html("").append($("<li>").append($("<a>").attr("href","#")));               
         $("#chat.tab-pane>table>tbody>tr>td>ul").html('');
+        $("#right-items").css("display", "none");
+        $("#right-items>div").html("");
         sessionStorage.clear();
         currentDocumentPath = '';
     }
@@ -1402,27 +1550,7 @@ $(document).ready(function() {
     $('#chat-start').click(function() {
         var pname = sessionStorage.getItem('project');
         chatWith('GroupChat');
-    });
-
-    function JumpSelectScroll(ln) {
-
-        // editor.getLineHandle does not help as it does not return the reference of line.
-        var ll = myCodeMirror.getLine(ln).length;
-        myCodeMirror.setSelection({
-            line : ln,
-            ch : 0
-        }, {
-            line : ln,
-            ch : ll
-        });
-        window.setTimeout(function() {
-            myCodeMirror.addLineClass(ln, "wrap", "top-me");
-            var line = $('.CodeMirror-lines .top-me');
-            var h = line.parent();
-
-            $('.CodeMirror-scroll').scrollTop(0).scrollTop(line.offset().top - $('.CodeMirror-scroll').offset().top);
-        }, 10);
-    }    
+    });       
     
     function appendComment(comment) {
         if($('#' + comment.cid).size() === 0) {
@@ -1553,6 +1681,7 @@ $(document).ready(function() {
         var commentIconObg = {};
         commentIconObg.lineNumber = dln;
         commentIconObg.commentDom = comment;
+        commentIconObg.content = content;
         sideComments.push(commentIconObg);
                  
         var lineHandle = myCodeMirror.getLineHandle(dln - 1);
@@ -1562,6 +1691,10 @@ $(document).ready(function() {
 
         myCodeMirror.setGutterMarker(lineHandle, "CodeMirror-commentsGutter", comment.get(0));
         myCodeMirror.setGutterMarker(lineHandle, "CodeMirror-commentsiconsGutter", commentIcon.get(0));
+        //Add Bookmark
+        var bm = addBookmarks("comment", dln, myCodeMirror);        
+        var ctext = (content === null)?"":commentIconObg.content;
+        $(bm.dom).tooltip({title: ctext, placement: "left"});
         //set focus on entry        
         $(comment).show(400);
         $($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry>input").focus();        
@@ -1576,7 +1709,7 @@ $(document).ready(function() {
                     myCodeMirror.removeLineClass(sco.lineNumber-1, "wrap", 'commentMarker');
                 }
             }
-    }
+    }    
 
     $("a[data-action=editor-find-replace]").click(function() {
         //TODO: find/replace
