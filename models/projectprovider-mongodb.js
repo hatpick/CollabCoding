@@ -3,7 +3,7 @@ var Connection = require('mongodb').Connection;
 var Server = require('mongodb').Server;
 var BSON = require('mongodb').BSON;
 var ObjectID = require('mongodb').ObjectID;
-var logger = require('../modules/logger')
+var logger = require('../modules/logger');
 var projectProvider = undefined;       
 
 logger.debugLevel = 'info';

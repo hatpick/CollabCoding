@@ -7,7 +7,9 @@ var express = require('express')
   , chatServer = require('./lib/now-service.js');
 
 var app = express();
+app.disable('quiet');
 
+express.limit('10mb');
 app.configure(function() {  
   app.set('views', __dirname + '/views');
   app.set('prject', __dirname + '/views/project');

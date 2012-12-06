@@ -2,26 +2,74 @@ var errBookmarks = [];
 var commentBookmarks = [];
 var errorIcons = [];
 var widgets = [];
-    
+var markedText = [];
+var sideComments = [];
+var currentDocumentPath = '';
+
 function updateHints(editor) {
     editor.operation(function() {
         for (var i = 0; i < errBookmarks.length; ++i) {
-            $(errBookmarks[i].dom).remove();                        
-        }                
-        editor.clearGutter("CodeMirror-errorGutter");                                
+            $(errBookmarks[i].dom).remove();
+        }
+        editor.clearGutter("CodeMirror-errorGutter");
         errBookmarks.length = 0;
         errorIcons.length = 0;
 
-        JSHINT(editor.getValue());        
-        for (var i = 0; i < JSHINT.errors.length; ++i) {            
-            var err = JSHINT.errors[i];            
+        JSHINT(editor.getValue());
+        for (var i = 0; i < JSHINT.errors.length; ++i) {
+            var err = JSHINT.errors[i];
             if (!err)
-                continue;                        
-            var bm = addBookmarks("error", err.line, editor);            
-            $(bm.dom).tooltip({title: err.line + ": " + err.reason, placement: "left"});
-            //addGutterError(err.line, editor);                     
-        }              
-    });    
+                continue;
+            var bm = addBookmarks("error", err.line, editor);
+            $(bm.dom).tooltip({
+                title : err.line + ": " + err.reason,
+                placement : "left"
+            });
+            //addGutterError(err.line, editor);
+        }
+    });
+}
+
+function saveCodeXML(editor) {
+    if (currentDocumentPath === '')
+        return;
+    var xmlDoc = codeToXML(editor);
+    console.log(xmlDoc)
+    var project_name = sessionStorage.getItem('project');
+    var url = '/project/' + project_name + '/saveXML';
+    var sid = sessionStorage.getItem("docName"); 
+    
+    console.log(url + " sid:" + sid);   
+
+    $.post(url, {
+        "owner" : now.user.user,
+        "snapshot" : xmlDoc,
+        "path" : currentDocumentPath,
+        "shareJSId": sid,
+        "timestamp": new Date()
+    }, function(error, cs) {
+        if(error)
+            console.log(error);
+        else{
+            console.log(cs);
+        }
+    }, 'json');
+}
+
+function lockCode(cm) {
+    if (cm.somethingSelected()) {
+        var from = cm.view.sel.from;
+        var to = cm.view.sel.to;
+        var mt = cm.markText(from, to, {
+            className : "gooz",
+            readOnly : true
+        });
+        $.each(mt.lines, function(i, line) {
+            cm.addLineClass(line, "wrap", "lockedCodeMarker");
+        });
+        markedText.push(mt);
+        cm.setCursor(from);
+    }
 }
 
 function arian(string, context) {
@@ -41,9 +89,6 @@ function escapeHTML(text) {
     }
     return esc;
 }
-
-var sideComments = [];
-var currentDocumentPath = '';
 
 function listOptions(els, opts) {
     var str = "/*jshint ";
@@ -71,103 +116,173 @@ function editor(id, mode) {
             },
             "Ctrl-Space" : "autocomplete"
         },
-        syntax : "html",        
-        matchBrackets: true,
+        syntax : "html",
+        matchBrackets : true,
         profile : "xhtml",
         onKeyEvent : function() {
             return zen_editor.handleKeyEvent.apply(zen_editor, arguments);
         },
         gutters : ["CodeMirror-commentsGutter", "CodeMirror-commentsiconsGutter", "CodeMirror-errorGutter", "CodeMirror-linenumbers"]
     });
-        
+
     Inlet(_editor);
 
     return _editor;
 }
 
 function clearMarker(cm, type) {
-    if(type === 'error'){
-        $.each(errBookmarks, function(i, errBookmark){
-            cm.removeLineClass(errBookmark.line - 1, "wrap", "errorMarker");                        
-        });                
-    }
-    else if(type === 'comment') {
-        $.each(commentBookmarks, function(i, commentBookmark){
-            cm.removeLineClass(commentBookmark.line - 1, "wrap", "commentMarker");                        
+    if (type === 'error') {
+        $.each(errBookmarks, function(i, errBookmark) {
+            cm.removeLineClass(errBookmark.line - 1, "wrap", "errorMarker");
         });
-    }    
+    } else if (type === 'comment') {
+        $.each(commentBookmarks, function(i, commentBookmark) {
+            cm.removeLineClass(commentBookmark.line - 1, "wrap", "commentMarker");
+        });
+    }
 }
 
-function addGutterError(dln, cm){
+function addGutterError(dln, cm) {
     var errorMarker;
     var errorMarkerDom = $("<span>").addClass('CodeMirror-erroriconGutter').text("●");
-    cm.setGutterMarker(dln-1, "CodeMirror-errorGutter", $(errorMarkerDom).get(0));
-    
+    cm.setGutterMarker(dln - 1, "CodeMirror-errorGutter", $(errorMarkerDom).get(0));
+
     errorMarker.dom = errorMarkerDom;
     errorMarker.line = dln;
-    
+
     errorIcons.push(errorMarker);
 }
 
 function _sortByLine(a, b) {
     var lineA = a.line;
     var lineB = b.line;
-            
+
     return ((lineA < lineB) ? -1 : ((lineA > lineB) ? 1 : 0));
 }
 
 function _wherebookmark(dln) {
     var allBookmarks = errBookmarks.concat(commentBookmarks);
     allBookmarks = allBookmarks.sort(_sortByLine);
-            
-    for(var i = 0; i< allBookmarks.length; i++){
-        bkmrk = allBookmarks[i];        
-        if(bkmrk.line > dln){                        
-            if(i === 0) return i;
+
+    for (var i = 0; i < allBookmarks.length; i++) {
+        bkmrk = allBookmarks[i];
+        if (bkmrk.line > dln) {
+            if (i === 0)
+                return i;
             return i;
-        }         
+        }
     }
-    return -1;            
+    return -1;
 }
 
-function addBookmarks(type, dln, cm) {        
+function addBookmarks(type, dln, cm) {
     var marker, className, bookmarks;
     var bookmarkHeight = $("#bookmarksArea").height();
-    var editorHeight = myCodeMirror.lineCount();      
+    var editorHeight = myCodeMirror.lineCount();
     var mapPers;
-    if(editorHeight * 14 > bookmarkHeight * 2)          
+    if (editorHeight * 14 > bookmarkHeight * 2)
         mapPers = (bookmarkHeight) / (editorHeight);
     else
-        mapPers = (editorHeight * 14) / (bookmarkHeight);            
-            
+        mapPers = (editorHeight * 14) / (bookmarkHeight);
+
     var top = mapPers * (dln);
-    
-    if(type === 'error'){
+
+    if (type === 'error') {
         bookmarks = errBookmarks;
         className = "CodeMirror-bookmarksIconError";
-        marker = "errorMarker";        
-    } else if(type === 'comment') {        
+        marker = "errorMarker";
+    } else if (type === 'comment') {
         bookmarks = commentBookmarks;
         marker = "commentMarker";
         className = "CodeMirror-bookmarksIconComment";
-    }                         
-    var bookmark = $("<div>").addClass(className).attr("data-line", dln).css("top", top).click(function(){
-        var line = $(this).attr("data-line") - 1;                        
-        clearMarker(cm, type);             
-        cm.addLineClass(line, "wrap", marker);        
-                
-        cm.scrollIntoView({line:line+30,ch:0});                      
+    }
+    var bookmark = $("<div>").addClass(className).attr("data-line", dln).css("top", top).click(function() {
+        var line = $(this).attr("data-line") - 1;
+        clearMarker(cm, type);
+        cm.addLineClass(line, "wrap", marker);
+        cm.setCursor({
+            line : line,
+            ch : 0
+        });
     });
-    
-    var bookmarkObj = {line: (dln), dom: bookmark, type: type};    
+
+    var bookmarkObj = {
+        line : (dln),
+        dom : bookmark,
+        type : type
+    };
     var index = _wherebookmark(dln);
-    console.log(index);
-    if(index !== -1 && type === 'comment')
-        $("#bookmarksArea div:nth-child("+ index +")").after(bookmark);    
+    if (index !== -1 && type === 'comment')
+        $("#bookmarksArea div:nth-child(" + index + ")").after(bookmark);
     else
         $("#bookmarksArea").append(bookmark);
-    bookmarks.push(bookmarkObj);    
+    bookmarks.push(bookmarkObj);
     return bookmarkObj;
+}
+
+function codeToXML(editor) {
+    var codeHTML = [];
+
+    var rootDocument = $("<code>").attr("id", currentDocumentPath);
+    var codeDocument = editor.view.doc;
+    codeDocument.iter(0, codeDocument.size, function(line) {
+        codeHTML.push(line);
+    });
+
+    for (var index = 0; index < codeHTML.length; ) {
+        var codeLine = codeHTML[index];
+        if ( typeof codeLine.wrapClass !== 'undefined') {
+            switch(codeLine.wrapClass) {
+                case 'commentMarker commentMarkerInvisible':
+                    var cid = '';
+                    var commentNode = $("<comment>").attr("id", cid).append($("<l>").text(codeLine.text));
+                    index++;
+
+                    $(rootDocument).append(commentNode);
+                    break;
+                case 'commentMarkerInvisible':
+                    var cid = '';
+                    var commentNode = $("<comment>").attr("id", cid).text(codeLine.text);
+                    index++;
+
+                    $(rootDocument).append(commentNode);
+                    break;
+                case 'lockedCodeMarker':
+                    var lockedCodeNode = $("<lockedCode>");
+                    var codeText = "";
+                    var j = index, tempLine = codeLine;
+                    while (tempLine.wrapClass === 'lockedCodeMarker') {
+                        $(lockedCodeNode).append($("<l>").text(tempLine.text));
+                        j++;
+                        if (j < codeHTML.length)
+                            tempLine = codeHTML[j];
+                        else
+                            break;
+                    }
+                    index = j;
+
+                    $(rootDocument).append(lockedCodeNode);
+                    break;
+            }
+        } else {
+            var pureCodeNode = $("<pureCode>");
+            var codeText = "";
+            var j = index, tempLine = codeLine;
+            while ( typeof tempLine.wrapClass === 'undefined') {
+                $(pureCodeNode).append($("<l>").text(tempLine.text));
+                j++;
+                if (j < codeHTML.length)
+                    tempLine = codeHTML[j];
+                else
+                    break;
+            }
+            index = j;
+
+            $(rootDocument).append(pureCodeNode);
+        }
+    }
+    console.log($(rootDocument)[0].outerHTML);
+    return $(rootDocument)[0].outerHTML;
 }
 
 function reportFailure(report, cm) {
@@ -183,18 +298,18 @@ function reportFailure(report, cm) {
                 line : err.line,
                 code : err.evidence ? escapeHTML(err.evidence) : '&lt;no code&gt;',
                 msg : err.reason
-            }));            
-            var bm = addBookmarks("error", err.line, cm);
-            $(bm.dom).tooltip({title: err.reason, placement: "left"});
-        } else {            
+            }));
+            // var bm = addBookmarks("error", err.line, cm);
+            // $(bm.dom).tooltip({title: err.reason, placement: "left"});
+        } else {
             errors.append(arian("<li><p>" + templates.error + "</p></li>", {
                 line : err.line,
                 character : err.character,
                 code : $.trim(err.evidence) ? $.trim(escapeHTML(err.evidence)) : "",
                 msg : err.reason
             }));
-            var bm = addBookmarks("error", err.line, cm);
-            $(bm.dom).tooltip({title: err.reason, placement: "left", delay: {show: 100, hide: 500}});
+            // var bm = addBookmarks("error", err.line, cm);
+            // $(bm.dom).tooltip({title: err.reason, placement: "left", delay: {show: 100, hide: 500}});
         }
         $("a[data-line=" + err.line + "]").bind("click", function(ev) {
             var line = $(this).attr("data-line") - 1;
@@ -260,20 +375,19 @@ var layout = function() {
     $("#chatArea>table>tbody>tr:first").height(_height - 160);
     $("#editor-area").height(_height);
     $("#left-items").height(_height);
-    $(".left-splitter").height(_height);    
-    $(".left-splitter-collapse-button").css("margin-top", _height / 2);    
+    $(".left-splitter").height(_height);
+    $(".left-splitter-collapse-button").css("margin-top", _height / 2);
     $(".tab-pane").css("height", "100%");
     $("#right-items").height(_height - 52);
-    $("#right-items>div").height(_height - 52);    
+    $("#right-items>div").height(_height - 52);
     $("#editor-area").css("left", $(".left-splitter").position().left + $(".left-splitter").usedWidth());
     $("#editor-area").css("width", document.documentElement.clientWidth - 10 - ($("#left-items").is(":visible") ? $("#left-items").usedWidth() : 0) - $(".left-splitter").usedWidth() - 15);
-    
+
     if ($("#left-items").is(":visible")) {
-        $("#right-items").css("left", $("#left-items").usedWidth() + $(".left-splitter").usedWidth() + $("#editor-area").usedWidth());            
-        $("#right-items").css("width", 15);            
-    }
-    else {        
-        $("#right-items").css("left", $(".left-splitter").usedWidth() + $("#editor-area").usedWidth());                    
+        $("#right-items").css("left", $("#left-items").usedWidth() + $(".left-splitter").usedWidth() + $("#editor-area").usedWidth());
+        $("#right-items").css("width", 15);
+    } else {
+        $("#right-items").css("left", $(".left-splitter").usedWidth() + $("#editor-area").usedWidth());
     }
 
     _height = $("#left-items").height() - $("#nav-tab").height() - parseInt($("#nav-tab").css("margin-bottom"), 10);
@@ -284,13 +398,20 @@ var layout = function() {
         $("#live_preview_window").height($("#project").height());
         //TODO change width of editor, preview window
     }
-           
+
 };
 
 $(window).resize(function() {
     layout();
-    myCodeMirror.refresh();
+    if ( typeof myCodeMirror !== 'undefined')
+        myCodeMirror.refresh();
 });
+
+window.onbeforeunload = function(e) {     
+    _logout({"reason": "windowClose"});               
+};
+
+var idleModal;
 
 $(document).ready(function() {
     sessionStorage.clear();
@@ -298,6 +419,8 @@ $(document).ready(function() {
     window.pid = null;
     // TODO
     _hotkeysHandler();
+    //15 minutes idle
+    startIdleTimer(900);
 
     //Notification Setup
 
@@ -308,12 +431,17 @@ $(document).ready(function() {
                 // var cursor = myCodeMirror.getCursor();
                 // var line = cursor.line;
                 // var ch = cursor.ch;
-
                 var cursor = myCodeMirror.coordsChar(cmPosition);
 
                 createComment(cursor.line + 1, null, "You");
             },
             icon : "assets/img/comments-icon.png"
+        },
+        'Lock Code' : {
+            onclick : function(menuItem, menu) {
+                lockCode(myCodeMirror);
+            },
+            icon : "assets/img/code-lock.png"
         }
     }];
     ns.sendNotification = function(notyMsg, notyType, needRefresh, type) {
@@ -327,7 +455,7 @@ $(document).ready(function() {
         var ntfcn = noty({
             text : notyObj.text,
             template : '<div class="noty_message"><span class="noty_text"></span><div class="noty_close"></div></div>',
-            type : notyObj.type,            
+            type : notyObj.type,
             dismissQueue : true,
             layout : 'bottomLeft',
             timeout : 5000,
@@ -337,29 +465,32 @@ $(document).ready(function() {
 
         if (needRefresh)
             refreshProjectTree();
-    }        
-    
-    now.receiveComment = function(comment, sid){
-        if(sid === now.core.clientId) return;
-        if(currentDocumentPath === comment.path){
-            appendComment(comment);            
-        }                                                    
+    }
+
+    now.receiveComment = function(comment, sid) {
+        if (sid === now.core.clientId)
+            return;
+        if (currentDocumentPath === comment.path) {
+            appendComment(comment);
+        }
     }
     /*$(".CodeMirror-lines").resize(function(e) {
      var _height = $(".CodeMirror").height();
      var realHeight = parseInt($(".CodeMirror-scroll>div").css("min-height").substring(0, $(".CodeMirror-scroll>div").css("min-height").length - 2), 10);
      (realHeight > _height) ? $("#editor-comment-area").height(realHeight) : $("#editor-comment-area").height(_height);
      });*/
-    
+
     function getFilePath(paths) {
         var currentdocumentpath = '';
-        $.each(paths, function(i, doc){
-           currentdocumentpath += doc + '*'; 
+        $.each(paths, function(i, doc) {
+            currentdocumentpath += doc + '*';
         });
-        return currentdocumentpath.substring(0, currentdocumentpath.length-1);
+        return currentdocumentpath.substring(0, currentdocumentpath.length - 1);
     }
 
+
     $('#browser').bind('click', function() {
+        //TODO save current document in database
         var reg = /^file.*/;
 
         if (reg.test($.jstree._focused().get_selected().attr('rel'))) {
@@ -371,8 +502,8 @@ $(document).ready(function() {
                 mode = "css"
 
             //enable live preview toggle button, hide live view if open
-            //TODO: hide live view            
-            
+            //TODO: hide live view
+
             $('.breadcrumb').empty();
             var paths = $.jstree._focused().get_path();
             var li;
@@ -420,19 +551,21 @@ $(document).ready(function() {
             $(".CodeMirror-lines").contextMenu(editor_contextmenu, {
                 theme : 'vista'
             });
-            
+
             $("#right-items").css("display", "block");
             $("#right-items>div").html("");
-            
+
             var user = username;
-            user.currentDocument = currentDocumentPath.replace(/\*/g,'/');
+            user.currentDocument = currentDocumentPath.replace(/\*/g, '/');
             now.updateCurrentDoc(username, user.currentDocument);
-            
-            var waiting;
-            myCodeMirror.on('change', function(cm){
-               clearTimeout(waiting);
-               wating = setTimeout(updateHints(cm), 300); 
-            });
+
+            if (file_type === "file-js") {
+                var waitingLint;
+                myCodeMirror.on('change', function(cm) {
+                    clearTimeout(waitingLint);
+                    waitingLint = setTimeout(updateHints(cm), 300);                    
+                });
+            }
 
             //TODO resize SynchDivScroll
             /*$(".CodeMirror-scrollbar").attr("id", "syncOneDive");
@@ -916,12 +1049,12 @@ $(document).ready(function() {
             "margin" : "0 auto"
         }).append(selectContent);
 
-        var dialogFotter = $("<div>").append($("<a>").attr({
+        var dialogFooter = $("<div>").append($("<a>").attr({
             class : "btn",
             "data-dismiss" : "modal"
         }).text("Cancel")).append($("<a>").attr({
             class : "btn btn-primary"
-        }).text("Create").click(function() {
+        }).css('margin','5px 5px 6px').text("Create").click(function() {
             // Create New a file
             var reg = /.+\..+/;
             var project_name = sessionStorage.getItem('project');
@@ -951,7 +1084,7 @@ $(document).ready(function() {
             }
             // create
             $("#browser").jstree("create", ele, "last", {
-                data : $(".modal-body input").val(),
+                data : $("#dialog>div.modal-body input").val(),
                 attr : {
                     rel : type
                 }
@@ -966,9 +1099,9 @@ $(document).ready(function() {
             //refreshProjectTree();
         }));
 
-        $(".modal-header").html(dialogHeader);
-        $(".modal-body").html(dialogContent);
-        $(".modal-footer").html(dialogFotter);
+        $("#dialog>div.modal-header").html(dialogHeader);
+        $("#dialog>div.modal-body").html(dialogContent);
+        $("#dialog>div.modal-footer").html(dialogFooter);
 
         $("#dialog").modal();
     }
@@ -992,12 +1125,12 @@ $(document).ready(function() {
             width : "100%",
             required : true
         })));
-        var dialogFotter = $("<div>").append($("<a>").attr({
+        var dialogFooter = $("<div>").append($("<a>").attr({
             class : "btn",
             "data-dismiss" : "modal"
         }).text("Cancel")).append($("<a>").attr({
             class : "btn btn-primary"
-        }).text("Create").click(function() {
+        }).css('margin','5px 5px 6px').text("Create").click(function() {
             //  TODO save folder
             var project_name = sessionStorage.getItem('project');
             var paths = $.jstree._focused().get_path();
@@ -1011,7 +1144,7 @@ $(document).ready(function() {
 
             // create
             $("#browser").jstree("create", ele, "last", {
-                data : $(".modal-body input").val(),
+                data : $("#dialog>div.modal-body input").val(),
                 attr : {
                     rel : 'folder'
                 }
@@ -1022,15 +1155,23 @@ $(document).ready(function() {
             var notifMsg = '<span style="text-align:justify"><a href="#" class="notification-user-a">' + now.user.name + '</a>' + ' has created a new folder <a href="#" class="notification-file-a">' + folder_name + '</a> under <a class="notification-project-a" href="#">' + sessionStorage.getItem('project') + '</a> project.</span>';
             ns.sendNotification(notifMsg, "information", true, 'g');
         }));
-        $(".modal-header").html(dialogHeader);
-        $(".modal-body").html(dialogContent);
-        $(".modal-footer").html(dialogFotter);
+        $("#dialog>div.modal-header").html(dialogHeader);
+        $("#dialog>div.modal-body").html(dialogContent);
+        $("#dialog>div.modal-footer").html(dialogFooter);
         $("#dialog").modal();
     }
 
     function cleanSessionStorage() {
+        try{
         sessionStorage.removeItem('project');
         sessionStorage.removeItem('docName');
+        }
+        catch(e){
+            console.log(e);
+        }
+        finally{
+            
+        }
     }
 
 
@@ -1103,6 +1244,42 @@ $(document).ready(function() {
             showLeftArea($(this));
         }
     });
+    
+    function startIdleTimer(idleTime){        
+        var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p style='text-align:center;font-weight:bold;' class='text-error'>***Warning***</p><p></p>";
+        var dialogContent = "<p>You were idle for more than " + idleTime/60 + " minutes, and you are about to be logged out in <span id='dialog-countdown' class='text-error'></span> seconds!</p>";                
+        
+        var dialogFooter = $("<div>").css({'text-align':'center'}).append($("<a href='#'>").attr({
+            class : "btn btn-success"            
+        }).text("Keep Working").click(function() {
+            $.idleTimeout.options.onResume.call(this);                       
+        })).append($("<a href='#'>").attr({
+            class : "btn btn-primary"                        
+        }).css("margin","5px 5px 6px").text("Loggoff").click(function(){
+            $.idleTimeout.options.onTimeout.call(this);
+        }));
+        
+        $(".idle.modal-header").html(dialogHeader);
+        $(".idle.modal-body").html(dialogContent);
+        $(".idle.modal-footer").html(dialogFooter);
+        
+        $.idleTimeout('#idleDialog', '#idleDialog', {
+            idleAfter: idleTime,                        
+            onTimeout: function(){
+                _logout({"reason":"idle"});
+            },
+            onIdle: function(){
+                $("#idleDialog").modal('show');
+            },
+            onResume: function(){
+                $("#idleDialog").modal('hide');                
+            },
+            onCountdown: function(counter){
+                var $countdown = $('#dialog-countdown');
+                $countdown.html(counter); // update the counter
+            }
+        });
+    }
     /*function hideCommentArea(toggleButton) {
     $("#right-items").hide("drop", {
     direction : "right"
@@ -1181,12 +1358,7 @@ $(document).ready(function() {
     });
 
     $(".btn-logout").click(function() {
-        cleanSessionStorage();        
-        var notifMsg = now.user.name + " is offline!";
-        ns.sendNotification(notifMsg, "error", false, 'e');
-        window.location.href = '/logout';
-
-        //TODO update chat list
+        _logout({"reason": "logoutButton"});                                
     });
 
     $("a[data-action=editor-new-file]").click(function() {
@@ -1199,13 +1371,36 @@ $(document).ready(function() {
 
     $("a[data-action=editor-open-project]").click(function() {
         // fetch project list
-        _openProject();
+        _openProject();        
     });
 
     $("a[data-action=editor-close-project]").click(function() {
         // fetch project list
         _closeProject();
     });
+    
+    function _logout(options){
+        var reason = options.reason;
+        
+        switch(reason){
+            case 'idle':
+                //TODO: save current open document on the server, appropriate notification
+            break;
+            case 'logoutButton':
+                //TODO: save current open document on the server, appropriate notification
+            break;
+            case 'windowClose':
+                //save current open document on the server, appropriate notification
+            break;
+        }
+        
+        cleanSessionStorage();
+        now.changeProjectGroup(undefined);
+        
+        var notifMsg = now.user.name + " is offline!";
+        ns.sendNotification(notifMsg, "error", false, 'e');
+        window.location.href = '/logout';
+    }
 
     $("a[data-action=editor-share-code]").click(function() {
         var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>Share via this link</p>";
@@ -1219,18 +1414,18 @@ $(document).ready(function() {
             required : true
         })));
 
-        var dialogFotter = $("<div>").append($("<a>").attr({
+        var dialogFooter = $("<div>").append($("<a>").attr({
             class : "btn",
             "data-dismiss" : "modal"
         }).text("Cancel")).append($("<a>").attr({
             class : "btn btn-primary"
-        }).text("Share").click(function() {
+        }).css('margin','5px 5px 6px').text("Share").click(function() {
             //TODO: Send notification to user
         }));
 
-        $(".modal-header").html(dialogHeader);
-        $(".modal-body").html(dialogContent);
-        $(".modal-footer").html(dialogFotter);
+        $("#dialog>div.modal-header").html(dialogHeader);
+        $("#dialog>div.modal-body").html(dialogContent);
+        $("#dialog>div.modal-footer").html(dialogFooter);
         $("#dialog").modal();
     });
 
@@ -1265,9 +1460,9 @@ $(document).ready(function() {
             }
             project_table.append(tbody);
             var dialogContent = project_table;
-            $(".modal-header").html(dialogHeader);
-            $(".modal-body").html(dialogContent);
-            $(".modal-footer").html('');
+            $("#dialog>div.modal-header").html(dialogHeader);
+            $("#dialog>div.modal-body").html(dialogContent);
+            $("#dialog>div.modal-footer").html('');
             project_table.dataTable();
             $("#dialog").modal();
         });
@@ -1275,34 +1470,51 @@ $(document).ready(function() {
 
 
     now.updateList = function(users) {
-        function getDocPathName(docPath){
-            if(docPath === 'undefined') return {doc:"nothing", path:""};
+        function getDocPathName(docPath) {
+            if (docPath === 'undefined')
+                return {
+                    doc : "nothing...",
+                    path : ""
+                };
             var path = docPath.split("/");
-            var doc = path.splice(path.length-1);            
-            return {doc:doc[0], path:path.join("/")};
+            var doc = path.splice(path.length - 1);
+            return {
+                doc : doc[0],
+                path : path.join("/")
+            };
         }
+
+
         $("#chat-users-list").html("");
         var pname = sessionStorage.getItem('project');
         $.each(users[pname], function(index, user) {
-            var docPath = getDocPathName(user.currentDocument);            
+            var docPath = getDocPathName(user.currentDocument);
             var cuItem = $("<div>").attr("chat-user-id", user._id).addClass("cu-item").append($("<table>").css({
                 'width' : '100%',
                 'height' : '100%',
                 'text-align' : 'center'
-            }).append($("<tr>").attr('align', 'center').append($("<td>").css("width", "20px").append($("<div>").addClass("cu-status-available"))).append($("<td>").css("width", "20px")
-                .append("<img src=assets/img/silhouette.png></img>")).append($("<td>").css({'text-align':'left','padding-left':'5px'}).attr('valign', 'middle')
-                .append($("<a>").css({"font-weight":"bold", "font-size":"12px"}).text(user.user + " ").addClass("text-info"))))
-                .append($("<tr>").tooltip({title:docPath.path, placement:"bottom"}).attr('align', 'left').append($("<td colspan='3'>").append($("<span>").css({"font-size":"10px"}).addClass("text-warning").text("Editing " + docPath.doc)))));
+            }).append($("<tr>").attr('align', 'center').append($("<td>").css("width", "20px").append($("<div>").addClass("cu-status-available"))).append($("<td>").css("width", "20px").append("<img src=assets/img/silhouette.png></img>")).append($("<td>").css({
+                'text-align' : 'left',
+                'padding-left' : '5px'
+            }).attr('valign', 'middle').append($("<a>").css({
+                "font-weight" : "bold",
+                "font-size" : "12px"
+            }).text(user.user + " ").addClass("text-info")))).append($("<tr>").tooltip({
+                title : docPath.path,
+                placement : "bottom"
+            }).attr('align', 'left').append($("<td colspan='3'>").append($("<span>").css({
+                "font-size" : "10px"
+            }).addClass("text-warning").text("Editing " + docPath.doc)))));
             $("#chat-users-list").append($("<li>").html(cuItem));
         });
     }
     function _closeProject() {
-        //TODO clear the tree, clear the editor, clear the comments, change roomnow.changeProjectGroup(undefined);
-        now.changeProjectGroup(undefined);        
+        //TODO clear the tree, clear the editor, clear the comments, change roomnow.changeProjectGroup(undefined);        
+        now.changeProjectGroup(undefined);
         $("#browser").html('');
         $("#editor-area>div.CodeMirror").remove();
         $("#editor-area>div.inlet_slider").remove();
-        $("#editor-area>ul").html("").append($("<li>").append($("<a>").attr("href","#")));               
+        $("#editor-area>ul").html("").append($("<li>").append($("<a>").attr("href", "#")));
         $("#chat.tab-pane>table>tbody>tr>td>ul").html('');
         $("#right-items").css("display", "none");
         $("#right-items>div").html("");
@@ -1314,7 +1526,7 @@ $(document).ready(function() {
         var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>New Project</p>";
         var dialogContent = '<input type="text" id="project_name" placeholder="Enter project name" width="100%" required/><br/><input type="text" id="users" width="100%" required/>';
 
-        var dialogFotter = $("<div>").append($("<button>").attr({
+        var dialogFooter = $("<div>").append($("<button>").attr({
             class : "btn btn-primary",
             type : 'submit'
         }).text("Create").click(function() {
@@ -1342,14 +1554,14 @@ $(document).ready(function() {
                 var notifMsg = '<span style="text-align:justify"><a href="#" class="notification-user-a">' + now.user.user + '</a>' + ' has created a new project <a class="notification-project-a" href="#">' + sessionStorage.getItem('project') + '</a></span>';
                 ns.sendNotification(notifMsg, "information", false, 'e');
             }
-        })).append($("<button>").attr({
+        })).css('margin','5px 5px 6px').append($("<button>").attr({
             class : "btn",
             type : 'button',
             "data-dismiss" : "modal"
         }).text("Cancel"));
-        $(".modal-header").html(dialogHeader);
-        $(".modal-body").html(dialogContent);
-        $(".modal-footer").html(dialogFotter);
+        $("#dialog>div.modal-header").html(dialogHeader);
+        $("#dialog>div.modal-body").html(dialogContent);
+        $("#dialog>div.modal-footer").html(dialogFooter);
 
         $("#users").autoSuggest("/users/list", {
             selectedItemProp : "name",
@@ -1405,6 +1617,10 @@ $(document).ready(function() {
 
         $(document).bind('keyup', hotkeys.FULLSCREEN, function() {
             _fullscreen();
+        });
+        
+        $(document).bind('keyup', hotkeys.SAVE, function() {                       
+            saveCodeXML(myCodeMirror);
         });
         //TODO: add all shortcuts/hotkeys
     }
@@ -1550,21 +1766,21 @@ $(document).ready(function() {
     $('#chat-start').click(function() {
         var pname = sessionStorage.getItem('project');
         chatWith('GroupChat');
-    });       
-    
+    });
+
     function appendComment(comment) {
-        if($('#' + comment.cid).size() === 0) {
+        if ($('#' + comment.cid).size() === 0) {
             createComment(comment.line, comment.content, comment.who);
         }
-                
+
         var ts = new Date(comment.timestamp);
         var tsstring = "On " + ts.toDateString() + " at " + ts.toLocaleTimeString();
         var content = comment.content;
-        
+
         var commentItem = $('<div>').addClass('CodeMirror-commentitem').append($('<p>').css('margin', '2px').html($('<span>').css({
             'font-weight' : 'bold',
-            'font-size': '10px',
-            'font-color': '#3399FF'
+            'font-size' : '10px',
+            'font-color' : '#3399FF'
         }).html(comment.who).append($('<span>').css({
             'font-weight' : 'normal',
             'font-size' : '10px'
@@ -1575,15 +1791,15 @@ $(document).ready(function() {
         }).html(tsstring)));
 
         var commentContent = $('#' + comment.cid).find("table tbody tr div.commentContent");
-        $(commentContent).append(commentItem);                
+        $(commentContent).append(commentItem);
     }
 
     function createComment(line, content, who) {
         //TODO Add Database Model tricky! :-/
         var dln = line;
         hideComments(dln);
-        var pname = sessionStorage.getItem('project');                  
-        
+        var pname = sessionStorage.getItem('project');
+
         var commentIcon = $("<div>").attr({
             "data-line-number" : dln,
             "tabindex" : "-1"
@@ -1591,17 +1807,16 @@ $(document).ready(function() {
             title : "Show Discussion!"
         });
 
-        myCodeMirror.addLineClass(dln - 1, 'wrap', 'commentMarker');        
+        myCodeMirror.addLineClass(dln - 1, 'wrap', 'commentMarker commentMarkerInvisible');
 
         var comment = $("<div>").attr({
             "data-line-number" : dln,
             "id" : "comment-" + dln,
             "tabindex" : "-1"
-        }).attr("editor-comment-isopen", "true").html($("<table>").css({            
+        }).attr("editor-comment-isopen", "true").html($("<table>").css({
             "width" : "100%",
             "height" : "100%"
-        }).append($("<tbody>").append($("<tr>").append($("<td>").append($("<div>").addClass("commentContent"))))
-        .append($("<tr>").append($("<td>").attr("valign", "bottom").append($("<div>").addClass("commentEntry").append($("<input>").css({
+        }).append($("<tbody>").append($("<tr>").append($("<td>").append($("<div>").addClass("commentContent")))).append($("<tr>").append($("<td>").attr("valign", "bottom").append($("<div>").addClass("commentEntry").append($("<input>").css({
             "margin" : "2px auto",
             "width" : "160px"
         }).attr({
@@ -1609,7 +1824,7 @@ $(document).ready(function() {
             'type' : 'text'
         }).keydown(function(e) {
             if (e.which === 13) {
-                
+
                 var taggedUsers = [];
                 content = $(this).val().split(' ');
                 var ts = new Date();
@@ -1633,49 +1848,49 @@ $(document).ready(function() {
                 nowComment.taggedUsers = taggedUsers;
                 nowComment.path = currentDocumentPath;
                 nowComment.cid = $($(this).parents()[5]).attr('id');
-                
+
                 $(this).val('');
                 appendComment(nowComment);
-                now.sendComment(nowComment);                
+                now.sendComment(nowComment);
             }
-        }))))))).addClass("comment");                 
-        
+        }))))))).addClass("comment");
+
         $($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry>input").triggeredAutocomplete({
-                source : "/users/mentionList",
-                minLength : 2,
-                allowDuplicates : false,
-                trigger : "@",
-                hidden : '#hidden_inputbox'
+            source : "/users/mentionList",
+            minLength : 2,
+            allowDuplicates : false,
+            trigger : "@",
+            hidden : '#hidden_inputbox'
         });
-        
-        $(comment).click(function(e){                     
+
+        $(comment).click(function(e) {
             $($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry>input").focus();
         });
 
-        commentIcon.click(function(e) {            
+        commentIcon.click(function(e) {
             var editorLN = $(this).attr('data-line-number');
             var comment = $("#comment-" + editorLN);
 
-            if ($(comment).attr("editor-comment-isopen") === "true") {             
+            if ($(comment).attr("editor-comment-isopen") === "true") {
                 $(comment).attr("editor-comment-isopen", "false");
-                myCodeMirror.removeLineClass(editorLN - 1, 'wrap', 'commentMarker');                
+                myCodeMirror.removeLineClass(editorLN - 1, 'wrap', 'commentMarker');
                 $(comment).hide(400);
                 $(this).tooltip({
                     title : "Show Discussion!"
                 });
-                return false;                                
-            }                        
+                return false;
+            }
 
             hideComments(editorLN);
-                                                                            
+
             $(this).tooltip({
                 title : "Hide Discussion!"
-            });                
-            myCodeMirror.addLineClass(editorLN - 1, 'wrap', 'commentMarker');
+            });
+            myCodeMirror.addLineClass(editorLN - 1, 'wrap', 'commentMarker commentMarkerInvisible');
             $(comment).attr("editor-comment-isopen", "true");
             $(comment).show(400);
-            
-            $($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry>input").focus();                
+
+            $($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry>input").focus();
         });
 
         var commentIconObg = {};
@@ -1683,7 +1898,7 @@ $(document).ready(function() {
         commentIconObg.commentDom = comment;
         commentIconObg.content = content;
         sideComments.push(commentIconObg);
-                 
+
         var lineHandle = myCodeMirror.getLineHandle(dln - 1);
         myCodeMirror.on("delete", function(cm, line) {
             cm.setGutterMarker(lineHandle, "CodeMirror-commentsiconsGutter", null);
@@ -1692,24 +1907,28 @@ $(document).ready(function() {
         myCodeMirror.setGutterMarker(lineHandle, "CodeMirror-commentsGutter", comment.get(0));
         myCodeMirror.setGutterMarker(lineHandle, "CodeMirror-commentsiconsGutter", commentIcon.get(0));
         //Add Bookmark
-        var bm = addBookmarks("comment", dln, myCodeMirror);        
-        var ctext = (content === null)?"":commentIconObg.content;
-        $(bm.dom).tooltip({title: ctext, placement: "left"});
-        //set focus on entry        
+        var bm = addBookmarks("comment", dln, myCodeMirror);
+        var ctext = (content === null) ? "" : commentIconObg.content;
+        $(bm.dom).tooltip({
+            title : ctext,
+            placement : "left"
+        });
+        //set focus on entry
         $(comment).show(400);
-        $($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry>input").focus();        
+        $($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry>input").focus();
     };
 
-    function hideComments(ln){
+    function hideComments(ln) {
         for (var i = 0; i < sideComments.length; i++) {
-                var sco = sideComments[i];
-                if (sco.lineNumber !== ln) {
-                    $(sco.commentDom).attr("editor-comment-isopen", "false");
-                    $(sco.commentDom).hide(200);                    
-                    myCodeMirror.removeLineClass(sco.lineNumber-1, "wrap", 'commentMarker');
-                }
+            var sco = sideComments[i];
+            if (sco.lineNumber !== ln) {
+                $(sco.commentDom).attr("editor-comment-isopen", "false");
+                $(sco.commentDom).hide(200);
+                myCodeMirror.removeLineClass(sco.lineNumber - 1, "wrap", 'commentMarker');
             }
-    }    
+        }
+    }
+
 
     $("a[data-action=editor-find-replace]").click(function() {
         //TODO: find/replace

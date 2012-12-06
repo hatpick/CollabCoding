@@ -27,8 +27,9 @@ html
     script(type='text/javascript', charset='utf-8', src='http://documentcloud.github.com/underscore/underscore-min.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/colorpicker/Color.Picker.Classic.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/colorpicker/Color.Space.js')               
-    script(type='text/javascript', charset='utf-8', src='assets/js/contextmenu/jquery.contextMenu.js')
-    //script(type='text/javascript', charset='utf-8', src='assets/js/jquery.slider.js')    
+    script(type='text/javascript', charset='utf-8', src='assets/js/contextmenu/jquery.contextMenu.js')    
+    script(type='text/javascript', charset='utf-8', src='assets/js/jquery.idletimer.js')
+    script(type='text/javascript', charset='utf-8', src='assets/js/jquery.idletimeout.js')    
     script(type='text/javascript', charset='utf-8', src='assets/js/codemirror/codemirror.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/zen-coding/zen_codemirror.min.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/codemirror/util/formatting.js')
@@ -73,6 +74,11 @@ html
               div.modal-header
               div.modal-body
               div.modal-footer
+            div#idleDialog.modal.hide.fade
+              //- form
+              div.idle.modal-header
+              div.idle.modal-body
+              div.idle.modal-footer
             div
               ul.nav
                 li#menuFile.dropdown

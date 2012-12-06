@@ -1,5 +1,5 @@
 var account = require('./account'),
-    project = require('./project');
+    project = require('./project');    
 
 
 
@@ -30,11 +30,13 @@ module.exports = function(app) {
   app.get('/project/list', project.show);
   app.post('/project/new', project.new);
   app.post('/project/:name/new', project.files.new);
+  app.post('/project/:name/saveXML', project.files.saveXML);
+  app.post('/project/:name/loadXML', project.files.getContent);
   app.post('/project/:name/:id', project.files.share);
   app.post('/project/:name/:id/delete', project.files.delete);
   app.post('/project/:name/rename', project.files.rename);
   // app.get('/project/:name/:id', project.files.findContent);
-  // app.post('/project/syncToMongo', project.syncToMongo)
+  // app.post('/project/syncToMongo', project.syncToMongo)  
   
 }         
 

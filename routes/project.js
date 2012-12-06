@@ -1,7 +1,7 @@
 var hat = require("hat");
 var CM = require('../models/contentprovider-mongodb');
 
-exports.show = function(req, res) {
+exports.show = function(req, res) {    
   projectProvider = ProjectProvider.factory();
   if (req.url == "/project/list") {
     projectProvider.findAll(req.session.user, function(error, result) {
@@ -86,7 +86,7 @@ exports.files.delete = function(req, res, next) {
     if (error) {
       res.send(404, {
         error: error
-      })
+      });
     }
     res.send(200);
   });
@@ -103,6 +103,46 @@ exports.files.rename = function(req, res, next) {
        
 // TODO
 exports.files.share = function(req, res, next) {};
+
+exports.files.getContent = function(req, res, next) {
+    contentProvider = ContentProvider.factory();            
+    var sid = req.body.sid;    
+    
+    contentProvider.findBySID(sid, function(error, result){
+       if(error){                  
+            res.send(404, {error:error});            
+        }
+        else{            
+            res.json(result);
+        }      
+    });    
+}
+
+exports.files.saveXML = function(req, res, next) {
+    contentProvider = ContentProvider.factory();
+         
+    var path = req.body.path.replace(/\*/g,'/')
+    var snapshot = req.body.snapshot;    
+    var owner = req.body.owner;
+    var timestamp = req.body.timestamp;
+    var pname = req.params["name"];
+    var sid = req.body.shareJSId;
+    
+    var queryData = {"shareJSId": sid, "snapshot": snapshot, "timestamp": timestamp, "owner": owner, "path": path, "project": pname};          
+    
+    contentProvider.newXML(queryData, function(error, cs){
+        if(error){
+            res.send(404, {
+            error: error
+          });            
+        }        
+        else {
+            res.send(200, {
+                cs:cs
+            });
+        }        
+    });        
+};
 
 // exports.files.findContent = function(req, res, next) {
 //   var shareJSId = req.params["id"];

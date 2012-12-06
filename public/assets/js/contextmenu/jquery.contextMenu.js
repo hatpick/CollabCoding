@@ -105,7 +105,7 @@
         },
         
         // Accept an Array representing a menu structure and turn it into HTML
-        createMenu: function(menu,cmenu) {
+        createMenu: function(menu,cmenu) {            
             var className = cmenu.className;
             $.each(cmenu.theme.split(","),function(i,n){className+=' '+cmenu.themePrefix+n});
             var $t = $('<table cellspacing=0 cellpadding=0></table>').click(function(){cmenu.hide(); return false;}); // We wrap a table around it so width can be flexible
