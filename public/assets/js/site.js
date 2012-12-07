@@ -1,17 +1,100 @@
 var errBookmarks = [];
 var commentBookmarks = [];
+var lockedCodeBookmarks = [];
 var errorIcons = [];
 var widgets = [];
 var markedText = [];
 var sideComments = [];
 var currentDocumentPath = '';
 
+var refresh_prepare = 1;
+
+function checkRefresh()
+{
+    // Get the time now and convert to UTC seconds
+    var today = new Date();
+    var now = today.getUTCSeconds();
+
+    // Get the cookie
+    var cookie = document.cookie;
+    var cookieArray = cookie.split('; ');
+
+    // Parse the cookies: get the stored time
+    for(var loop=0; loop < cookieArray.length; loop++)
+    {
+        var nameValue = cookieArray[loop].split('=');
+        // Get the cookie time stamp
+        if( nameValue[0].toString() == 'SHTS' )
+        {
+            var cookieTime = parseInt( nameValue[1] );
+        }
+        // Get the cookie page
+        else if( nameValue[0].toString() == 'SHTSP' )
+        {
+            var cookieName = nameValue[1];
+        }
+    }
+
+    if( cookieName &&
+        cookieTime &&
+        cookieName == escape(location.href) &&
+        Math.abs(now - cookieTime) < 5 )
+    {
+        // Refresh detected
+
+        // Insert code here representing what to do on
+        // a refresh
+        return true;
+
+        // If you would like to toggle so this refresh code
+        // is executed on every OTHER refresh, then 
+        // uncomment the following line
+        // refresh_prepare = 0; 
+    }   
+    else {
+        return false;
+    }
+
+    // You may want to add code in an else here special 
+    // for fresh page loads    
+}
+
+function prepareForRefresh()
+{
+    if( refresh_prepare > 0 )
+    {
+        // Turn refresh detection on so that if this
+        // page gets quickly loaded, we know it's a refresh
+        var today = new Date();
+        var now = today.getUTCSeconds();
+        document.cookie = 'SHTS=' + now + ';';
+        document.cookie = 'SHTSP=' + escape(location.href) + ';';
+    }
+    else
+    {
+        // Refresh detection has been disabled
+        document.cookie = 'SHTS=;';
+        document.cookie = 'SHTSP=;';
+    }
+}
+
+function disableRefreshDetection()
+{
+    // The next page will look like a refresh but it actually
+    // won't be, so turn refresh detection off.
+    refresh_prepare = 0;
+
+    // Also return true so this can be placed in onSubmits
+    // without fear of any problems.
+    return true;
+}
+
 function updateHints(editor) {
     editor.operation(function() {
         for (var i = 0; i < errBookmarks.length; ++i) {
             $(errBookmarks[i].dom).remove();
         }
-        editor.clearGutter("CodeMirror-errorGutter");
+        //editor.clearGutter("CodeMirror-errorGutter");
         errBookmarks.length = 0;
         errorIcons.length = 0;
 
@@ -30,31 +113,6 @@ function updateHints(editor) {
     });
 }
 
-function saveCodeXML(editor) {
-    if (currentDocumentPath === '')
-        return;
-    var xmlDoc = codeToXML(editor);
-    console.log(xmlDoc)
-    var project_name = sessionStorage.getItem('project');
-    var url = '/project/' + project_name + '/saveXML';
-    var sid = sessionStorage.getItem("docName"); 
-    
-    console.log(url + " sid:" + sid);   
-
-    $.post(url, {
-        "owner" : now.user.user,
-        "snapshot" : xmlDoc,
-        "path" : currentDocumentPath,
-        "shareJSId": sid,
-        "timestamp": new Date()
-    }, function(error, cs) {
-        if(error)
-            console.log(error);
-        else{
-            console.log(cs);
-        }
-    }, 'json');
-}
 
 function lockCode(cm) {
     if (cm.somethingSelected()) {
@@ -67,6 +125,8 @@ function lockCode(cm) {
         $.each(mt.lines, function(i, line) {
             cm.addLineClass(line, "wrap", "lockedCodeMarker");
         });
+        
+        addBookmarks("lockedCode", from.line, cm);
         markedText.push(mt);
         cm.setCursor(from);
     }
@@ -176,6 +236,7 @@ function _wherebookmark(dln) {
 }
 
 function addBookmarks(type, dln, cm) {
+    var notError = false;
     var marker, className, bookmarks;
     var bookmarkHeight = $("#bookmarksArea").height();
     var editorHeight = myCodeMirror.lineCount();
@@ -195,15 +256,22 @@ function addBookmarks(type, dln, cm) {
         bookmarks = commentBookmarks;
         marker = "commentMarker";
         className = "CodeMirror-bookmarksIconComment";
+        notError = true;
+    } else if (type === 'lockedCode') {
+        bookmarks = lockedCodeBookmarks;
+        marker = "lockedMarker";
+        className = "CodeMirror-bookmarksIconLockedCode";
+        notError = true;
     }
     var bookmark = $("<div>").addClass(className).attr("data-line", dln).css("top", top).click(function() {
         var line = $(this).attr("data-line") - 1;
         clearMarker(cm, type);
-        cm.addLineClass(line, "wrap", marker);
+        if(type !== 'lockedCode')
+            cm.addLineClass(line, "wrap", marker);
         cm.setCursor({
             line : line,
             ch : 0
-        });
+        });        
     });
 
     var bookmarkObj = {
@@ -212,7 +280,10 @@ function addBookmarks(type, dln, cm) {
         type : type
     };
     var index = _wherebookmark(dln);
-    if (index !== -1 && type === 'comment')
+    if(index === 0 && notError) {
+        $("#bookmarksArea").prepend(bookmark);
+    }
+    else if (index !== -1 && notError)
         $("#bookmarksArea div:nth-child(" + index + ")").after(bookmark);
     else
         $("#bookmarksArea").append(bookmark);
@@ -283,6 +354,51 @@ function codeToXML(editor) {
     }
     console.log($(rootDocument)[0].outerHTML);
     return $(rootDocument)[0].outerHTML;
+}
+
+function cleanSessionStorage() {
+    try{
+    sessionStorage.removeItem('project');
+    sessionStorage.removeItem('docName');
+    }
+    catch(e){
+        console.log(e);
+    }
+    finally{
+        
+    }
+}
+
+function _logout(options){
+    var reason = options.reason;
+    
+    switch(reason){
+        case 'idle':
+            cleanSessionStorage();
+            now.changeProjectGroup(undefined);
+            var notifMsg = now.user.name + " is offline!";
+            ns.sendNotification(notifMsg, "error", false, 'e');
+            //TODO: save current open document on the server, appropriate notification
+        break;
+        case 'logoutButton':
+            cleanSessionStorage();
+            now.changeProjectGroup(undefined);
+            var notifMsg = now.user.name + " is offline!";
+            ns.sendNotification(notifMsg, "error", false, 'e');
+            //TODO: save current open document on the server, appropriate notification
+        break;
+        case 'windowClose':
+            now.changeProjectGroup(undefined);
+            var notifMsg = now.user.name + " is offline!";
+            ns.sendNotification(notifMsg, "error", false, 'e');
+            //save current open document on the server, appropriate notification
+        break;
+        case 'refresh':            
+            //save current open document on the server, appropriate notification
+        break;
+    }
+                    
+    window.location.href = '/logout';
 }
 
 function reportFailure(report, cm) {
@@ -407,7 +523,18 @@ $(window).resize(function() {
         myCodeMirror.refresh();
 });
 
-window.onbeforeunload = function(e) {     
+$(window).load(function(){
+    var isRefresh = checkRefresh();
+    if(isRefresh){
+        _logout({"reason":"refresh"});
+    }    
+});
+
+window.onunload = function() {
+    prepareForRefresh();
+}
+
+window.onbeforeunload = function(e) {         
     _logout({"reason": "windowClose"});               
 };
 
@@ -717,6 +844,7 @@ $(document).ready(function() {
                                         old_name : obj.old_name,
                                         new_name : obj.new_name
                                     }, function(data) {
+                                        localNotify('Successfully renamed ' + data.oldName + ' to ' + data.newName + '!', 'success');
                                     }, 'json');
                                 });
                             }
@@ -1020,6 +1148,39 @@ $(document).ready(function() {
             showConsole($("a[data-action=editor-console-toggle]"));
         }
     }
+    
+    function localNotify(message, type){
+        var options = {
+            text : message,
+            template : '<div class="noty_message"><span class="noty_text"></span><div class="noty_close"></div></div>',
+            type : type,
+            dismissQueue : true,
+            layout : 'top',
+            timeout : 3000,
+            closeWith : ['button'],
+            buttons : false
+        };
+        var ntfcn = noty(options);    
+    }
+    
+    function saveCodeXML(editor) {
+        var sid = sessionStorage.getItem("docName");
+        var project_name = sessionStorage.getItem('project');
+        if (currentDocumentPath === '')
+            return;
+        var xmlDoc = codeToXML(editor);    
+        var url = '/project/' + project_name + '/saveXML';         
+    
+        $.post(url, {
+            "owner" : now.user.user,
+            "snapshot" : xmlDoc,
+            "path" : currentDocumentPath,
+            "shareJSId": sid,
+            "timestamp": new Date()
+        }, function(data) {        
+            localNotify('Successfully saved ' + currentDocumentPath.replace(/\*/g,'/') + ' in the the database!', 'success');       
+        }, 'json');
+    }        
 
     function deleteElement(ele) {
         var project_name = sessionStorage.getItem('project');
@@ -1028,8 +1189,9 @@ $(document).ready(function() {
         $.post('/project/' + project_name + '/' + id + '/delete', {
             paths : paths,
             type : 'file'
-        }, function() {
+        }, function(data) {            
         }, 'json');
+        localNotify('Successfully deleted ' + path + '!', 'success');
         //refreshProjectTree();
     }
 
@@ -1069,8 +1231,7 @@ $(document).ready(function() {
                 paths : paths,
                 name : file_name,
                 type : 'file'
-            }, function() {
-                console.info('success create file: ' + file_name);
+            }, function() {                
             }, 'json');
 
             var opt = $("select option:selected").val();
@@ -1095,6 +1256,7 @@ $(document).ready(function() {
             //Notification
             var notifMsg = '<span style="text-align:justify"><a href="#" class="notification-user-a">' + now.user.name + '</a>' + ' has created a new file <a href="#" class="notification-file-a">' + file_name + '</a> under <a class="notification-project-a" href="#">' + sessionStorage.getItem('project') + '</a> project.</span>';
             ns.sendNotification(notifMsg, "information", true, 'g');
+            localNotify("Successfully created " + file_name + " file!", 'success');
 
             //refreshProjectTree();
         }));
@@ -1139,7 +1301,7 @@ $(document).ready(function() {
                 paths : paths,
                 name : folder_name,
                 type : 'folder'
-            }, function() {
+            }, function() {                
             }, 'json');
 
             // create
@@ -1149,31 +1311,17 @@ $(document).ready(function() {
                     rel : 'folder'
                 }
             }, function(o) {
-            }, true);
-
+            }, true);            
             $("#dialog").modal('hide');
             var notifMsg = '<span style="text-align:justify"><a href="#" class="notification-user-a">' + now.user.name + '</a>' + ' has created a new folder <a href="#" class="notification-file-a">' + folder_name + '</a> under <a class="notification-project-a" href="#">' + sessionStorage.getItem('project') + '</a> project.</span>';
+            localNotify("Successfully created " + folder_name + " folder!", 'success');
             ns.sendNotification(notifMsg, "information", true, 'g');
         }));
         $("#dialog>div.modal-header").html(dialogHeader);
         $("#dialog>div.modal-body").html(dialogContent);
-        $("#dialog>div.modal-footer").html(dialogFooter);
+        $("#dialog>div.modal-footer").html(dialogFooter);        
         $("#dialog").modal();
-    }
-
-    function cleanSessionStorage() {
-        try{
-        sessionStorage.removeItem('project');
-        sessionStorage.removeItem('docName');
-        }
-        catch(e){
-            console.log(e);
-        }
-        finally{
-            
-        }
-    }
-
+    }    
 
     $("#left-items").width(205);
     $("#project-tree").jstree();
@@ -1264,6 +1412,7 @@ $(document).ready(function() {
         $(".idle.modal-footer").html(dialogFooter);
         
         $.idleTimeout('#idleDialog', '#idleDialog', {
+            warningLength: 10,
             idleAfter: idleTime,                        
             onTimeout: function(){
                 _logout({"reason":"idle"});
@@ -1280,59 +1429,6 @@ $(document).ready(function() {
             }
         });
     }
-    /*function hideCommentArea(toggleButton) {
-    $("#right-items").hide("drop", {
-    direction : "right"
-    }, 200);
-
-    var newWidth = $("#editor-area").width() + $("#right-items").usedWidth() - 10;
-    $("#editor-area").animate({
-    width : newWidth
-    }, {
-    duration : 200,
-    step : function(now, fx) {
-    $(".right-splitter").css("left", ($("#left-items").is(":visible") ? $("#left-items").usedWidth() : 0) + $(".left-splitter").usedWidth() + $("#editor-area").usedWidth());
-    $(".CodeMirror").width(newWidth);
-    }
-    });
-
-    toggleButton.attr("data-action", "#show").css("left", "-2px");
-    $(".right-splitter-collapse-button").data("tooltip").options.title = "Show Comments";
-    $(".right-splitter-collapse-button").data("tooltip").options.placement = "left";
-    }
-
-    function showCommentArea(toggleButton) {
-    $("#right-items").show("drop", {
-    direction : "right"
-    }, 200);
-    toggleButton.attr("data-action", "#hide").css("left", "-1px");
-    $(".right-splitter-collapse-button").data("tooltip").options.title = "Hide Comments";
-    $(".right-splitter-collapse-button").data("tooltip").options.placement = "top";
-
-    var newWidth = $("#editor-area").width() - $("#right-items").usedWidth() + 10;
-
-    $("#editor-area").animate({
-    width : newWidth
-    }, {
-    duration : 200,
-    step : function(now, fx) {
-    $(".right-splitter").css("left", ($("#left-items").is(":visible") ? $("#left-items").usedWidth() : 0) + $(".left-splitter").usedWidth() + $("#editor-area").usedWidth());
-    $(".CodeMirror").width(newWidth);
-    }
-    });
-
-    }
-
-    $(".right-splitter-collapse-button").click(function() {
-    if ($("button[data-action=editor-livepreview-toggle]").attr("data-status") === "on")
-    return;
-
-    if ($(this).attr("data-action") === "#hide") {
-    hideCommentArea($(this));
-    } else {
-    showCommentArea($(this));
-    }
-    });*/
 
     // TODO: put into configure function CodeMirror
     // var elem = document.getElementById("home");
@@ -1377,30 +1473,7 @@ $(document).ready(function() {
     $("a[data-action=editor-close-project]").click(function() {
         // fetch project list
         _closeProject();
-    });
-    
-    function _logout(options){
-        var reason = options.reason;
-        
-        switch(reason){
-            case 'idle':
-                //TODO: save current open document on the server, appropriate notification
-            break;
-            case 'logoutButton':
-                //TODO: save current open document on the server, appropriate notification
-            break;
-            case 'windowClose':
-                //save current open document on the server, appropriate notification
-            break;
-        }
-        
-        cleanSessionStorage();
-        now.changeProjectGroup(undefined);
-        
-        var notifMsg = now.user.name + " is offline!";
-        ns.sendNotification(notifMsg, "error", false, 'e');
-        window.location.href = '/logout';
-    }
+    });        
 
     $("a[data-action=editor-share-code]").click(function() {
         var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>Share via this link</p>";
@@ -1545,7 +1618,7 @@ $(document).ready(function() {
                     pname : project_name,
                     users : users
                 }, function() {
-                    console.info("success create" + $("#project_name").val());
+                    localNotify("Successfully created " + $("#project_name").val() + " project!", 'success');
                 });
                 createNewJsTree($("#dialog input").val());
                 $("#dialog").modal('hide');
@@ -1966,6 +2039,10 @@ $(document).ready(function() {
     $("a[data-action=editor-console-clean]").click(function() {
         $("#small-console>div").html("");
     });
+    
+    $("a[data-action=editor-save-document]").click(function(){
+        saveCodeXML(myCodeMirror);
+    })
 
     /*
      Tooltip

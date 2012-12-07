@@ -82,14 +82,34 @@ ContentProvider.prototype.findById = function(id, callback) {
       }
     });
 };
+
+function _compare_contents (a, b) {
+    var _date_a = new Date(a.timestamp);
+    var _date_b = new Date(b.timestamp);
+    
+    return ((_date_a < _date_b) ? -1 : ((_date_a > _date_b) ? 1 : 0));
+  
+} 
         
-ContentProvider.prototype.findBySID = function(sid, callback) {    
+ContentProvider.prototype.findLatest = function(sid, user, callback) {    
     this.getCollection(function(error, content_collection) {        
       if(error) callback(error)
       else {             
-        content_collection.findOne({"shareJSId": sid}, function(error, result) {                    
-          if( error ) callback(error)
-          else callback(null, result)
+        content_collection.find().toArray(function(error, results) {
+            if( error || results.length === 0 ) callback(error)
+            var contents = [];
+            var myContents = [];
+            for(var i = 0 ; i < results.length ; i++) {    
+                if(results[i].shareJSId === sid) {
+                    contents.push(results[i]);
+                    if(results[i].owner === user)
+                        myContents.push(results[i]);                    
+                }                                                                                                                        
+            }
+            contents = contents.sort(_compare_contents);
+            myContents = myContents.sort(_compare_contents);
+            if(contents.length === 0 || myContents.length === 0) callback('No match was found!', null);
+            callback(null, {'myLatest' : contents[contents.length-1], 'latest': myContents[myContents.length - 1]});
         });
       }
     });
@@ -128,12 +148,12 @@ ContentProvider.prototype.newXML = function(data, callback) {
             content.project = data.project;                                 
             
             contents.push(content);         
-            content_collection.save(contents, function(error, cs){
+            content_collection.save(contents, function(error, contents){
                 if(error){
                     callback(error, null);                    
                 }                
                 else {                    
-                    callback(null, "ok");
+                    callback(null, contents);
                 }
             });               
         }        

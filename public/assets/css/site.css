@@ -17,15 +17,16 @@ a img{max-width:none;height:20px}
 .lint-error-icon{color:#fff;background-color:#f00;font-weight:bold;border-radius:50%;padding:0 3px;margin-right:7px}
 .btn-ntfc{-webkit-border-radius:200px}
 .CodeMirror-scroll{height:100%}
-.CodeMirror-bookmarksIconError{height:2px;background-color:#c00;position:relative;cursor:pointer}
-.CodeMirror-bookmarksIconComment{height:2px;background-color:#edd137;position:relative;cursor:pointer}
+.CodeMirror-bookmarksIconError{height:1px;background-color:rgba(204,0,0,0.3);position:relative;cursor:pointer;border:1px solid #c00}
+.CodeMirror-bookmarksIconComment{height:1px;background-color:rgba(237,209,55,0.3);position:relative;cursor:pointer;border:1px solid #edd137}
+.CodeMirror-bookmarksIconLockedCode{height:1px;background-color:rgba(52,126,224,0.3);position:relative;cursor:pointer;border:1px solid #347ee0}
 .CodeMirror-commentsGutter{width:200px;font:Helvetica;background-color:#fff;border-right:1px solid #dbdbdb}
 .CodeMirror-errorGutter{width:10px}
 .CodeMirror-erroricon{border-radius:10px;width:8px;height:8px;margin-left:1px !important;color:#900}
 .CodeMirror-commentsiconsGutter{width:16px;margin-left:1px !important}
 .CodeMirror-commentsicons{outline:none;background-image:url("../img/comments-icon.png");height:14px;width:14px}
 .CodeMirror-commentitem{text-aling:justify;margin:1px;-webkit-border-radius:2px;background-color:#fefefe;border:1px solid #fdfdfd}
-.lockedCodeMarker{background-color:rgba(255,0,102,0.1) !important}
+.lockedCodeMarker{background-color:rgba(52,126,224,0.4) !important;background-image:url("../img/code-lock.png");background-repeat:no-repeat;background-position:right}
 .left-splitter{width:5px;float:left;left:207px;background-color:#b2b2b2}
 .left-splitter-collapse-button{position:relative;cursor:pointer;width:7px;left:-1px;height:30px;-webkit-border-radius:5px;background-color:#666}
 .left-splitter-collapse-button:hover{background-color:#1a1a1a}
@@ -73,8 +74,8 @@ a img{max-width:none;height:20px}
 .commentMentionTag{text-decoration:none;font-size:9px;font-color:#39f}
 .commentEntry{text-align:center}
 .commentEntry>input{font-size:9px}
-.commentMarker{background-color:rgba(255,255,168,0.8) !important}
-.errorMarker{background-color:rgba(255,204,204,0.5) !important}
+.commentMarker{background-color:rgba(237,209,55,0.6) !important}
+.errorMarker{background-color:rgba(255,204,204,0.7) !important}
 #comment img{width:24px;height:24px;float:left;position:relative}
 #comment div{background-color:#fff;font-size:12px;font-weight:bold}
 #comment div div{font-size:12px;font-weight:bold}

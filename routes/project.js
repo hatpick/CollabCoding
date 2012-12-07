@@ -88,7 +88,7 @@ exports.files.delete = function(req, res, next) {
         error: error
       });
     }
-    res.send(200);
+    res.send(200, {"path": data.paths});
   });
 };
 
@@ -99,6 +99,10 @@ exports.files.rename = function(req, res, next) {
   var obj = {};
   obj.old_name = req.body.old_name;
   obj.new_name = req.body.new_name;
+  res.send(200, {
+      "oldName":old_name,
+      "newName":new_name
+  });
 };
        
 // TODO
@@ -108,7 +112,7 @@ exports.files.getContent = function(req, res, next) {
     contentProvider = ContentProvider.factory();            
     var sid = req.body.sid;    
     
-    contentProvider.findBySID(sid, function(error, result){
+    contentProvider.findLatest(sid, req.session.user.user, function(error, result){
        if(error){                  
             res.send(404, {error:error});            
         }
@@ -121,22 +125,21 @@ exports.files.getContent = function(req, res, next) {
 exports.files.saveXML = function(req, res, next) {
     contentProvider = ContentProvider.factory();
          
-    var path = req.body.path.replace(/\*/g,'/')
+    var path = req.body.path.replace(/\*/g,'/');
     var snapshot = req.body.snapshot;    
     var owner = req.body.owner;
     var timestamp = req.body.timestamp;
     var pname = req.params["name"];
     var sid = req.body.shareJSId;
     
-    var queryData = {"shareJSId": sid, "snapshot": snapshot, "timestamp": timestamp, "owner": owner, "path": path, "project": pname};          
-    
+    var queryData = {"shareJSId": sid, "snapshot": snapshot, "timestamp": timestamp, "owner": owner, "path": path, "project": pname};              
     contentProvider.newXML(queryData, function(error, cs){
         if(error){
             res.send(404, {
             error: error
           });            
         }        
-        else {
+        else {            
             res.send(200, {
                 cs:cs
             });
