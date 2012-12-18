@@ -8,6 +8,74 @@ var sideComments = [];
 var currentDocumentPath = '';
 
 var refresh_prepare = 1;
+var functions = [];
+var parseId;
+
+function parse(delay) {
+    if (parseId) {
+        window.clearTimeout(parseId);
+    }
+
+    parseId = window.setTimeout(function () {
+        var code, options, result, el, str;
+
+        // Special handling for regular expression literal since we need to
+        // convert it to a string literal, otherwise it will be decoded
+        // as object "{}" and the regular expression would be lost.
+        function adjustRegexLiteral(key, value) {
+            if (key === 'value' && value instanceof RegExp) {
+                value = value.toString();
+            }
+            return value;
+        }
+
+        if (typeof window.editor === 'undefined') {
+            code = document.getElementById('home').value;
+        } else {
+            code = myCodeMirror.getValue();
+        }
+        options = {
+            comment: false,
+            raw: false,
+            range: false,
+            loc: true,
+            tolerant: true
+        };
+        
+        try {
+
+            result = esprima.parse(code, options);
+            str = JSON.stringify(result, adjustRegexLiteral, 4);
+            options.tokens = true;
+            // document.getElementById('tokens').value = JSON.stringify(esprima.parse(code, options).tokens,
+                // adjustRegexLiteral, 4);
+            // updateTree(result);
+        } catch (e) {            
+            //updateTree();
+            str = e.name + ': ' + e.message;
+        }
+
+        // el = document.getElementById('syntax');
+        // el.value = str;
+
+        // el = document.getElementById('url');
+        // el.value = location.protocol + "//" + location.host + location.pathname + '?code=' + encodeURIComponent(code);
+            
+        extractFunctions(result, functions);
+
+        parseId = undefined;
+    }, delay || 811);
+}
+
+function extractFunctions(obj, functions) {  
+    console.log(obj);     
+    if(obj.body.length === 0) return;    
+    for(var i = 0; i < obj.body.length; i++){
+        if(obj.body[i].type === 'FunctionDeclaration') functions.push(obj.body[i]);                 
+        if(typeof obj.body[i].body === 'undefined') continue;
+        extractFunctions(obj.body[i], functions);                
+    }
+}
 
 function checkRefresh()
 {
@@ -241,10 +309,10 @@ function addBookmarks(type, dln, cm) {
     var bookmarkHeight = $("#bookmarksArea").height();
     var editorHeight = myCodeMirror.lineCount();
     var mapPers;
-    if (editorHeight * 14 > bookmarkHeight * 2)
+    //if (editorHeight * 14 > bookmarkHeight * 2)
         mapPers = (bookmarkHeight) / (editorHeight);
-    else
-        mapPers = (editorHeight * 14) / (bookmarkHeight);
+    //else
+        //mapPers = (bookmarkHeight) / (editorHeight);
 
     var top = mapPers * (dln);
 
@@ -934,8 +1002,8 @@ $(document).ready(function() {
                 };
                 for (var i = 0; i < _data.root[key].length; i++) {
                     ele = _data.root[key][i];
-                    if (ele != null) {
-                        if (ele.type == 'file') {
+                    if (ele !== null) {
+                        if (ele.type === 'file') {
                             folder.children.push(_generateFileChildren(ele));
                         } else {
                             folder.children.push({
@@ -990,7 +1058,7 @@ $(document).ready(function() {
         var children = [];
         for (var i = 0; i < folder.length; i++) {
             ele = folder[i];
-            if (ele.type == 'file') {
+            if (ele.type === 'file') {
                 reg = /.+\.html/;
                 if (reg.test(ele.name)) {
                     rel = 'file-html';
@@ -1437,7 +1505,7 @@ $(document).ready(function() {
         if (mode === "htmlmixed") {
             CodeMirror.simpleHint(cm, CodeMirror.javascriptHint);
             CodeMirror.simpleHint(cm, CodeMirror.htmlHint);
-        } else if (mode === "text/html" || mode == "xml") {
+        } else if (mode === "text/html" || mode === "xml") {
             CodeMirror.simpleHint(cm, CodeMirror.htmlHint);
         } else if (mode === "javascript") {
             CodeMirror.simpleHint(cm, CodeMirror.javascriptHint);
