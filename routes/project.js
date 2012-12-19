@@ -109,8 +109,8 @@ exports.files.rename = function(req, res, next) {
 exports.files.share = function(req, res, next) {};
 
 exports.files.getContent = function(req, res, next) {
-    contentProvider = ContentProvider.factory();            
-    var sid = req.body.sid;    
+    contentProvider = ContentProvider.factory();                    
+    var sid = req.params["id"];    
     
     contentProvider.findLatest(sid, req.session.user.user, function(error, result){
        if(error){                  

@@ -31,7 +31,7 @@ module.exports = function(app) {
   app.post('/project/new', project.new);
   app.post('/project/:name/new', project.files.new);
   app.post('/project/:name/saveXML', project.files.saveXML);
-  app.post('/project/:name/loadXML', project.files.getContent);
+  app.post('/project/:name/:id/loadXML', project.files.getContent);
   app.post('/project/:name/:id', project.files.share);
   app.post('/project/:name/:id/delete', project.files.delete);
   app.post('/project/:name/rename', project.files.rename);
