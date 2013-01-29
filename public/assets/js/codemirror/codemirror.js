@@ -1,5 +1,3 @@
-// CodeMirror version 3.0
-//
 // CodeMirror is the only global var we claim
 window.CodeMirror = (function() {
   "use strict";
@@ -8,7 +6,7 @@ window.CodeMirror = (function() {
 
   // Crude, but necessary to handle a number of hard-to-feature-detect
   // bugs and behavior differences.
-  var gecko = /gecko\/\d/i.test(navigator.userAgent);
+  var gecko = /gecko\/\d{7}/i.test(navigator.userAgent);
   var ie = /MSIE \d/.test(navigator.userAgent);
   var ie_lt8 = /MSIE [1-7]\b/.test(navigator.userAgent);
   var ie_lt9 = /MSIE [1-8]\b/.test(navigator.userAgent);
@@ -23,8 +21,6 @@ window.CodeMirror = (function() {
   var phantom = /PhantomJS/.test(navigator.userAgent);
 
   var ios = /AppleWebKit/.test(navigator.userAgent) && /Mobile\/\w+/.test(navigator.userAgent);
-  // This is woefully incomplete. Suggestions for alternative methods welcome.
-  var mobile = ios || /Android|webOS|BlackBerry|Opera Mini|IEMobile/i.test(navigator.userAgent);
   var mac = ios || /Mac/.test(navigator.platform);
 
   // Optimize some code when these features are not used
@@ -44,9 +40,29 @@ window.CodeMirror = (function() {
     var display = this.display = makeDisplay(place);
     display.wrapper.CodeMirror = this;
     updateGutters(this);
-    if (options.autofocus && !mobile) focusInput(this);
+    if (options.autofocus) focusInput(this);
 
-    this.view = makeView(new BranchChunk([new LeafChunk([makeLine("", null, textHeight(display))])]));
+    var doc = new BranchChunk([new LeafChunk([makeLine("", null, textHeight(display))])]);
+    // The selection. These are always maintained to point at valid
+    // positions.
+    var selPos = {line: 0, ch: 0};
+    this.view = {
+      doc: doc,
+      // frontier is the point up to which the content has been parsed,
+      frontier: 0, highlight: new Delayed(),
+      sel: {from: selPos, to: selPos, head: selPos, anchor: selPos, shift: false, extend: false},
+      scrollTop: 0, scrollLeft: 0,
+      overwrite: false, focused: false,
+      // Tracks the maximum line length so that
+      // the horizontal scrollbar can be kept
+      // static when scrolling.
+      maxLine: getLine(doc, 0),
+      maxLineLength: 0,
+      maxLineChanged: false,
+      suppressEdits: false,
+      goalColumn: null,
+      cantEdit: false
+    };
     this.nextOpId = 0;
     loadMode(this);
     themeChanged(this);
@@ -64,7 +80,7 @@ window.CodeMirror = (function() {
     // IE throws unspecified error in certain cases, when
     // trying to access activeElement before onload
     var hasFocus; try { hasFocus = (document.activeElement == display.input); } catch(e) { }
-    if (hasFocus || (options.autofocus && !mobile)) setTimeout(bind(onFocus, this), 20);
+    if (hasFocus || options.autofocus) setTimeout(bind(onFocus, this), 20);
     else onBlur(this);
 
     operation(this, function() {
@@ -163,30 +179,6 @@ window.CodeMirror = (function() {
     return d;
   }
 
-  // VIEW CONSTRUCTOR
-
-  function makeView(doc) {
-    var selPos = {line: 0, ch: 0};
-    return {
-      doc: doc,
-      // frontier is the point up to which the content has been parsed,
-      frontier: 0, highlight: new Delayed(),
-      sel: {from: selPos, to: selPos, head: selPos, anchor: selPos, shift: false, extend: false},
-      scrollTop: 0, scrollLeft: 0,
-      overwrite: false, focused: false,
-      // Tracks the maximum line length so that
-      // the horizontal scrollbar can be kept
-      // static when scrolling.
-      maxLine: getLine(doc, 0),
-      maxLineLength: 0,
-      maxLineChanged: false,
-      suppressEdits: false,
-      goalColumn: null,
-      cantEdit: false,
-      keyMaps: []
-    };
-  }
-
   // STATE UPDATES
 
   // Used to get the editor into a consistent state again when options change.
@@ -218,8 +210,8 @@ window.CodeMirror = (function() {
       });
     }
     regChange(cm, 0, doc.size);
-    clearCaches(cm);
-    setTimeout(function(){updateScrollbars(cm.display, cm.view.doc.height);}, 100);
+    clearMeasureLineCache(cm);
+    setTimeout(bind(updateScrollbars, cm.display), 100);
   }
 
   function keyMapChanged(cm) {
@@ -231,7 +223,6 @@ window.CodeMirror = (function() {
   function themeChanged(cm) {
     cm.display.wrapper.className = cm.display.wrapper.className.replace(/\s*cm-s-\S+/g, "") +
       cm.options.theme.replace(/(^|\s)\s*/g, " cm-s-");
-    clearCaches(cm);
   }
 
   function guttersChanged(cm) {
@@ -757,7 +748,6 @@ window.CodeMirror = (function() {
     var on = true;
     display.cursor.style.visibility = display.otherCursor.style.visibility = "";
     display.blinker = setInterval(function() {
-      if (!display.cursor.offsetHeight) return;
       display.cursor.style.visibility = display.otherCursor.style.visibility = (on = !on) ? "" : "hidden";
     }, cm.options.cursorBlinkRate);
   }
@@ -887,7 +877,7 @@ window.CodeMirror = (function() {
     // doesn't work when wrapping is on, but in that case the
     // situation is slightly better, since IE does cache line-wrapping
     // information and only recomputes per-line.
-    if (ie && !ie_lt8 && !cm.options.lineWrapping && pre.childNodes.length > 100) {
+    if (ie && !cm.options.lineWrapping && pre.childNodes.length > 100) {
       var fragment = document.createDocumentFragment();
       var chunk = 10, n = pre.childNodes.length;
       for (var i = 0, chunks = Math.ceil(n / chunk); i < chunks; ++i) {
@@ -929,10 +919,8 @@ window.CodeMirror = (function() {
     return data;
   }
 
-  function clearCaches(cm) {
+  function clearMeasureLineCache(cm) {
     cm.display.measureLineCache.length = cm.display.measureLineCachePos = 0;
-    cm.display.cachedCharWidth = cm.display.cachedTextHeight = null;
-    cm.view.maxLineChanged = true;
   }
 
   // Context is one of "line", "div" (display.lineDiv), "local"/null (editor), or "page"
@@ -1267,7 +1255,7 @@ window.CodeMirror = (function() {
     on(window, "resize", function resizeHandler() {
       // Might be a text scaling operation, clear size caches.
       d.cachedCharWidth = d.cachedTextHeight = null;
-      clearCaches(cm);
+      clearMeasureLineCache(cm);
       if (d.wrapper.parentNode) updateDisplay(cm, true);
       else off(window, "resize", resizeHandler);
     });
@@ -1406,19 +1394,14 @@ window.CodeMirror = (function() {
       return;
     }
     e_preventDefault(e);
-    if (type == "single") extendSelection(cm, clipPos(doc, start));
+    if (type == "single") extendSelection(cm, start);
 
     var startstart = sel.from, startend = sel.to;
 
     function doSelect(cur) {
       if (type == "single") {
-        extendSelection(cm, clipPos(doc, start), cur);
-        return;
-      }
-
-      startstart = clipPos(doc, startstart);
-      startend = clipPos(doc, startend);
-      if (type == "double") {
+        extendSelection(cm, start, cur);
+      } else if (type == "double") {
         var word = findWordAt(getLine(doc, cur.line).text, cur);
         if (posLess(cur, startstart)) extendSelection(cm, word.from, startend);
         else extendSelection(cm, startstart, word.to);
@@ -1550,8 +1533,7 @@ window.CodeMirror = (function() {
     e.dataTransfer.setData("Text", txt);
 
     // Use dummy image instead of default browsers image.
-    // Recent Safari (~6.0.2) have a tendency to segfault when this happens, so we don't do it there.
-    if (e.dataTransfer.setDragImage && !safari)
+    if (e.dataTransfer.setDragImage)
       e.dataTransfer.setDragImage(elt('img'), 0, 0);
   }
 
@@ -1598,49 +1580,25 @@ window.CodeMirror = (function() {
     if (dy == null && e.detail && e.axis == e.VERTICAL_AXIS) dy = e.detail;
     else if (dy == null) dy = e.wheelDelta;
 
-    // Webkit browsers on OS X abort momentum scrolls when the target
-    // of the scroll event is removed from the scrollable element.
-    // This hack (see related code in patchDisplay) makes sure the
-    // element is kept around.
-    if (dy && mac && webkit) {
-      for (var cur = e.target; cur != scroll; cur = cur.parentNode) {
-        if (cur.lineObj) {
-          cm.display.currentWheelTarget = cur;
-          break;
-        }
-      }
-    }
-
     var scroll = cm.display.scroller;
-    // On some browsers, horizontal scrolling will cause redraws to
-    // happen before the gutter has been realigned, causing it to
-    // wriggle around in a most unseemly way. When we have an
-    // estimated pixels/delta value, we just handle horizontal
-    // scrolling entirely here. It'll be slightly off from native, but
-    // better than glitching out.
-    if (dx && !gecko && !opera && wheelPixelsPerUnit != null) {
-      if (dy)
-        setScrollTop(cm, Math.max(0, Math.min(scroll.scrollTop + dy * wheelPixelsPerUnit, scroll.scrollHeight - scroll.clientHeight)));
-      setScrollLeft(cm, Math.max(0, Math.min(scroll.scrollLeft + dx * wheelPixelsPerUnit, scroll.scrollWidth - scroll.clientWidth)));
-      e_preventDefault(e);
-      wheelStartX = null; // Abort measurement, if in progress
-      return;
-    }
-
     if (dy && wheelPixelsPerUnit != null) {
       var pixels = dy * wheelPixelsPerUnit;
       var top = cm.view.scrollTop, bot = top + cm.display.wrapper.clientHeight;
       if (pixels < 0) top = Math.max(0, top + pixels - 50);
       else bot = Math.min(cm.view.doc.height, bot + pixels + 50);
+      if (mac && webkit) for (var cur = e.target; cur != scroll; cur = cur.parentNode) {
+        if (cur.lineObj) {
+          cm.display.currentWheelTarget = cur;
+          break;
+        }
+      }
       updateDisplay(cm, [], {top: top, bottom: bot});
     }
-
     if (wheelSamples < 20) {
       if (wheelStartX == null) {
         wheelStartX = scroll.scrollLeft; wheelStartY = scroll.scrollTop;
         wheelDX = dx; wheelDY = dy;
         setTimeout(function() {
-          if (wheelStartX == null) return;
           var movedX = scroll.scrollLeft - wheelStartX;
           var movedY = scroll.scrollTop - wheelStartY;
           var sample = (movedY && wheelDY && movedY / wheelDY) ||
@@ -1679,13 +1637,6 @@ window.CodeMirror = (function() {
     return true;
   }
 
-  function allKeyMaps(cm) {
-    var maps = cm.view.keyMaps.slice(0);
-    maps.push(cm.options.keyMap);
-    if (cm.options.extraKeys) maps.unshift(cm.options.extraKeys);
-    return maps;
-  }
-
   var maybeTransition;
   function handleKeyBinding(cm, e) {
     // Handle auto keymap transitions
@@ -1705,16 +1656,15 @@ window.CodeMirror = (function() {
 
     var stopped = false;
     function stop() { stopped = true; }
-    var keymaps = allKeyMaps(cm);
 
     if (e_prop(e, "shiftKey")) {
-      handled = lookupKey("Shift-" + name, keymaps,
+      handled = lookupKey("Shift-" + name, cm.options.extraKeys, cm.options.keyMap,
                           function(b) {return doHandleBinding(cm, b, true);}, stop)
-        || lookupKey(name, keymaps, function(b) {
+        || lookupKey(name, cm.options.extraKeys, cm.options.keyMap, function(b) {
           if (typeof b == "string" && /^go[A-Z]/.test(b)) return doHandleBinding(cm, b);
         }, stop);
     } else {
-      handled = lookupKey(name, keymaps,
+      handled = lookupKey(name, cm.options.extraKeys, cm.options.keyMap,
                           function(b) { return doHandleBinding(cm, b); }, stop);
     }
     if (stopped) handled = false;
@@ -1727,7 +1677,7 @@ window.CodeMirror = (function() {
   }
 
   function handleCharBinding(cm, e, ch) {
-    var handled = lookupKey("'" + ch + "'", allKeyMaps(cm),
+    var handled = lookupKey("'" + ch + "'", cm.options.extraKeys, cm.options.keyMap,
                             function(b) { return doHandleBinding(cm, b, true); });
     if (handled) {
       e_preventDefault(e);
@@ -2138,8 +2088,8 @@ window.CodeMirror = (function() {
   // SCROLLING
 
   function scrollCursorIntoView(cm) {
-    var view = cm.view;
-    var coords = scrollPosIntoView(cm, view.sel.head);
+    var view = cm.view, coords = cursorCoords(cm, view.sel.head);
+    scrollIntoView(cm, coords.left, coords.top, coords.left, coords.bottom);
     if (!view.focused) return;
     var display = cm.display, box = display.sizer.getBoundingClientRect(), doScroll = null;
     if (coords.top + box.top < 0) doScroll = true;
@@ -2153,23 +2103,6 @@ window.CodeMirror = (function() {
       }
       display.cursor.scrollIntoView(doScroll);
       if (hidden) display.cursor.style.display = "none";
-    }
-  }
-
-  function scrollPosIntoView(cm, pos) {
-    for (;;) {
-      var changed = false, coords = cursorCoords(cm, pos);
-      var scrollPos = calculateScrollPos(cm, coords.left, coords.top, coords.left, coords.bottom);
-      var startTop = cm.view.scrollTop, startLeft = cm.view.scrollLeft;
-      if (scrollPos.scrollTop != null) {
-        setScrollTop(cm, scrollPos.scrollTop);
-        if (Math.abs(cm.view.scrollTop - startTop) > 1) changed = true;
-      }
-      if (scrollPos.scrollLeft != null) {
-        setScrollLeft(cm, scrollPos.scrollLeft);
-        if (Math.abs(cm.view.scrollLeft - startLeft) > 1) changed = true;
-      }
-      if (!changed) return coords;
     }
   }
 
@@ -2337,19 +2270,6 @@ window.CodeMirror = (function() {
     getOption: function(option) {return this.options[option];},
 
     getMode: function() {return this.view.mode;},
-
-    addKeyMap: function(map) {
-      this.view.keyMaps.push(map);
-    },
-
-    removeKeyMap: function(map) {
-      var maps = this.view.keyMaps;
-      for (var i = 0; i < maps.length; ++i)
-        if ((typeof map == "string" ? maps[i].name : maps[i]) == map) {
-          maps.splice(i, 1);
-          return true;
-        }
-    },
 
     undo: operation(null, function() {unredoHelper(this, "undo");}),
     redo: operation(null, function() {unredoHelper(this, "redo");}),
@@ -2734,9 +2654,9 @@ window.CodeMirror = (function() {
     },
 
     scrollIntoView: function(pos) {
-      if (typeof pos == "number") pos = {line: pos, ch: 0};
       pos = pos ? clipPos(this.view.doc, pos) : this.view.sel.head;
-      scrollPosIntoView(this, pos);
+      var coords = cursorCoords(this, pos);
+      scrollIntoView(this, coords.left, coords.top, coords.left, coords.bottom);
     },
 
     setSize: function(width, height) {
@@ -2754,7 +2674,7 @@ window.CodeMirror = (function() {
     operation: function(f){return operation(this, f)();},
 
     refresh: function() {
-      clearCaches(this);
+      clearMeasureLineCache(this);
       if (this.display.scroller.scrollHeight > this.view.scrollTop)
         this.display.scrollbarV.scrollTop = this.display.scroller.scrollTop = this.view.scrollTop;
       updateDisplay(this, true);
@@ -2791,12 +2711,13 @@ window.CodeMirror = (function() {
   option("smartIndent", true);
   option("tabSize", 4, function(cm) {
     loadMode(cm);
-    clearCaches(cm);
+    clearMeasureLineCache(cm);
     updateDisplay(cm, true);
   }, true);
   option("electricChars", true);
 
   option("theme", "default", function(cm) {
+    clearMeasureLineCache(cm);
     themeChanged(cm);
     guttersChanged(cm);
   }, true);
@@ -2873,11 +2794,7 @@ window.CodeMirror = (function() {
     var modeObj = mfactory(options, spec);
     if (modeExtensions.hasOwnProperty(spec.name)) {
       var exts = modeExtensions[spec.name];
-      for (var prop in exts) {
-        if (!exts.hasOwnProperty(prop)) continue;
-        if (modeObj.hasOwnProperty(prop)) modeObj["_" + prop] = modeObj[prop];
-        modeObj[prop] = exts[prop];
-      }
+      for (var prop in exts) if (exts.hasOwnProperty(prop)) modeObj[prop] = exts[prop];
     }
     modeObj.name = spec.name;
     return modeObj;
@@ -3052,7 +2969,7 @@ window.CodeMirror = (function() {
     else return val;
   }
 
-  function lookupKey(name, maps, handle, stop) {
+  function lookupKey(name, extraMap, map, handle, stop) {
     function lookup(map) {
       map = getKeyMap(map);
       var found = map[name];
@@ -3074,9 +2991,8 @@ window.CodeMirror = (function() {
       }
       return false;
     }
-
-    for (var i = 0; i < maps.length; ++i)
-      if (lookup(maps[i])) return true;
+    if (extraMap && lookup(extraMap)) return true;
+    return lookup(map);
   }
   function isModifierKey(event) {
     var name = keyNames[e_prop(event, "keyCode")];
@@ -3105,13 +3021,13 @@ window.CodeMirror = (function() {
     if (textarea.form) {
       // Deplorable hack to make the submit method do the right thing.
       on(textarea.form, "submit", save);
-      var form = textarea.form, realSubmit = form.submit;
+      var realSubmit = textarea.form.submit;
       try {
-        form.submit = function wrappedSubmit() {
+        textarea.form.submit = function wrappedSubmit() {
           save();
-          form.submit = realSubmit;
-          form.submit();
-          form.submit = wrappedSubmit;
+          textarea.form.submit = realSubmit;
+          textarea.form.submit();
+          textarea.form.submit = wrappedSubmit;
         };
       } catch(e) {}
     }
@@ -4547,7 +4463,7 @@ window.CodeMirror = (function() {
 
   // THE END
 
-  CodeMirror.version = "3.0";
+  CodeMirror.version = "3.0 rc1";
 
   return CodeMirror;
 })();

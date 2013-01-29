@@ -18,7 +18,7 @@
         return;
       }
 
-      var result = getHints(editor, givenOptions);
+      var result = getHints(editor);
       if (!result || !result.list.length) return;
       var completions = result.list;
       function insert(str) {

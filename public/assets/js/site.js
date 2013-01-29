@@ -11,6 +11,15 @@ var refresh_prepare = 1;
 var functions = [];
 var parseId;
 
+function get_random_color() {
+    var letters = '0123456789ABCDEF'.split('');
+    var color = '#';
+    for (var i = 0; i < 6; i++ ) {
+        color += letters[Math.round(Math.random() * 15)];
+    }
+    return color;
+}
+
 function parse(delay) {
     if (parseId) {
         window.clearTimeout(parseId);
@@ -74,6 +83,19 @@ function extractFunctions(obj, functions) {
         if(typeof obj.body[i].body === 'undefined') continue;
         extractFunctions(obj.body[i], functions);                
     }
+}
+
+function tempLoadXml() {
+    var pname = sessionStorage['project'];
+    var sid = sessionStorage['docName'];
+    
+    var url = '/project/loadXML/' + sid;
+    console.log(url);
+    
+    $.get(url, {}, function(data){      
+        console.log(data);  
+        return data;                 
+    }, 'json');
 }
 
 function checkRefresh()
@@ -181,22 +203,18 @@ function updateHints(editor) {
 }
 
 
-function lockCode(cm) {
-    if (cm.somethingSelected()) {
-        var from = cm.view.sel.from;
-        var to = cm.view.sel.to;
-        var mt = cm.markText(from, to, {
-            className : "gooz",
-            readOnly : true
-        });
-        $.each(mt.lines, function(i, line) {
-            cm.addLineClass(line, "wrap", "lockedCodeMarker");
-        });
-        
-        addBookmarks("lockedCode", from.line, cm);
-        markedText.push(mt);
-        cm.setCursor(from);
-    }
+function lockCode(lockedCode, cm) {          
+    var mt = cm.markText(lockedCode.from, lockedCode.to, {
+        className : "gooz",
+        readOnly : true
+    });
+    $.each(mt.lines, function(i, line) {
+        cm.addLineClass(line, "wrap", "lockedCodeMarker");
+    });
+    
+    addBookmarks("lockedCode", lockedCode.from.line, cm);
+    markedText.push(mt);
+    cm.setCursor(lockedCode.from);    
 }
 
 function arian(string, context) {
@@ -245,12 +263,12 @@ function editor(id, mode) {
         },
         syntax : "html",
         matchBrackets : true,
-        profile : "xhtml",
+        profile : "xhtml",        
         onKeyEvent : function() {
             return zen_editor.handleKeyEvent.apply(zen_editor, arguments);
         },
         gutters : ["CodeMirror-commentsGutter", "CodeMirror-commentsiconsGutter", "CodeMirror-errorGutter", "CodeMirror-linenumbers"]
-    });
+    });    
 
     Inlet(_editor);
 
@@ -359,6 +377,7 @@ function addBookmarks(type, dln, cm) {
 }
 
 function codeToXML(editor) {
+    if(editor.getValue() === "") return "";
     var codeHTML = [];
 
     var rootDocument = $("<code>").attr("id", currentDocumentPath);
@@ -419,7 +438,7 @@ function codeToXML(editor) {
             $(rootDocument).append(pureCodeNode);
         }
     }
-    console.log($(rootDocument)[0].outerHTML);
+    
     return $(rootDocument)[0].outerHTML;
 }
 
@@ -609,6 +628,7 @@ var idleModal;
 
 $(document).ready(function() {
     sessionStorage.clear();
+    sessionStorage.setItem("color", get_random_color());
     window.doc = null;
     window.pid = null;
     // TODO
@@ -633,7 +653,16 @@ $(document).ready(function() {
         },
         'Lock Code' : {
             onclick : function(menuItem, menu) {
-                lockCode(myCodeMirror);
+                if (myCodeMirror.somethingSelected()) {                       
+                    var lockedCode = {};
+                    lockedCode.from = myCodeMirror.view.sel.from;
+                    lockedCode.to = myCodeMirror.view.sel.to;
+                    lockedCode.who = now.user.user;
+                    lockedCode.path = currentDocumentPath;
+                    lockedCode.timestamp = new Date();
+                    lockCode(lockedCode, myCodeMirror);
+                    now.sendLockedCode(lockedCode);
+                }
             },
             icon : "assets/img/code-lock.png"
         }
@@ -660,12 +689,67 @@ $(document).ready(function() {
         if (needRefresh)
             refreshProjectTree();
     }
+    
+    function showOtherCursor(cursor, cm) {
+      var cmCursor = {line : cursor.line, ch : cursor.ch};
+      var cursorCoords = cm.cursorCoords(cmCursor);
+      var cursorEl = document.createElement('pre');
+      cursorEl.className = 'other-client';
+      cursorEl.style.borderLeftWidth = '2px';
+      cursorEl.style.borderLeftStyle = 'solid';
+      cursorEl.innerHTML = '&nbsp;';
+      cursorEl.style.borderLeftColor = cursor.color;
+      cursorEl.style.height = (cursorCoords.bottom - cursorCoords.top) * 0.9 + 'px';
+      var ua = $("<div>").css({"top" : "-" + (cursorEl.style.height/2),"padding": "3px","display":"none","background-color":cursor.color, "color":"white", "font-size" : "11px"}).html(cursor.who);
+      $(cursorEl).append(ua);      
+      var time = 2500, timer;    
+      function handlerIn() {
+          clearTimeout(timer);
+          $($(cursorEl).find("div")).stop(true).show();
+      }
+      function handlerOut() {
+          timer = setTimeout(function() {
+              $($(cursorEl).find("div")).hide();
+          }, time);
+      }
+    
+      $(cursorEl).hover(handlerIn, handlerOut);
+      cm.addWidget(cursor, cursorEl, false);      
+      return {
+        clear: function () {
+          var parent = cursorEl.parentNode;
+          if (parent) { parent.removeChild(cursorEl); }
+        }
+      };
+    }
+    
+    var cursorsDom = {};
+    now.receiveCursors = function(cursors) {                
+        $.each(cursors, function(cursor, index) {
+            if (cursors[cursor].path !== currentDocumentPath || cursors[cursor].sid === now.core.clientId) return;            
+            if(cursorsDom[cursor]) cursorsDom[cursor].clear(); 
+            //console.log(cursors[cursor]);
+            var mark = showOtherCursor(cursors[cursor], myCodeMirror);
+            cursorsDom[cursor] = mark;          
+        });        
+    }
 
-    now.receiveComment = function(comment, sid) {
+    now.receiveComment = function(comment, sid, cid) {
+        if (sid === now.core.clientId) {
+            //set server generated ID
+            
+            return;
+        }
+        if (currentDocumentPath === comment.path) {
+            appendComment(comment, cid);
+        }
+    }
+    
+    now.receiveLockedCode = function(lockedCode, sid) {
         if (sid === now.core.clientId)
             return;
-        if (currentDocumentPath === comment.path) {
-            appendComment(comment);
+        if (currentDocumentPath === lockedCode.path) {
+            lockCode(lockedCode, myCodeMirror);
         }
     }
     /*$(".CodeMirror-lines").resize(function(e) {
@@ -714,7 +798,10 @@ $(document).ready(function() {
             var myCodeMirror = editor(elem, mode);
             var docName = $.jstree._focused().get_selected().attr('data-shareJSId');
             sessionStorage.setItem("docName", docName);
-            //CodeMirror.commands.selectAll(myCodeMirror);
+            saveCodeXML(myCodeMirror, false);
+            //Load content from database
+            var textDb;//= tempLoadXml();
+            //CodeMirror.commands.selectAll(myCodeMirror);            
             sharejs.open(docName, 'text', function(error, newdoc) {
                 if (doc !== null) {
                     doc.close();
@@ -727,9 +814,8 @@ $(document).ready(function() {
                     console.error(error);
                     return;
                 }
-                var pname = sessionStorage.getItem('project');
-
-                doc.attach_codemirror(myCodeMirror, pname, docName);
+                
+                doc.attach_codemirror(myCodeMirror);//, textDb);
             });
             if ($(".CodeMirror.CodeMirror-wrap").size() > 1) {
                 $($(".CodeMirror.CodeMirror-wrap")[1]).remove();
@@ -749,6 +835,21 @@ $(document).ready(function() {
 
             $("#right-items").css("display", "block");
             $("#right-items>div").html("");
+            
+            //TODO:Share cursor positions
+            myCodeMirror.on("cursorActivity", function() {                   
+                var color = sessionStorage.getItem("color");
+                var cursor = myCodeMirror.getCursor();
+                cursor.color = color;  
+                cursor.sid = now.core.clientId;
+                cursor.who = now.user.user;
+                cursor.path = currentDocumentPath;          
+                now.syncCursors(cursor, now.user.clientId);
+            });
+            
+            myCodeMirror.on("change", function(myCodeMirror, changeObj){
+               saveCodeXML(myCodeMirror, false); 
+            });
 
             var user = username;
             user.currentDocument = currentDocumentPath.replace(/\*/g, '/');
@@ -761,7 +862,7 @@ $(document).ready(function() {
                     waitingLint = setTimeout(updateHints(cm), 300);                    
                 });
             }
-
+                       
             //TODO resize SynchDivScroll
             /*$(".CodeMirror-scrollbar").attr("id", "syncOneDive");
             new SynchDivScroll('syncOneDive', 'editor-comment-temp');
@@ -1229,9 +1330,9 @@ $(document).ready(function() {
             buttons : false
         };
         var ntfcn = noty(options);    
-    }
+    }        
     
-    function saveCodeXML(editor) {
+    function saveCodeXML(editor, ntfn) {
         var sid = sessionStorage.getItem("docName");
         var project_name = sessionStorage.getItem('project');
         if (currentDocumentPath === '')
@@ -1245,8 +1346,9 @@ $(document).ready(function() {
             "path" : currentDocumentPath,
             "shareJSId": sid,
             "timestamp": new Date()
-        }, function(data) {        
-            localNotify('Successfully saved ' + currentDocumentPath.replace(/\*/g,'/') + ' in the the database!', 'success');       
+        }, function(data) {
+            if(ntfn)        
+                localNotify('Successfully saved ' + currentDocumentPath.replace(/\*/g,'/') + ' in the the database!', 'success');       
         }, 'json');
     }        
 
@@ -1325,7 +1427,7 @@ $(document).ready(function() {
             var notifMsg = '<span style="text-align:justify"><a href="#" class="notification-user-a">' + now.user.name + '</a>' + ' has created a new file <a href="#" class="notification-file-a">' + file_name + '</a> under <a class="notification-project-a" href="#">' + sessionStorage.getItem('project') + '</a> project.</span>';
             ns.sendNotification(notifMsg, "information", true, 'g');
             localNotify("Successfully created " + file_name + " file!", 'success');
-
+            saveCodeXML(myCodeMirror, false);
             //refreshProjectTree();
         }));
 
@@ -1761,7 +1863,7 @@ $(document).ready(function() {
         });
         
         $(document).bind('keyup', hotkeys.SAVE, function() {                       
-            saveCodeXML(myCodeMirror);
+            saveCodeXML(myCodeMirror, true);
         });
         //TODO: add all shortcuts/hotkeys
     }
@@ -1909,7 +2011,7 @@ $(document).ready(function() {
         chatWith('GroupChat');
     });
 
-    function appendComment(comment) {
+    function appendComment(comment, cid) {
         if ($('#' + comment.cid).size() === 0) {
             createComment(comment.line, comment.content, comment.who);
         }
@@ -1937,22 +2039,21 @@ $(document).ready(function() {
 
     function createComment(line, content, who) {
         //TODO Add Database Model tricky! :-/
-        var dln = line;
-        hideComments(dln);
+        var comment_id = uuid.v1();        
+        hideComments(parseInt(getLineByCID(comment_id), 10) - 1);
         var pname = sessionStorage.getItem('project');
-
-        var commentIcon = $("<div>").attr({
-            "data-line-number" : dln,
+        
+        
+        var commentIcon = $("<div>").attr({            
+            "id" : comment_id,
             "tabindex" : "-1"
         }).addClass("CodeMirror-commentsicons").tooltip({
             title : "Show Discussion!"
         });
 
-        myCodeMirror.addLineClass(dln - 1, 'wrap', 'commentMarker commentMarkerInvisible');
-
-        var comment = $("<div>").attr({
-            "data-line-number" : dln,
-            "id" : "comment-" + dln,
+        myCodeMirror.addLineClass(parseInt(getLineByCID(comment_id), 10) - 1, 'wrap', 'commentMarker commentMarkerInvisible');        
+        var comment = $("<div>").attr({            
+            "id" : comment_id,           
             "tabindex" : "-1"
         }).attr("editor-comment-isopen", "true").html($("<table>").css({
             "width" : "100%",
@@ -1982,13 +2083,14 @@ $(document).ready(function() {
                 });
 
                 var nowComment = {};
+                
                 nowComment.content = finalContent;
-                nowComment.who = now.user.user;
-                nowComment.line = $($(this).parents()[5]).attr('data-line-number');
+                nowComment.who = now.user.user;                
                 nowComment.timestamp = ts;
+                nowComment.TSString = 'Sent on ' + ts.toDateString() + ' at ' + ts.toLocaleTimeString();
                 nowComment.taggedUsers = taggedUsers;
                 nowComment.path = currentDocumentPath;
-                nowComment.cid = $($(this).parents()[5]).attr('id');
+                nowComment.cid = $($(this).parents()[5]).attr('id');                                
 
                 $(this).val('');
                 appendComment(nowComment);
@@ -2009,12 +2111,12 @@ $(document).ready(function() {
         });
 
         commentIcon.click(function(e) {
-            var editorLN = $(this).attr('data-line-number');
-            var comment = $("#comment-" + editorLN);
+            var cid = $(this).attr('id');            
+            var comment = $("#" + cid);
 
             if ($(comment).attr("editor-comment-isopen") === "true") {
                 $(comment).attr("editor-comment-isopen", "false");
-                myCodeMirror.removeLineClass(editorLN - 1, 'wrap', 'commentMarker');
+                myCodeMirror.removeLineClass(parseInt(getLineByCID(cid), 10) - 1, 'wrap', 'commentMarker');
                 $(comment).hide(400);
                 $(this).tooltip({
                     title : "Show Discussion!"
@@ -2022,12 +2124,12 @@ $(document).ready(function() {
                 return false;
             }
 
-            hideComments(editorLN);
+            hideComments(parseInt(getLineByCID(cid), 10) - 1);
 
             $(this).tooltip({
                 title : "Hide Discussion!"
             });
-            myCodeMirror.addLineClass(editorLN - 1, 'wrap', 'commentMarker commentMarkerInvisible');
+            myCodeMirror.addLineClass(parseInt(getLineByCID(comment_id), 10) - 1, 'wrap', 'commentMarker commentMarkerInvisible');
             $(comment).attr("editor-comment-isopen", "true");
             $(comment).show(400);
 
@@ -2035,12 +2137,12 @@ $(document).ready(function() {
         });
 
         var commentIconObg = {};
-        commentIconObg.lineNumber = dln;
+        commentIconObg.cid = comment_id;
         commentIconObg.commentDom = comment;
         commentIconObg.content = content;
         sideComments.push(commentIconObg);
 
-        var lineHandle = myCodeMirror.getLineHandle(dln - 1);
+        var lineHandle = myCodeMirror.getLineHandle(parseInt(getLineByCID(comment_id), 10) - 1);
         myCodeMirror.on("delete", function(cm, line) {
             cm.setGutterMarker(lineHandle, "CodeMirror-commentsiconsGutter", null);
         });
@@ -2048,7 +2150,7 @@ $(document).ready(function() {
         myCodeMirror.setGutterMarker(lineHandle, "CodeMirror-commentsGutter", comment.get(0));
         myCodeMirror.setGutterMarker(lineHandle, "CodeMirror-commentsiconsGutter", commentIcon.get(0));
         //Add Bookmark
-        var bm = addBookmarks("comment", dln, myCodeMirror);
+        var bm = addBookmarks("comment", parseInt(getLineByCID(comment_id), 10) - 1, myCodeMirror);
         var ctext = (content === null) ? "" : commentIconObg.content;
         $(bm.dom).tooltip({
             title : ctext,
@@ -2058,14 +2160,19 @@ $(document).ready(function() {
         $(comment).show(400);
         $($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry>input").focus();
     };
-
+    
+    function getLineByCID(cid) {        
+        var ln = $("#" + cid).parent().parent().children()[0].innerHTML;
+        return ln;
+    }
+    
     function hideComments(ln) {
         for (var i = 0; i < sideComments.length; i++) {
             var sco = sideComments[i];
             if (sco.lineNumber !== ln) {
                 $(sco.commentDom).attr("editor-comment-isopen", "false");
                 $(sco.commentDom).hide(200);
-                myCodeMirror.removeLineClass(sco.lineNumber - 1, "wrap", 'commentMarker');
+                myCodeMirror.removeLineClass(parseInt(getLineByCID(sco.cid), 10) - 1, "wrap", 'commentMarker');
             }
         }
     }
@@ -2109,8 +2216,8 @@ $(document).ready(function() {
     });
     
     $("a[data-action=editor-save-document]").click(function(){
-        saveCodeXML(myCodeMirror);
-    })
+        saveCodeXML(myCodeMirror, true);
+    });
 
     /*
      Tooltip

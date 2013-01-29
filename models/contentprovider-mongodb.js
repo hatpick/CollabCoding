@@ -113,28 +113,24 @@ ContentProvider.prototype.findLatest = function(sid, user, callback) {
     this.getCollection(function(error, contents_collection) {
         if (error)
             callback(error)
-        else {
-            contents_collection.find().toArray(function(error, results) {
-                if (error || results.length === 0)
-                    callback(error)
+        else {            
+            contents_collection.find().toArray(function(error, results) {                
+                if (error)
+                    callback(error + " nothing found!");
                 var contents = [];
-                var myContents = [];
-                for (var i = 0; i < results.length; i++) {
-                    if (results[i].shareJSId === sid) {
-                        contents.push(results[i]);
-                        if (results[i].owner === user)
-                            myContents.push(results[i]);
-                    }
+                for(var i = 0; i < results.length; i++) {
+                    if(results[i].shareJSId === sid)
+                        contents.push(results[i]);                    
+                }       
+                if(contents.length > 0) {
+                    contents = contents.sort(_compare_contents);                                                 
+                    callback(null, {
+                        'latest' : contents[contents.length - 1].snapshot                    
+                    });
                 }
-                contents = contents.sort(_compare_contents);
-                myContents = myContents.sort(_compare_contents);
-                if (contents.length === 0 || myContents.length === 0)
-                    callback('No match was found!', null);
-                callback(null, {
-                    'latest' : contents[contents.length - 1],
-                    'myLatest' : myContents[myContents.length - 1]
-                });
-            });
+                else
+                    callback("not found any content!");
+            });            
         }
     });
 };
@@ -154,9 +150,7 @@ ContentProvider.prototype.new = function(name, data, callback) {
     });
 };
 
-ContentProvider.prototype.
-delete  =
-function(name, data, callback) {
+ContentProvider.prototype.delete = function(name, data, callback) {
     this.getCollection(function(err, content_collection) {
         if (err)
             callback(err)
@@ -169,7 +163,8 @@ ContentProvider.prototype.newXML = function(data, callback) {
     this.getCollection(function(error, content_collection) {
         if (error)
             callback(error);
-        else {
+        else 
+        {
             var content = {}, contents = [];
             content.shareJSId = data.shareJSId;
             content.snapshot = data.snapshot;
@@ -177,16 +172,31 @@ ContentProvider.prototype.newXML = function(data, callback) {
             content.owner = data.owner;
             content.path = data.path;
             content.project = data.project;
-
             contents.push(content);
-            content_collection.save(contents, function(error, contents) {
-                if (error) {
-                    callback(error, null);
-                } else {
-                    callback(null, contents);
-                }
-            });
-        }
+            
+            content_collection.find({"owner":data.owner, "path":data.path}).sort({"timestamp":-1}).toArray(function(err, latest){
+                if(error) callback(error + " nothing found!");
+                else {
+                    if(latest.length > 0){
+                        var pc = latest[0]; 
+                        console.log(pc);
+                        content_collection.update({_id : pc._id}, {$set:{snapshot:content.snapshot, timestamp:content.timestamp}}, function(err, contents){
+                            callback(null, content);                        
+                        });                        
+                    }
+                    else {
+                        content_collection.save(contents, function(error, contents) {
+                        if (error) {
+                            callback(error, null);
+                        } else {
+                            callback(null, contents);
+                        }
+                    });                        
+                    }                        
+                                        
+                }               
+            });                        
+        }                
     });
 }
 
@@ -194,20 +204,18 @@ ContentProvider.prototype.save = function(contents, callback) {
     this.getCollection(function(error, content_collection) {
         if (error)
             callback(error)
-        else {
-            console.log("save");
+        else {            
             if ( typeof (contents.length) == "undefined")
                 contents = [contents];
             for (var i = 0; i < contents.length; i++) {
                 content = contents[i];
-                if (!content.timestamp || !content.shareJSId || !content.snapshot || !content.project || !content.owner || !content.path) {
-                    console.log("here");
+                if (!content.timestamp || !content.shareJSId || !content.snapshot || !content.project || !content.owner || !content.path) {                    
                     callback("error");
                 }
-            }
+            }                        
             content_collection.insert(contents, function() {
                 callback(null, contents);
-            });
+            });                                                                     
         }
     });
 };

@@ -1,21 +1,16 @@
 // Open simple dialogs on top of an editor. Relies on dialog.css.
 
 (function() {
-  function dialogDiv(cm, template, bottom) {
+  function dialogDiv(cm, template) {
     var wrap = cm.getWrapperElement();
-    var dialog;
-    dialog = wrap.appendChild(document.createElement("div"));
-    if (bottom) {
-      dialog.className = "CodeMirror-dialog CodeMirror-dialog-bottom";
-    } else {
-      dialog.className = "CodeMirror-dialog CodeMirror-dialog-top";
-    }
-    dialog.innerHTML = template;
+    var dialog = wrap.insertBefore(document.createElement("div"), wrap.firstChild);
+    dialog.className = "CodeMirror-dialog";
+    dialog.innerHTML = '<div>' + template + '</div>';
     return dialog;
   }
 
-  CodeMirror.defineExtension("openDialog", function(template, callback, options) {
-    var dialog = dialogDiv(this, template, options && options.bottom);
+  CodeMirror.defineExtension("openDialog", function(template, callback) {
+    var dialog = dialogDiv(this, template);
     var closed = false, me = this;
     function close() {
       if (closed) return;
@@ -45,8 +40,8 @@
     return close;
   });
 
-  CodeMirror.defineExtension("openConfirm", function(template, callbacks, options) {
-    var dialog = dialogDiv(this, template, options && options.bottom);
+  CodeMirror.defineExtension("openConfirm", function(template, callbacks) {
+    var dialog = dialogDiv(this, template);
     var buttons = dialog.getElementsByTagName("button");
     var closed = false, me = this, blurring = 1;
     function close() {

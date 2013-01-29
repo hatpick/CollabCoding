@@ -110,14 +110,13 @@ exports.files.share = function(req, res, next) {};
 
 exports.files.getContent = function(req, res, next) {
     contentProvider = ContentProvider.factory();                    
-    var sid = req.params["id"];    
-    
+    var sid = req.params["id"];        
     contentProvider.findLatest(sid, req.session.user.user, function(error, result){
        if(error){                  
             res.send(404, {error:error});            
         }
         else{            
-            res.json(result);
+            res.send(200,{data:result});
         }      
     });    
 }
