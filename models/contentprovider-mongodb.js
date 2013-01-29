@@ -168,6 +168,7 @@ ContentProvider.prototype.newXML = function(data, callback) {
             var content = {}, contents = [];
             content.shareJSId = data.shareJSId;
             content.snapshot = data.snapshot;
+            content.content = data.content;
             content.timestamp = data.timestamp;
             content.owner = data.owner;
             content.path = data.path;
@@ -179,8 +180,8 @@ ContentProvider.prototype.newXML = function(data, callback) {
                 else {
                     if(latest.length > 0){
                         var pc = latest[0]; 
-                        console.log(pc);
-                        content_collection.update({_id : pc._id}, {$set:{snapshot:content.snapshot, timestamp:content.timestamp}}, function(err, contents){
+                        //console.log(pc);
+                        content_collection.update({_id : pc._id}, {$set:{snapshot:content.snapshot, content:content.content, timestamp:content.timestamp}}, function(err, contents){
                             callback(null, content);                        
                         });                        
                     }

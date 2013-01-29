@@ -50,6 +50,7 @@ html
     script(type='text/javascript', charset='utf-8', src='assets/js/noty/layouts/top.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/noty/layouts/bottomLeft.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/noty/themes/default.js')
+    script(type='text/javascript', charset='utf-8', src='http://static.opentok.com/webrtc/v2.0/js/TB.min.js')
     script(type='text/javascript', src='/channel/bcsocket.js')
     script(type='text/javascript', src='/share/share.js')    
     script(type='text/javascript', src='/share/cm.js')
@@ -160,7 +161,7 @@ html
                     li
                       a(href='JavaScript:void(0);', data-action='editor-find-previous') Find Previous
                     li
-                      a(href='JavaScript:void(0);', data-action='editor-find') Replace...                    
+                      a(href='JavaScript:void(0);', data-action='editor-find-replace') Replace...                    
                 li#menuView.dropdown
                   a.dropdown-toggle(data-toggle='dropdown', href='#menuView')
                     | View
@@ -204,6 +205,15 @@ html
                       a(href='JavaScript:void(0);', data-action='editor-share-code')
                         i.icon-share
                         | Share
+                li#menuChat.dropdown
+                  a.dropdown-toggle(data-toggle='dropdown', href='#menuChat')
+                    | Chat
+                    b.caret
+                  ul.dropdown-menu
+                    li
+                      a(href='JavaScript:void(0);', data-action='editor-videochat')
+                      i.icon-facetime-video
+                      | Video Chat
                 li#menuHelp.dropdown
                   a.dropdown-toggle(data-toggle='dropdown', href='#menuHelp')
                     | Help

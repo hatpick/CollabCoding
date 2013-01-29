@@ -35,6 +35,7 @@ module.exports = function(app) {
   app.post('/project/:name/:id', project.files.share);
   app.post('/project/:name/:id/delete', project.files.delete);
   app.post('/project/:name/rename', project.files.rename);
+  app.post('/webRTCchat/createSession', project.chat.createRTCSession);
   // app.get('/project/:name/:id', project.files.findContent);
   // app.post('/project/syncToMongo', project.syncToMongo)  
   

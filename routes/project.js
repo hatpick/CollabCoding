@@ -1,4 +1,5 @@
 var hat = require("hat");
+var OpenTok = require("opentok");
 var CM = require('../models/contentprovider-mongodb');
 
 exports.show = function(req, res) {    
@@ -57,6 +58,7 @@ exports.new = function(req, res) {
 };
 
 exports.files = {};
+exports.chat = {};
 
 exports.files.new = function(req, res, next) {
   var project_name = req.params["name"];
@@ -125,13 +127,14 @@ exports.files.saveXML = function(req, res, next) {
     contentProvider = ContentProvider.factory();
          
     var path = req.body.path.replace(/\*/g,'/');
-    var snapshot = req.body.snapshot;    
+    var snapshot = req.body.snapshot;
+    var content = req.body.content;    
     var owner = req.body.owner;
     var timestamp = req.body.timestamp;
     var pname = req.params["name"];
     var sid = req.body.shareJSId;
     
-    var queryData = {"shareJSId": sid, "snapshot": snapshot, "timestamp": timestamp, "owner": owner, "path": path, "project": pname};              
+    var queryData = {"shareJSId": sid, "snapshot": snapshot, "contet": content, "timestamp": timestamp, "owner": owner, "path": path, "project": pname};              
     contentProvider.newXML(queryData, function(error, cs){
         if(error){
             res.send(404, {
@@ -145,6 +148,32 @@ exports.files.saveXML = function(req, res, next) {
         }        
     });        
 };
+
+var chat_rooms = {};
+
+exports.chat.createRTCSession = function(req, res, next) {
+    var api_key = req.body.api_key;
+    var api_secret = req.body.api_secret;
+    var pname = req.body.pname;    
+        
+    var opentok = new OpenTok.OpenTokSDK(api_key, api_secret);
+    
+    if(chat_rooms[pname]) {
+        var token = opentok.generateToken({session_id:chat_rooms[pname], connection_data:"project:"+ pname +", user:" + req.session.user.user});
+        res.send(200, {sessionId:chat_rooms[pname], token:token});        
+    }
+    else {    
+        var location = "127.0.0.1:8001";
+        var sessionId = '';
+        opentok.createSession(location, {'p2p.preference':'enabled'}, function(result){
+            sessionId = result;
+            chat_rooms[pname] = sessionId;
+            var token = opentok.generateToken({session_id:sessionId, connection_data:"project:"+ pname +", user:" + req.session.user.user});            
+            res.send(200, {sessionId:sessionId, token:token});
+        });
+    }
+    
+}
 
 // exports.files.findContent = function(req, res, next) {
 //   var shareJSId = req.params["id"];

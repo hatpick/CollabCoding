@@ -11,6 +11,29 @@ var refresh_prepare = 1;
 var functions = [];
 var parseId;
 
+
+//Tokbox Area
+var tokboxData = {"api_key": "16861582", "api_secret":"37bf9ac7337139b14ebffb17364e69fe84bfda8b"};
+var tokboxSession = {};
+
+function getSessionId() {
+    $.post('/webRTCchat/createSession', 
+            {            
+                api_key : tokboxData.api_key,
+                api_secret : tokboxData.api_secret,
+                pname: sessionStorage.getItem("project")
+            },        
+            function(data) { 
+                tokboxSession.sessionId = data.sessionId;
+                tokboxSession.token = data.token;                                
+            }
+    );
+}        
+        
+                 
+
+//Tokbox Area
+
 function get_random_color() {
     var letters = '0123456789ABCDEF'.split('');
     var color = '#';
@@ -734,14 +757,12 @@ $(document).ready(function() {
         });        
     }
 
-    now.receiveComment = function(comment, sid, cid) {
-        if (sid === now.core.clientId) {
-            //set server generated ID
-            
+    now.receiveComment = function(comment, cid) {
+        if (comment.sid === now.core.clientId) {            
             return;
         }
         if (currentDocumentPath === comment.path) {
-            appendComment(comment, cid);
+            appendComment(comment);
         }
     }
     
@@ -847,8 +868,10 @@ $(document).ready(function() {
                 now.syncCursors(cursor, now.user.clientId);
             });
             
+            var waitingAutosave;
             myCodeMirror.on("change", function(myCodeMirror, changeObj){
-               saveCodeXML(myCodeMirror, false); 
+                clearTimeout(waitingAutosave);
+                waitingAutosave = setTimeout(saveCodeXML(myCodeMirror, false), 5000); 
             });
 
             var user = username;
@@ -1343,6 +1366,7 @@ $(document).ready(function() {
         $.post(url, {
             "owner" : now.user.user,
             "snapshot" : xmlDoc,
+            "content" : editor.getValue(),
             "path" : currentDocumentPath,
             "shareJSId": sid,
             "timestamp": new Date()
@@ -2011,8 +2035,8 @@ $(document).ready(function() {
         chatWith('GroupChat');
     });
 
-    function appendComment(comment, cid) {
-        if ($('#' + comment.cid).size() === 0) {
+    function appendComment(comment) {
+        if ($('#icon-' + comment.cid).size() === 0) {
             createComment(comment.line, comment.content, comment.who);
         }
 
@@ -2039,17 +2063,19 @@ $(document).ready(function() {
 
     function createComment(line, content, who) {
         //TODO Add Database Model tricky! :-/
-        var comment_id = uuid.v1();        
-        hideComments(parseInt(getLineByCID(comment_id), 10) - 1);
+        var lineHandle = myCodeMirror.getLineHandle(line - 1);
+        var comment_id = uuid.v1();                
         var pname = sessionStorage.getItem('project');
-        
-        
+                
         var commentIcon = $("<div>").attr({            
-            "id" : comment_id,
+            "id" : "icon-" + comment_id,
             "tabindex" : "-1"
         }).addClass("CodeMirror-commentsicons").tooltip({
             title : "Show Discussion!"
-        });
+        });        
+        myCodeMirror.setGutterMarker(lineHandle, "CodeMirror-commentsiconsGutter", commentIcon.get(0));
+        
+        hideComments(parseInt(getLineByCID(comment_id), 10) - 1);
 
         myCodeMirror.addLineClass(parseInt(getLineByCID(comment_id), 10) - 1, 'wrap', 'commentMarker commentMarkerInvisible');        
         var comment = $("<div>").attr({            
@@ -2112,11 +2138,11 @@ $(document).ready(function() {
 
         commentIcon.click(function(e) {
             var cid = $(this).attr('id');            
-            var comment = $("#" + cid);
+            var comment = $("#" + cid.substring(5));
 
             if ($(comment).attr("editor-comment-isopen") === "true") {
                 $(comment).attr("editor-comment-isopen", "false");
-                myCodeMirror.removeLineClass(parseInt(getLineByCID(cid), 10) - 1, 'wrap', 'commentMarker');
+                myCodeMirror.removeLineClass(parseInt(getLineByCID(cid.substring(5)), 10) - 1, 'wrap', 'commentMarker');
                 $(comment).hide(400);
                 $(this).tooltip({
                     title : "Show Discussion!"
@@ -2124,12 +2150,12 @@ $(document).ready(function() {
                 return false;
             }
 
-            hideComments(parseInt(getLineByCID(cid), 10) - 1);
+            hideComments(parseInt(getLineByCID(cid.substring(5)), 10) - 1);
 
             $(this).tooltip({
                 title : "Hide Discussion!"
             });
-            myCodeMirror.addLineClass(parseInt(getLineByCID(comment_id), 10) - 1, 'wrap', 'commentMarker commentMarkerInvisible');
+            myCodeMirror.addLineClass(parseInt(getLineByCID(cid.substring(5)), 10) - 1, 'wrap', 'commentMarker commentMarkerInvisible');
             $(comment).attr("editor-comment-isopen", "true");
             $(comment).show(400);
 
@@ -2142,13 +2168,12 @@ $(document).ready(function() {
         commentIconObg.content = content;
         sideComments.push(commentIconObg);
 
-        var lineHandle = myCodeMirror.getLineHandle(parseInt(getLineByCID(comment_id), 10) - 1);
+        
         myCodeMirror.on("delete", function(cm, line) {
-            cm.setGutterMarker(lineHandle, "CodeMirror-commentsiconsGutter", null);
+            cm.setGutterMarker(parseInt(getLineByCID(comment_id), 10) - 1, "CodeMirror-commentsiconsGutter", null);
         });
 
-        myCodeMirror.setGutterMarker(lineHandle, "CodeMirror-commentsGutter", comment.get(0));
-        myCodeMirror.setGutterMarker(lineHandle, "CodeMirror-commentsiconsGutter", commentIcon.get(0));
+        myCodeMirror.setGutterMarker(parseInt(getLineByCID(comment_id), 10) - 1, "CodeMirror-commentsGutter", comment.get(0));        
         //Add Bookmark
         var bm = addBookmarks("comment", parseInt(getLineByCID(comment_id), 10) - 1, myCodeMirror);
         var ctext = (content === null) ? "" : commentIconObg.content;
@@ -2162,31 +2187,36 @@ $(document).ready(function() {
     };
     
     function getLineByCID(cid) {        
-        var ln = $("#" + cid).parent().parent().children()[0].innerHTML;
+        var ln = $("#icon-" + cid).parent().parent().children()[0].innerHTML;
         return ln;
     }
     
-    function hideComments(ln) {
+    function hideComments(ccid) {        
         for (var i = 0; i < sideComments.length; i++) {
             var sco = sideComments[i];
-            if (sco.lineNumber !== ln) {
+            var lineNumber = parseInt(getLineByCID(sco.cid), 10) - 1;
+            if (ccid !== sco.cid) {
                 $(sco.commentDom).attr("editor-comment-isopen", "false");
                 $(sco.commentDom).hide(200);
-                myCodeMirror.removeLineClass(parseInt(getLineByCID(sco.cid), 10) - 1, "wrap", 'commentMarker');
+                myCodeMirror.removeLineClass(lineNumber, "wrap", 'commentMarker');
             }
         }
     }
 
 
+    $("a[data-action=editor-find]").click(function() {
+        CodeMirror.commands["find"](myCodeMirror);        
+    });
+    
     $("a[data-action=editor-find-replace]").click(function() {
-        //TODO: find/replace
+        CodeMirror.commands["replace"](myCodeMirror);        
     });
 
     $("a[data-action=editor-find-next]").click(function() {
-        //TODO: find next
+        CodeMirror.commands["findNext"](myCodeMirror);
     });
     $("a[data-action=editor-find-previous]").click(function() {
-        //TODO: find previous
+        CodeMirror.commands["findPrev"](myCodeMirror);
     });
     $("a[data-action=editor-comment-selected]").click(function() {
         commentSelection(true);
