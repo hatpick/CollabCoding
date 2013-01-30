@@ -35,12 +35,7 @@ function getSessionId() {
 //Tokbox Area
 
 function get_random_color() {
-    var letters = '0123456789ABCDEF'.split('');
-    var color = '#';
-    for (var i = 0; i < 6; i++ ) {
-        color += letters[Math.round(Math.random() * 15)];
-    }
-    return color;
+    return '#' + Math.floor(Math.random()*16777215).toString(16);
 }
 
 function parse(delay) {
@@ -713,6 +708,16 @@ $(document).ready(function() {
             refreshProjectTree();
     }
     
+    function autoupdate(dom) {
+      setTimeout(function(){
+         $(dom).css('display', 'none');
+         setTimeout(function(){
+            $(dom).css('display', 'block');
+            setTimeout(autoupdate(dom), 50);
+         }, 600)
+      }, 600)
+    }
+    
     function showOtherCursor(cursor, cm) {
       var cmCursor = {line : cursor.line, ch : cursor.ch};
       var cursorCoords = cm.cursorCoords(cmCursor);
@@ -722,9 +727,10 @@ $(document).ready(function() {
       cursorEl.style.borderLeftStyle = 'solid';
       cursorEl.innerHTML = '&nbsp;';
       cursorEl.style.borderLeftColor = cursor.color;
-      cursorEl.style.height = (cursorCoords.bottom - cursorCoords.top) * 0.9 + 'px';
+      cursorEl.style.height = (cursorCoords.bottom - cursorCoords.top) * 1.1 + 'px';
       var ua = $("<div>").css({"top" : "-" + (cursorEl.style.height/2),"padding": "3px","display":"none","background-color":cursor.color, "color":"white", "font-size" : "11px"}).html(cursor.who);
-      $(cursorEl).append(ua);      
+      $(cursorEl).append(ua);
+      setTimeout(autoupdate(cursorEl), 50);      
       var time = 2500, timer;    
       function handlerIn() {
           clearTimeout(timer);
@@ -2037,7 +2043,7 @@ $(document).ready(function() {
 
     function appendComment(comment) {
         if ($('#icon-' + comment.cid).size() === 0) {
-            createComment(comment.line, comment.content, comment.who);
+            createComment(comment.line, comment.content, comment.who, comment.cid);
         }
 
         var ts = new Date(comment.timestamp);
@@ -2061,10 +2067,10 @@ $(document).ready(function() {
         $(commentContent).append(commentItem);
     }
 
-    function createComment(line, content, who) {
+    function createComment(line, content, who, cid) {
         //TODO Add Database Model tricky! :-/
         var lineHandle = myCodeMirror.getLineHandle(line - 1);
-        var comment_id = uuid.v1();                
+        var comment_id = cid ? cid : uuid.v1();                
         var pname = sessionStorage.getItem('project');
                 
         var commentIcon = $("<div>").attr({            
@@ -2073,7 +2079,9 @@ $(document).ready(function() {
         }).addClass("CodeMirror-commentsicons").tooltip({
             title : "Show Discussion!"
         });        
+        //Start transaction
         myCodeMirror.setGutterMarker(lineHandle, "CodeMirror-commentsiconsGutter", commentIcon.get(0));
+        //End transaction
         
         hideComments(parseInt(getLineByCID(comment_id), 10) - 1);
 
@@ -2116,7 +2124,8 @@ $(document).ready(function() {
                 nowComment.TSString = 'Sent on ' + ts.toDateString() + ' at ' + ts.toLocaleTimeString();
                 nowComment.taggedUsers = taggedUsers;
                 nowComment.path = currentDocumentPath;
-                nowComment.cid = $($(this).parents()[5]).attr('id');                                
+                nowComment.cid = $($(this).parents()[5]).attr('id');
+                nowComment.line = getLineByCID(nowComment.cid);                                
 
                 $(this).val('');
                 appendComment(nowComment);
