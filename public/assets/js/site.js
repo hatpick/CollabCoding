@@ -14,24 +14,7 @@ var parseId;
 
 //Tokbox Area
 var tokboxData = {"api_key": "16861582", "api_secret":"37bf9ac7337139b14ebffb17364e69fe84bfda8b"};
-var tokboxSession = {};
-
-function getSessionId() {
-    $.post('/webRTCchat/createSession', 
-            {            
-                api_key : tokboxData.api_key,
-                api_secret : tokboxData.api_secret,
-                pname: sessionStorage.getItem("project")
-            },        
-            function(data) { 
-                tokboxSession.sessionId = data.sessionId;
-                tokboxSession.token = data.token;                                
-            }
-    );
-}        
-        
-                 
-
+var tokboxSession = {};                           
 //Tokbox Area
 
 function get_random_color() {
@@ -2211,7 +2194,73 @@ $(document).ready(function() {
             }
         }
     }
+    
+    $("a[data-action=editor-videochat]").click(function() {        
+        var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><button type='button' class='close' style='padding-top:5px'><i class='icon-resize-small'/></button><p align='center'>Video Chat</p>";        
+        $('.modal-header').hover(function(){
+           $(this).css('cursor', 'move'); 
+        });        
+        var dialogContent;
+        var dialogFooter = $("<div>").append($("<a>").attr({
+                class : "btn",
+                "data-dismiss" : "modal"
+            }).text("Close")).append($("<a>").attr({
+                class : "btn btn-primary"
+            }).css('margin','5px 5px 6px').text("Start").click(function() { 
+                $.post('/webRTCchat/createSession', 
+                {            
+                    api_key : tokboxData.api_key,
+                    api_secret : tokboxData.api_secret,
+                    pname: sessionStorage.getItem("project")
+                },        
+                function(data) { 
+                    tokboxSession.sessionId = data.sessionId;
+                    tokboxSession.token = data.token;    
+                    
+                    var session = TB.initSession(tokboxSession.sessionId);
+                    TB.setLogLevel(TB.DEBUG);
+                
+                    session.addEventListener('sessionConnected', sessionConnectedHandler);
+                    session.addEventListener('streamCreated', streamCreatedHandler);
+                    session.connect(tokboxData.api_key, tokboxSession.token);
+                
+                    function sessionConnectedHandler(event) {
+                        var div = $("<div>").attr("id","vc_"+now.user.user).css({height:"200px", width:"200px"});
+                        $("#video-chat>div.modal-body").append(div);
+                        session.publish("vc_"+now.user.user);
+                
+                        for (var i = 0; i < event.streams.length; i++) {
+                            if (session.connection.connectionId != event.streams[i].connection.connectionId) {
+                                subscribeToStream(event.streams[i]);
+                            }
+                        }
+                    }
+                
+                    function streamCreatedHandler(event) {
+                        for (var i = 0; i < event.streams.length; i++) {
+                            if (session.connection.connectionId != event.streams[i].connection.connectionId) {
+                                subscribeToStream(event.streams[i]);
+                            }
+                        }
+                    }
+                
+                    function subscribeToStream(stream) {
+                        var _div = $("<div>").attr('id', 'vc_' + stream.streamId);
+                        $("#video-chat>div.modal-body").append(_div);
+                
+                        session.subscribe(stream, _div.attr('id'));
+                    }
 
+    
+                }
+            );                                       
+        }));
+                
+        $("#video-chat>div.modal-header").html(dialogHeader);                          
+        $("#video-chat>div.modal-body").html(dialogContent);
+        $("#video-chat>div.modal-footer").html(dialogFooter);
+        $("#video-chat").modal().draggable({handle:'.modal-header'});              
+    });
 
     $("a[data-action=editor-find]").click(function() {
         CodeMirror.commands["find"](myCodeMirror);        
