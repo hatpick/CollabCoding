@@ -165,7 +165,7 @@ exports.chat.createRTCSession = function(req, res, next) {
     else {    
         var location = "127.0.0.1:8001";
         var sessionId = '';
-        opentok.createSession(location, {'p2p.preference':'enabled'}, function(result){
+        opentok.createSession(location, {'p2p.preference':'disabled'}, function(result){
             sessionId = result;
             chat_rooms[pname] = sessionId;
             var token = opentok.generateToken({session_id:sessionId, connection_data:"project:"+ pname +", user:" + req.session.user.user});            
