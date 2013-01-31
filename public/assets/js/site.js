@@ -97,6 +97,7 @@ function exceptionHandler(event) {
 
 function addStream(stream) {
     // Check if this is the stream that I am publishing, and if so do not publish.
+    console.log(stream.connection.connectionId + " joined me!");
     if (stream.connection.connectionId == session.connection.connectionId) {
         return;
     }
@@ -2293,7 +2294,7 @@ $(document).ready(function() {
         $('.modal-header').hover(function(){
            $(this).css('cursor', 'move'); 
         });        
-        var dialogContent = $("<div>").append($("<div id='localCast'>")).append($("<div id='remoteCasts'>"));
+        var dialogContent = $("<div>").css("height","370px").append($("<div id='localCast'>")).append($("<div id='remoteCasts'>"));
         var dialogFooter = $("<div>").append($("<a>").attr({
                 class : "btn",
                 "data-dismiss" : "modal"
