@@ -11,11 +11,104 @@ var refresh_prepare = 1;
 var functions = [];
 var parseId;
 
-
-//Tokbox Area
+/////////////////////////////////////
+/////////////////////////Tokbox Area
+/////////////////////////////////////
 var tokboxData = {"api_key": "16861582", "api_secret":"37bf9ac7337139b14ebffb17364e69fe84bfda8b"};
-var tokboxSession = {};                           
-//Tokbox Area
+var tokboxSession = {};
+
+var VIDEO_WIDTH = 320;
+var VIDEO_HEIGHT = 240;
+
+var session;
+var publisher;
+var subscribers = {};
+
+function connect() {
+    session.connect(tokboxData.api_key, tokboxSession.token);
+    $("#streamButton").attr("data-action","stopStream");
+    $("#streamButton").text("Stop");
+}
+
+function disconnect() {
+    session.disconnect();
+    $("#streamButton").attr("data-action","startStream");
+    $("#streamButton").text("Start");
+}
+
+// Called when user wants to start publishing to the session
+function startPublishing() {
+    if (!publisher) {                            
+        var publisherDiv = document.createElement('div'); // Create a div for the publisher to replace
+        publisherDiv.setAttribute('id', 'vc-publisher');
+        $("#video-chat>div.modal-body>div>div#localCast").append(publisherDiv);
+        var publisherProps = {width: VIDEO_WIDTH, height: VIDEO_HEIGHT};
+        publisher = TB.initPublisher(tokboxData, publisherDiv.id, publisherProps);  // Pass the replacement div id and properties
+        session.publish(publisher);                            
+    }
+}
+
+function stopPublishing() {
+    if (publisher) {
+        session.unpublish(publisher);
+    }
+    publisher = null;            
+}
+
+function sessionConnectedHandler(event) {
+    // Subscribe to all streams currently in the Session
+    for (var i = 0; i < event.streams.length; i++) {
+        addStream(event.streams[i]);
+    }                        
+}
+
+function streamCreatedHandler(event) {
+    // Subscribe to the newly created streams
+    for (var i = 0; i < event.streams.length; i++) {
+        addStream(event.streams[i]);
+    }
+}
+
+function streamDestroyedHandler(event) {
+    // This signals that a stream was destroyed. Any Subscribers will automatically be removed.
+    // This default behaviour can be prevented using event.preventDefault()
+}
+
+function sessionDisconnectedHandler(event) {
+    // This signals that the user was disconnected from the Session. Any subscribers and publishers
+    // will automatically be removed. This default behaviour can be prevented using event.preventDefault()
+    publisher = null;                                 
+}
+
+function connectionDestroyedHandler(event) {
+    // This signals that connections were destroyed
+}
+
+function connectionCreatedHandler(event) {
+    // This signals new connections have been created.
+}
+
+/*
+If you un-comment the call to TB.setLogLevel(), above, OpenTok automatically displays exception event messages.
+*/
+function exceptionHandler(event) {
+    alert("Exception: " + event.code + "::" + event.message);
+}
+
+function addStream(stream) {
+    // Check if this is the stream that I am publishing, and if so do not publish.
+    if (stream.connection.connectionId == session.connection.connectionId) {
+        return;
+    }
+    var subscriberDiv = document.createElement('div'); // Create a div for the subscriber to replace
+    subscriberDiv.setAttribute('id', stream.streamId); // Give the replacement div the id of the stream as its id.
+    $("#video-chat>div.modal-body>div>div#remoteCasts").append(subscriberDiv);
+    var subscriberProps = {width: VIDEO_WIDTH/2, height: VIDEO_HEIGHT/2};
+    subscribers[stream.streamId] = session.subscribe(stream, subscriberDiv.id, subscriberProps);
+}                           
+///////////////////Tokbox Area
+//////////////////////////////
+//////////////////////////////
 
 function get_random_color() {
     return '#' + Math.floor(Math.random()*16777215).toString(16);
@@ -2193,66 +2286,51 @@ $(document).ready(function() {
                 myCodeMirror.removeLineClass(lineNumber, "wrap", 'commentMarker');
             }
         }
-    }
+    }        
     
     $("a[data-action=editor-videochat]").click(function() {        
         var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><button type='button' class='close' style='padding-top:5px'><i class='icon-resize-small'/></button><p align='center'>Video Chat</p>";        
         $('.modal-header').hover(function(){
            $(this).css('cursor', 'move'); 
         });        
-        var dialogContent;
+        var dialogContent = $("<div>").append($("<div id='localCast'>")).append($("<div id='remoteCasts'>"));
         var dialogFooter = $("<div>").append($("<a>").attr({
                 class : "btn",
                 "data-dismiss" : "modal"
             }).text("Close")).append($("<a>").attr({
                 class : "btn btn-primary"
-            }).css('margin','5px 5px 6px').text("Start").click(function() { 
+            }).css('margin','5px 5px 6px').text("Start").attr({"id":"streamButton", "data-action":"startStream"}).click(function() { 
                 $.post('/webRTCchat/createSession', 
                 {            
                     api_key : tokboxData.api_key,
                     api_secret : tokboxData.api_secret,
                     pname: sessionStorage.getItem("project")
                 },        
-                function(data) { 
+                function(data) {                                         
                     tokboxSession.sessionId = data.sessionId;
-                    tokboxSession.token = data.token;    
-                    
-                    var session = TB.initSession(tokboxSession.sessionId);
-                    TB.setLogLevel(TB.DEBUG);
-                
+                    tokboxSession.token = data.token;                                            
+                                                       
+                    session = TB.initSession(tokboxSession.sessionId);    // Initialize session
+        
+                    // Add event listeners to the session
                     session.addEventListener('sessionConnected', sessionConnectedHandler);
+                    session.addEventListener('sessionDisconnected', sessionDisconnectedHandler);
+                    session.addEventListener('connectionCreated', connectionCreatedHandler);
+                    session.addEventListener('connectionDestroyed', connectionDestroyedHandler);
                     session.addEventListener('streamCreated', streamCreatedHandler);
-                    session.connect(tokboxData.api_key, tokboxSession.token);
-                
-                    function sessionConnectedHandler(event) {
-                        var div = $("<div>").attr("id","vc_"+now.user.user).css({height:"200px", width:"200px"});
-                        $("#video-chat>div.modal-body").append(div);
-                        session.publish("vc_"+now.user.user);
-                
-                        for (var i = 0; i < event.streams.length; i++) {
-                            if (session.connection.connectionId != event.streams[i].connection.connectionId) {
-                                subscribeToStream(event.streams[i]);
-                            }
-                        }
-                    }
-                
-                    function streamCreatedHandler(event) {
-                        for (var i = 0; i < event.streams.length; i++) {
-                            if (session.connection.connectionId != event.streams[i].connection.connectionId) {
-                                subscribeToStream(event.streams[i]);
-                            }
-                        }
-                    }
-                
-                    function subscribeToStream(stream) {
-                        var _div = $("<div>").attr('id', 'vc_' + stream.streamId);
-                        $("#video-chat>div.modal-body").append(_div);
-                
-                        session.subscribe(stream, _div.attr('id'));
-                    }
-
-    
-                }
+                    session.addEventListener('streamDestroyed', streamDestroyedHandler);
+                                                                                                                 
+                    if($("#streamButton").attr("data-action") === "startStream"){
+                        console.log("Start...");                        
+                        connect();
+                        startPublishing();
+                    }   
+                    else {
+                        console.log("Stop...");
+                        disconnect();
+                        stopPublishing();
+                    }                          
+                }                
             );                                       
         }));
                 
