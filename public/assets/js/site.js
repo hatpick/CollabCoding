@@ -26,8 +26,8 @@ var subscribers = {};
 
 function connect() {
     session.connect(tokboxData.api_key, tokboxSession.token);
-    $("#streamButton").attr("data-action","stopStream");
-    $("#streamButton").text("Stop");
+    $("#streamButton").attr("data-action","startPublish");
+    $("#streamButton").text("Publish");
 }
 
 function disconnect() {
@@ -38,7 +38,9 @@ function disconnect() {
 
 // Called when user wants to start publishing to the session
 function startPublishing() {
-    if (!publisher) {                            
+    if (!publisher) {                
+        $("#streamButton").attr("data-action","stopPublish");
+        $("#streamButton").text("Unpublish");                
         var publisherDiv = document.createElement('div'); // Create a div for the publisher to replace
         publisherDiv.setAttribute('id', 'vc-publisher');
         $("#video-chat>div.modal-body>div>div#localCast").append(publisherDiv);
@@ -50,6 +52,8 @@ function startPublishing() {
 
 function stopPublishing() {
     if (publisher) {
+        $("#streamButton").attr("data-action","stopStream");
+        $("#streamButton").text("Stop");
         session.unpublish(publisher);
     }
     publisher = null;            
@@ -2321,15 +2325,17 @@ $(document).ready(function() {
                     session.addEventListener('streamCreated', streamCreatedHandler);
                     session.addEventListener('streamDestroyed', streamDestroyedHandler);
                                                                                                                  
-                    if($("#streamButton").attr("data-action") === "startStream"){
-                        console.log("Start...");                        
-                        connect();
-                        startPublishing();
+                    if($("#streamButton").attr("data-action") === "startStream"){                        
+                        connect();                        
                     }   
-                    else {
-                        console.log("Stop...");
-                        disconnect();
-                        stopPublishing();
+                    else if($("#streamButton").attr("data-action") === "stopStream") {                    
+                        disconnect();                        
+                    }
+                    else if($("#streamButton").attr("data-action") === "startPublish") {
+                        startPublishing();                        
+                    }
+                    else if($("#streamButton").attr("data-action") === "stopPublish") {                        
+                        stopPublishing();                   
                     }                          
                 }                
             );                                       
