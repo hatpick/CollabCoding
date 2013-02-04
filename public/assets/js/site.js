@@ -5,6 +5,7 @@ var errorIcons = [];
 var widgets = [];
 var markedText = [];
 var sideComments = [];
+var lockedCodes = [];
 var currentDocumentPath = '';
 
 var refresh_prepare = 1;
@@ -191,10 +192,13 @@ function tempLoadXml() {
     var url = '/project/loadXML/' + sid;
     console.log(url);
     
-    $.get(url, {}, function(data){      
-        console.log(data);  
-        return data;                 
-    }, 'json');
+    $.get({        
+        url:url, 
+        success: function(data){              
+            return data;                 
+        },          
+        async: false        
+    });
 }
 
 function checkRefresh()
@@ -291,7 +295,7 @@ function updateHints(editor) {
             var err = JSHINT.errors[i];
             if (!err)
                 continue;
-            var bm = addBookmarks("error", err.line, editor);
+            var bm = addBookmarks("error", err.line, -1, editor);
             $(bm.dom).tooltip({
                 title : err.line + ": " + err.reason,
                 placement : "left"
@@ -302,7 +306,7 @@ function updateHints(editor) {
 }
 
 
-function lockCode(lockedCode, cm) {          
+function lockCode(lockedCode, lcid, cm) {          
     var mt = cm.markText(lockedCode.from, lockedCode.to, {
         className : "gooz",
         readOnly : true
@@ -311,9 +315,14 @@ function lockCode(lockedCode, cm) {
         cm.addLineClass(line, "wrap", "lockedCodeMarker");
     });
     
-    addBookmarks("lockedCode", lockedCode.from.line, cm);
+    addBookmarks("lockedCode", lockedCode.from.line, lcid, cm);
+    
+    var lcIcon = $("<div>").attr("id", lcid);
+    myCodeMirror.setGutterMarker(lockedCode.from.line, "CodeMirror-lockedCodeGutter", lcIcon.get(0));
+    
     markedText.push(mt);
     cm.setCursor(lockedCode.from);    
+    lockedCodes.push(lockedCode);
 }
 
 function arian(string, context) {
@@ -366,7 +375,7 @@ function editor(id, mode) {
         onKeyEvent : function() {
             return zen_editor.handleKeyEvent.apply(zen_editor, arguments);
         },
-        gutters : ["CodeMirror-commentsGutter", "CodeMirror-commentsiconsGutter", "CodeMirror-errorGutter", "CodeMirror-linenumbers"]
+        gutters : ["CodeMirror-commentsGutter", "CodeMirror-commentsiconsGutter", "CodeMirror-lockedCodeGutter", "CodeMirror-linenumbers"]
     });    
 
     Inlet(_editor);
@@ -375,11 +384,11 @@ function editor(id, mode) {
 }
 
 function clearMarker(cm, type) {
-    if (type === 'error') {
+    if (type === 'Error') {
         $.each(errBookmarks, function(i, errBookmark) {
             cm.removeLineClass(errBookmark.line - 1, "wrap", "errorMarker");
         });
-    } else if (type === 'comment') {
+    } else if (type === 'Comment') {
         $.each(commentBookmarks, function(i, commentBookmark) {
             cm.removeLineClass(commentBookmark.line - 1, "wrap", "commentMarker");
         });
@@ -419,18 +428,30 @@ function _wherebookmark(dln) {
     return -1;
 }
 
-function addBookmarks(type, dln, cm) {
-    var notError = false;
-    var marker, className, bookmarks;
+function getLineByCID(cid) {        
+    var ln = $("#icon-" + cid).parent().parent().children()[0].innerHTML;
+    return ln;
+}
+    
+function getLineByLCID(lcid) {
+    var ln = $("#" + lcid).parent().parent().children()[0].innerHTML;;
+    return ln;
+}
+
+function getBookmarkPosition(ln) {
     var bookmarkHeight = $("#bookmarksArea").height();
     var editorHeight = myCodeMirror.lineCount();
-    var mapPers;
-    //if (editorHeight * 14 > bookmarkHeight * 2)
-        mapPers = (bookmarkHeight) / (editorHeight);
-    //else
-        //mapPers = (bookmarkHeight) / (editorHeight);
+    var mapPers = (bookmarkHeight) / (editorHeight);
+    
 
-    var top = mapPers * (dln);
+    return mapPers * (ln);
+}
+
+function addBookmarks(type, dln, vid, cm) {
+    var notError = false;
+    var marker, className, bookmarks;    
+
+    var top = getBookmarkPosition(dln);
 
     if (type === 'error') {
         bookmarks = errBookmarks;
@@ -447,9 +468,13 @@ function addBookmarks(type, dln, cm) {
         className = "CodeMirror-bookmarksIconLockedCode";
         notError = true;
     }
-    var bookmark = $("<div>").addClass(className).attr("data-line", dln).css("top", top).click(function() {
+    var bookmark = $("<div>").attr("vid", vid).addClass(className).attr("data-line", dln).css("top", top).click(function(e) {
+        var cname = $(this).attr("class").substring(24);
+        var vid = $(this).attr("vid");
         var line = $(this).attr("data-line") - 1;
-        clearMarker(cm, type);
+        if(cname === 'Comment') line = getLineByCID(vid) - 1;
+        else if(cname === 'LockedCode') line = getLineByLCID(vid) - 1;         
+        clearMarker(cm, cname);
         if(type !== 'lockedCode')
             cm.addLineClass(line, "wrap", marker);
         cm.setCursor({
@@ -457,9 +482,10 @@ function addBookmarks(type, dln, cm) {
             ch : 0
         });        
     });
-
+    
     var bookmarkObj = {
-        line : (dln),
+        line : dln,
+        id : $(bookmark).attr("vid"),
         dom : bookmark,
         type : type
     };
@@ -471,7 +497,8 @@ function addBookmarks(type, dln, cm) {
         $("#bookmarksArea div:nth-child(" + index + ")").after(bookmark);
     else
         $("#bookmarksArea").append(bookmark);
-    bookmarks.push(bookmarkObj);
+    if(type !== 'error') bookmarks[bookmarkObj.id] = bookmarkObj;
+    else bookmarks.push(bookmarkObj);
     return bookmarkObj;
 }
 
@@ -733,7 +760,7 @@ $(document).ready(function() {
     // TODO
     _hotkeysHandler();
     //15 minutes idle
-    startIdleTimer(900);
+    startIdleTimer(120);
 
     //Notification Setup
 
@@ -754,12 +781,16 @@ $(document).ready(function() {
             onclick : function(menuItem, menu) {
                 if (myCodeMirror.somethingSelected()) {                       
                     var lockedCode = {};
+                    lockedCode.lcid = uuid.v4();
                     lockedCode.from = myCodeMirror.view.sel.from;
                     lockedCode.to = myCodeMirror.view.sel.to;
                     lockedCode.who = now.user.user;
                     lockedCode.path = currentDocumentPath;
-                    lockedCode.timestamp = new Date();
-                    lockCode(lockedCode, myCodeMirror);
+                    lockedCode.timestamp = ts = new Date();
+                    var tsstring = "On " + ts.toDateString() + " at " + ts.toLocaleTimeString();
+                    lockCode.tsstring = tsstring;
+                    lockedCode.content = myCodeMirror.getRange(lockedCode.from, lockedCode.to);
+                    lockCode(lockedCode, lockedCode.lcid ,myCodeMirror);
                     now.sendLockedCode(lockedCode);
                 }
             },
@@ -849,7 +880,7 @@ $(document).ready(function() {
             return;
         }
         if (currentDocumentPath === comment.path) {
-            appendComment(comment);
+            appendComment(comment.cid, comment.content, comment.who, comment.line, comment.timestamp, false);
         }
     }
     
@@ -857,8 +888,24 @@ $(document).ready(function() {
         if (sid === now.core.clientId)
             return;
         if (currentDocumentPath === lockedCode.path) {
-            lockCode(lockedCode, myCodeMirror);
+            lockCode(lockedCode, lockedCode.cid, myCodeMirror);
         }
+    }
+    
+    now.executePauseCommand = function(path, sid) {
+        if (sid === now.core.clientId)
+            return;
+        if (currentDocumentPath === path) {
+            myCodeMirror.setOption("readOnly", true);
+        }                    
+    }
+    
+    now.executeResumeCommand = function(path, sid) {
+        if (sid === now.core.clientId)
+            return;
+        if (currentDocumentPath === path) {
+            myCodeMirror.setOption("readOnly", false);
+        }                    
     }
     /*$(".CodeMirror-lines").resize(function(e) {
      var _height = $(".CodeMirror").height();
@@ -873,7 +920,42 @@ $(document).ready(function() {
         });
         return currentdocumentpath.substring(0, currentdocumentpath.length - 1);
     }
-
+    
+    function _augmentDocument(path, sid) {
+        var url = "/project/" + path + "/augment";        
+        
+        $.get(url,             
+            function(data) {                
+                $.each(data.comments, function(index, comment){
+                    appendComment(comment.commentId, comment.commentBody, comment.commentSender, comment.commentLineNumber, comment.commentTimestamp, true)
+                });
+                                                                        
+                $.each(data.lockedCodes, function(index, lockedCode){
+                    var lc = {};
+                    lc.lcid = lockedCode.lockedCodeId;
+                    lc.from = lockedCode.lockedCodeFrom;
+                    lc.to = lockedCode.lockedCodeTo;
+                    lc.who = lockedCode.lockedCodeOwner;
+                    lc.path = lockedCode.lockedCodePath;
+                    lc.timestamp = lockedCode.lockedCodetimestamp;                  
+                    lc.tsstring = lockedCode.lockedCodeTSString;
+                    lc.content = lockedCode.lockedCodeContent;
+                    
+                    lockCode(lc, lc.lcid ,myCodeMirror);
+                });
+                
+                now.stopTransaction(path); 
+                
+                var waitingAutosave; 
+                myCodeMirror.on("change", function(myCodeMirror, changeObj){
+                    clearTimeout(waitingAutosave);
+                    waitingAutosave = setTimeout(saveCodeXML(myCodeMirror, false), 5000);
+                    updateCommentsLineNumber();
+                    updateLockedCodeLineNumber(); 
+                });                                                                                                              
+            });  
+    }
+   
 
     $('#browser').bind('click', function() {
         //TODO save current document in database
@@ -886,14 +968,10 @@ $(document).ready(function() {
                 mode = "javascript";
             else if (file_type === "file-css")
                 mode = "css"
-
-            //enable live preview toggle button, hide live view if open
-            //TODO: hide live view
-
             $('.breadcrumb').empty();
             var paths = $.jstree._focused().get_path();
             var li;
-            currentDocumentPath = getFilePath(paths);
+            
             for (var i = 0; i < paths.length - 1; i++) {
                 li = $('<li>').append($('<a>').attr('href', '#').html(paths[i]).click(function() {
                     $.jstree._reference('#browser').select_node($('#' + $(this).text() + '_id'), true);
@@ -902,14 +980,17 @@ $(document).ready(function() {
             }
             li = $('<li>').addClass('active').html(paths[i]);
             $('.breadcrumb').append(li);
+                        
             var elem = document.getElementById('home');
-            var myCodeMirror = editor(elem, mode);
+            var myCodeMirror = editor(elem, mode);                        
+            
+            //Save current content to the database before openning new file
+            saveCodeXML(myCodeMirror, false);
             var docName = $.jstree._focused().get_selected().attr('data-shareJSId');
             sessionStorage.setItem("docName", docName);
-            saveCodeXML(myCodeMirror, false);
-            //Load content from database
-            var textDb;//= tempLoadXml();
-            //CodeMirror.commands.selectAll(myCodeMirror);            
+            
+            currentDocumentPath = getFilePath(paths);            
+                                                                        
             sharejs.open(docName, 'text', function(error, newdoc) {
                 if (doc !== null) {
                     doc.close();
@@ -923,8 +1004,15 @@ $(document).ready(function() {
                     return;
                 }
                 
-                doc.attach_codemirror(myCodeMirror);//, textDb);
+                doc.attach_codemirror(myCodeMirror);
+                
+                //Start a transaction by making other open editors readonly
+                now.startTransaction(currentDocumentPath);
+                
+                _augmentDocument(currentDocumentPath, docName);                                    
+            //End transaction                     
             });
+            
             if ($(".CodeMirror.CodeMirror-wrap").size() > 1) {
                 $($(".CodeMirror.CodeMirror-wrap")[1]).remove();
             }
@@ -954,16 +1042,10 @@ $(document).ready(function() {
                 cursor.path = currentDocumentPath;          
                 now.syncCursors(cursor, now.user.clientId);
             });
-            
-            var waitingAutosave;
-            myCodeMirror.on("change", function(myCodeMirror, changeObj){
-                clearTimeout(waitingAutosave);
-                waitingAutosave = setTimeout(saveCodeXML(myCodeMirror, false), 5000); 
-            });
-
+                                                
             var user = username;
             user.currentDocument = currentDocumentPath.replace(/\*/g, '/');
-            now.updateCurrentDoc(username, user.currentDocument);
+            now.updateCurrentDoc(username, user.currentDocument);                                  
 
             if (file_type === "file-js") {
                 var waitingLint;
@@ -971,45 +1053,15 @@ $(document).ready(function() {
                     clearTimeout(waitingLint);
                     waitingLint = setTimeout(updateHints(cm), 300);                    
                 });
-            }
-                       
-            //TODO resize SynchDivScroll
-            /*$(".CodeMirror-scrollbar").attr("id", "syncOneDive");
-            new SynchDivScroll('syncOneDive', 'editor-comment-temp');
+            }            
 
-            $(".CodeMirror-lines").resize(function(e) {
-            var _height = $(".CodeMirror").height();
-            var realHeight = parseInt($(".CodeMirror-scroll>div").css("min-height").substring(0, $(".CodeMirror-scroll>div").css("min-height").length - 2), 10);
-            (realHeight > _height) ? $("#editor-comment-area").height(realHeight) : $("#editor-comment-area").height(_height);
-            });*/
-
-            // mongoDB
-            // $.get('/project/' + sessionStorage.getItem('project') + '/' + docName, function(data) {
-            //         console.log('find the content');
-            //         console.log(data);
-            //         if (!data) {
-            //           $.post('/project/syncToMongo', {
-            //             shareJSId: docName,
-            //             content: myCodeMirror.getValue(),
-            //             timestamp: (new Date()).getTime()
-            //           }, function(_data) {
-            //             console.log('save a new document')
-            //             console.log(_data);
-            //           }, 'json');
-            //         } else {
-            //           myCodeMirror.setValue(data.content);
-            //         }
-            //       });
-            //       pid = window.setInterval(function() {
-            //         console.log('test')
-            //       }, 5000);
             window.myCodeMirror = myCodeMirror;
             if (file_type === 'file-html') {
                 _switchLiveViewButton(true);
             } else {
                 _switchLiveViewButton(false);
             }
-            _toggleLiveView(false);
+            _toggleLiveView(false);                                    
         }
     });
 
@@ -2121,36 +2173,51 @@ $(document).ready(function() {
         var pname = sessionStorage.getItem('project');
         chatWith('GroupChat');
     });
+    
+    function _generateCommentContent(content) {
+        /*.append($('<p>').css('margin', '2px').html($('<span>').css({
+                'font-weight' : 'bold',
+                'font-size' : '10px',
+                'font-color' : '#3399FF'
+            }).html(comment.commentSender).append($('<span>').css({
+                'font-weight' : 'normal',
+                'font-size' : '10px'
+            }).html(': ' + ))).append($('<p>').css({
+                'font-size' : '8px',
+                'text-align' : 'left',
+                'margin-bottom' : '-1px'
+            }).html(tsstring)));*/        
+    }        
 
-    function appendComment(comment) {
-        if ($('#icon-' + comment.cid).size() === 0) {
-            createComment(comment.line, comment.content, comment.who, comment.cid);
+    function appendComment(commentId, commentBody, commentSender, commentLineNumber, commentTimestamp, remote) {
+        if ($('#icon-' + commentId).size() === 0) {
+            createComment(commentLineNumber, commentBody, commentSender, commentId, remote);
         }
 
-        var ts = new Date(comment.timestamp);
+        var ts = new Date(commentTimestamp);
         var tsstring = "On " + ts.toDateString() + " at " + ts.toLocaleTimeString();
-        var content = comment.content;
+        var content = commentBody;
 
         var commentItem = $('<div>').addClass('CodeMirror-commentitem').append($('<p>').css('margin', '2px').html($('<span>').css({
             'font-weight' : 'bold',
             'font-size' : '10px',
             'font-color' : '#3399FF'
-        }).html(comment.who).append($('<span>').css({
+        }).html(commentSender).append($('<span>').css({
             'font-weight' : 'normal',
             'font-size' : '10px'
-        }).html(': ' + comment.content))).append($('<p>').css({
+        }).html(': ' + commentBody))).append($('<p>').css({
             'font-size' : '8px',
             'text-align' : 'left',
-            'margin-bottom' : '-1px'
+            'margin-bottom' : '-1px',
+            'color' : '#A2C1E8'
         }).html(tsstring)));
 
-        var commentContent = $('#' + comment.cid).find("table tbody tr div.commentContent");
+        var commentContent = $('#' + commentId).find("table tbody tr div.commentContent");
         $(commentContent).append(commentItem);
     }
 
-    function createComment(line, content, who, cid) {
-        //TODO Add Database Model tricky! :-/
-        var lineHandle = myCodeMirror.getLineHandle(line - 1);
+    function createComment(line, content, who, cid, remote) {
+        //TODO Add Database Model tricky! :-/        
         var comment_id = cid ? cid : uuid.v1();                
         var pname = sessionStorage.getItem('project');
                 
@@ -2161,16 +2228,16 @@ $(document).ready(function() {
             title : "Show Discussion!"
         });        
         //Start transaction
-        myCodeMirror.setGutterMarker(lineHandle, "CodeMirror-commentsiconsGutter", commentIcon.get(0));
+        myCodeMirror.setGutterMarker(line - 1, "CodeMirror-commentsiconsGutter", commentIcon.get(0));
         //End transaction
         
         hideComments(parseInt(getLineByCID(comment_id), 10) - 1);
 
-        myCodeMirror.addLineClass(parseInt(getLineByCID(comment_id), 10) - 1, 'wrap', 'commentMarker commentMarkerInvisible');        
+        if(!remote) myCodeMirror.addLineClass(parseInt(getLineByCID(comment_id), 10) - 1, 'wrap', 'commentMarker commentMarkerInvisible');        
         var comment = $("<div>").attr({            
             "id" : comment_id,           
             "tabindex" : "-1"
-        }).attr("editor-comment-isopen", "true").html($("<table>").css({
+        }).attr("editor-comment-isopen", !remote).html($("<table>").css({
             "width" : "100%",
             "height" : "100%"
         }).append($("<tbody>").append($("<tr>").append($("<td>").append($("<div>").addClass("commentContent")))).append($("<tr>").append($("<td>").attr("valign", "bottom").append($("<div>").addClass("commentEntry").append($("<input>").css({
@@ -2209,7 +2276,7 @@ $(document).ready(function() {
                 nowComment.line = getLineByCID(nowComment.cid);                                
 
                 $(this).val('');
-                appendComment(nowComment);
+                appendComment(nowComment.cid, nowComment.content, nowComment.who, nowComment.line, nowComment.timestamp, false);
                 now.sendComment(nowComment);
             }
         }))))))).addClass("comment");
@@ -2256,6 +2323,7 @@ $(document).ready(function() {
         commentIconObg.cid = comment_id;
         commentIconObg.commentDom = comment;
         commentIconObg.content = content;
+        commentIconObg.lineNumber = parseInt(getLineByCID(comment_id), 10) - 1
         sideComments.push(commentIconObg);
 
         
@@ -2265,20 +2333,53 @@ $(document).ready(function() {
 
         myCodeMirror.setGutterMarker(parseInt(getLineByCID(comment_id), 10) - 1, "CodeMirror-commentsGutter", comment.get(0));        
         //Add Bookmark
-        var bm = addBookmarks("comment", parseInt(getLineByCID(comment_id), 10) - 1, myCodeMirror);
+        var bm = addBookmarks("comment", parseInt(getLineByCID(comment_id), 10) - 1, comment_id, myCodeMirror);
         var ctext = (content === null) ? "" : commentIconObg.content;
         $(bm.dom).tooltip({
             title : ctext,
             placement : "left"
         });
         //set focus on entry
-        $(comment).show(400);
-        $($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry>input").focus();
-    };
+        if(!remote) {
+            $(comment).show(400);
+            $($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry>input").focus();
+        }
+    };        
     
-    function getLineByCID(cid) {        
-        var ln = $("#icon-" + cid).parent().parent().children()[0].innerHTML;
-        return ln;
+    function updateCommentsLineNumber() {
+        for(var i = 0; i < sideComments.length; i++) {
+            var sc = sideComments[i];
+            sc.lineNumber = parseInt(getLineByCID(sc.cid), 10) - 1;
+            commentBookmarks[sc.cid].dln = sc.lineNumber;            
+            $(commentBookmarks[sc.cid].dom).attr("data-line", sc.lineNumber);
+            $(commentBookmarks[sc.cid].dom).css("top", getBookmarkPosition(sc.lineNumber));
+            
+            var url = "/project/comment/" + sc.cid +"/updateLineNumber";
+            $.post(url, {lineNumber: sc.lineNumber + 1}, function(){}, 'json');
+        }                    
+        
+    }
+    
+    function updateLockedCodeLineNumber() {
+        for(var i = 0; i < lockedCodes.length; i++) {
+            var lockedCode = lockedCodes[i];
+            var lcid = lockedCode.lcid;     
+            var newLineNumber = parseInt(getLineByLCID(lcid), 10) - 1;
+                   
+            lockedCodeBookmarks[lcid].dln = newLineNumber;
+            $(lockedCodeBookmarks[lcid].dom).attr("data-line", newLineNumber);
+            $(lockedCodeBookmarks[lcid].dom).css("top", getBookmarkPosition(newLineNumber));
+            
+            var oldFromCh = lockedCode.from.ch;
+            var oldToCh = lockedCode.to.ch;
+            //Calculating new boundary
+            var fromDiffTo = lockedCode.from.line - lockedCode.to.line; 
+            lockedCode.from = {line: newLineNumber, ch: oldFromCh};
+            lockedCode.to = {line: newLineNumber + fromDiffTo, ch: oldToCh};
+            //updating database
+            var url = "/project/lockedCode/" + lcid +"/updateLineNumber";            
+            $.post(url, {from: lockedCode.from , to:lockedCode.to}, function(){}, 'json');            
+        }       
     }
     
     function hideComments(ccid) {        

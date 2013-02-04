@@ -33,9 +33,12 @@ module.exports = function(app) {
   app.post('/project/:name/saveXML', project.files.saveXML);
   app.get('/project/loadXML/:id', project.files.getContent);
   app.post('/project/:name/:id', project.files.share);
+  app.get('/project/:path/augment', project.files.augmentMe);
   app.post('/project/:name/:id/delete', project.files.delete);
   app.post('/project/:name/rename', project.files.rename);
   app.post('/webRTCchat/createSession', project.chat.createRTCSession);
+  app.post('/project/comment/:id/updateLineNumber', project.comment.updateLineNumber);
+  app.post('/project/lockedCode/:id/updateLineNumber', project.lockedCode.updateLineNumber);
   // app.get('/project/:name/:id', project.files.findContent);
   // app.post('/project/syncToMongo', project.syncToMongo)  
   

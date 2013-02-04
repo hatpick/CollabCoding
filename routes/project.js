@@ -1,4 +1,5 @@
 var hat = require("hat");
+var mongoose = require("mongoose");
 var OpenTok = require("opentok");
 var CM = require('../models/contentprovider-mongodb');
 
@@ -59,6 +60,8 @@ exports.new = function(req, res) {
 
 exports.files = {};
 exports.chat = {};
+exports.comment = {};
+exports.lockedCode = {};
 
 exports.files.new = function(req, res, next) {
   var project_name = req.params["name"];
@@ -149,6 +152,22 @@ exports.files.saveXML = function(req, res, next) {
     });        
 };
 
+exports.files.augmentMe = function(req, res, next) {    
+    var path = req.params['path'];    
+    
+    var retVal = {};
+        
+    var Comment = mongoose.model('Comment');
+    var LockedCode = mongoose.model('LockedCode');
+    Comment.find({commentPath: path}, function(err, comments){        
+        retVal.comments = comments;
+        LockedCode.find({lockedCodePath: path}, function(err, lockedCodes){            
+            retVal.lockedCodes = lockedCodes;
+            res.send(200, {comments: retVal.comments, lockedCodes: retVal.lockedCodes});
+        });                              
+    });  
+}
+
 var chat_rooms = {};
 
 exports.chat.createRTCSession = function(req, res, next) {
@@ -165,7 +184,7 @@ exports.chat.createRTCSession = function(req, res, next) {
     else {    
         var location = "127.0.0.1:8001";
         var sessionId = '';
-        opentok.createSession(location, {'p2p.preference':'disabled'}, function(result){
+        opentok.createSession(location, function(result){
             sessionId = result;
             chat_rooms[pname] = sessionId;
             var token = opentok.generateToken({session_id:sessionId, connection_data:"project:"+ pname +", user:" + req.session.user.user});            
@@ -173,6 +192,25 @@ exports.chat.createRTCSession = function(req, res, next) {
         });
     }
     
+}
+
+exports.comment.updateLineNumber = function(req, res, next) {
+    var newLine = req.body.lineNumber;
+    var cid = req.params['id'];
+    
+    //mongoose.connect('mongodb://localhost/collabcoding');
+    var Comment = mongoose.model('Comment');
+    Comment.findOneAndUpdate({commentId: cid}, {$set:{commentLineNumber: newLine}}, function(){res.send(200);});    
+}
+
+exports.lockedCode.updateLineNumber = function(req, res, next) {    
+    var newFrom = req.body.from;
+    var newTo = req.body.to;
+    var lcid = req.params['id'];
+    
+    //mongoose.connect('mongodb://localhost/collabcoding');
+    var LockedCode = mongoose.model('LockedCode');
+    LockedCode.findOneAndUpdate({lockedCodeId: lcid}, {$set:{lockedCodeFrom: newFrom, lockedCodeTo: newTo}}, function(){res.send(200);});
 }
 
 // exports.files.findContent = function(req, res, next) {
