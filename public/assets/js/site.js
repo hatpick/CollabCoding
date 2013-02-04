@@ -946,13 +946,22 @@ $(document).ready(function() {
                 
                 now.stopTransaction(path); 
                 
-                var waitingAutosave; 
+                var waitingAutosave;
+                var waitingLint; 
                 myCodeMirror.on("change", function(myCodeMirror, changeObj){
                     clearTimeout(waitingAutosave);
                     waitingAutosave = setTimeout(saveCodeXML(myCodeMirror, false), 5000);
+                    
                     updateCommentsLineNumber();
                     updateLockedCodeLineNumber(); 
-                });                                                                                                              
+                }); 
+                
+                if(currentDocumentPath.indexOf(".js") !== -1){
+                    myCodeMirror.on("change", function(myCodeMirror, changeObj) {
+                        clearTimeout(waitingLint);
+                        waitingLint = setTimeout(updateHints(myCodeMirror), 300);
+                    });
+                }                                                                                                                             
             });  
     }
    
@@ -1045,15 +1054,7 @@ $(document).ready(function() {
                                                 
             var user = username;
             user.currentDocument = currentDocumentPath.replace(/\*/g, '/');
-            now.updateCurrentDoc(username, user.currentDocument);                                  
-
-            if (file_type === "file-js") {
-                var waitingLint;
-                myCodeMirror.on('change', function(cm) {
-                    clearTimeout(waitingLint);
-                    waitingLint = setTimeout(updateHints(cm), 300);                    
-                });
-            }            
+            now.updateCurrentDoc(username, user.currentDocument);                                                        
 
             window.myCodeMirror = myCodeMirror;
             if (file_type === 'file-html') {
