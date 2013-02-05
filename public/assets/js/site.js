@@ -360,16 +360,11 @@ function editor(id, mode) {
         mode : mode,
         lineNumbers : true,
         lineWrapping : true,
-        extraKeys : {
-            "'>'" : function(cm) {
-                cm.closeTag(cm, ">");
-            },
-            "'/'" : function(cm) {
-                cm.closeTag(cm, "/");
-            },
+        extraKeys : {                                    
             "Ctrl-Space" : "autocomplete"
         },
         syntax : "html",
+        autoCloseTags: true,
         matchBrackets : true,
         profile : "xhtml",        
         onKeyEvent : function() {
@@ -1774,7 +1769,7 @@ $(document).ready(function() {
         } else if (mode === "text/html" || mode === "xml") {
             CodeMirror.simpleHint(cm, CodeMirror.htmlHint);
         } else if (mode === "javascript") {
-            CodeMirror.simpleHint(cm, CodeMirror.javascriptHint);
+            CodeMirror.simpleHint(cm, CodeMirror.javascriptHint);        
         }
     };
 
