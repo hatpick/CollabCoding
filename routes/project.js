@@ -182,7 +182,7 @@ exports.chat.createRTCSession = function(req, res, next) {
         res.send(200, {sessionId:chat_rooms[pname], token:token});        
     }
     else {    
-        var location = "127.0.0.1:8001";
+        var location = "128.193.39.9:8001";
         var sessionId = '';
         opentok.createSession(location, function(result){
             sessionId = result;
