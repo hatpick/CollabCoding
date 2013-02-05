@@ -1843,6 +1843,10 @@ $(document).ready(function() {
             var tbody = $('<tbody>');
             var tr;
             for (var i = 0; i < projects.length; i++) {
+                var created_on = new Date(projects[i].created_on);
+                var last_modified_on = new Date(projects[i].last_modified_on);
+                var created_on_string = "On " + created_on.toLocaleString();
+                var last_modified_on_string = "On " + last_modified_on.toLocaleString();
                 tr = $('<tr>');
                 tr.append($('<td>').html(i + 1)).append($('<td>').append($('<a>').attr('href', '#').append(projects[i].name).click(function() {
                     // TODO: pop up close alert
@@ -1857,7 +1861,7 @@ $(document).ready(function() {
                         now.changeProjectGroup(sessionStorage.getItem('project'));
                         //now.sayHi();
                     });
-                }))).append($('<td>').html(projects[i].created_on)).append($('<td>').html(projects[i].last_modified_on));
+                }))).append($('<td>').html(created_on_string)).append($('<td>').html(last_modified_on_string));
                 tbody.append(tr);
             }
             project_table.append(tbody);
@@ -1929,6 +1933,10 @@ $(document).ready(function() {
         var dialogContent = '<input type="text" id="project_name" placeholder="Enter project name" width="100%" required/><br/><input type="text" id="users" width="100%" required/>';
 
         var dialogFooter = $("<div>").append($("<button>").attr({
+            class : "btn",
+            type : 'button',
+            "data-dismiss" : "modal"
+        }).text("Cancel")).append($("<button>").css('margin','5px 5px 6px').attr({
             class : "btn btn-primary",
             type : 'submit'
         }).text("Create").click(function() {
@@ -1956,11 +1964,7 @@ $(document).ready(function() {
                 var notifMsg = '<span style="text-align:justify"><a href="#" class="notification-user-a">' + now.user.user + '</a>' + ' has created a new project <a class="notification-project-a" href="#">' + sessionStorage.getItem('project') + '</a></span>';
                 ns.sendNotification(notifMsg, "information", false, 'e');
             }
-        })).css('margin','5px 5px 6px').append($("<button>").attr({
-            class : "btn",
-            type : 'button',
-            "data-dismiss" : "modal"
-        }).text("Cancel"));
+        }));
         $("#dialog>div.modal-header").html(dialogHeader);
         $("#dialog>div.modal-body").html(dialogContent);
         $("#dialog>div.modal-footer").html(dialogFooter);
@@ -2388,13 +2392,26 @@ $(document).ready(function() {
                 myCodeMirror.removeLineClass(lineNumber, "wrap", 'commentMarker');
             }
         }
-    }        
+    }    
     
-    $("a[data-action=editor-videochat]").click(function() {        
-        var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><button type='button' class='close' style='padding-top:5px'><i class='icon-resize-small'/></button><p align='center'>Video Chat</p>";        
-        $('.modal-header').hover(function(){
+    function blink(dom) {        
+        setTimeout(function(){
+           $(dom).removeClass('icon-white');
+             setTimeout(function(){
+                $(dom).addClass('icon-white');
+                setTimeout(blink(dom), 1000);
+             }, 600)
+          }, 600)
+    }    
+    
+    $("a[data-action=editor-videochat]").click(function() {     
+        if($('#video-chat').css('display') === 'display') return;   
+        if($('#videoChatPopOut').size() !== 0) $('#videoChatPopOut').remove();        
+        var dialogHeader = "<button type='button' id='videoChatPopIn' class='close' style='padding-top:5px'><i class='icon-resize-small'/></button><p align='center'>Video Chat</p>";        
+        $('#video-chat>div.modal-header').hover(function(){
            $(this).css('cursor', 'move'); 
         });        
+        
         var dialogContent = $("<div>").css("height","370px").append($("<div id='localCast'>")).append($("<div id='remoteCasts'>"));
         var dialogFooter = $("<div>").append($("<a>").attr({
                 class : "btn",
@@ -2424,15 +2441,19 @@ $(document).ready(function() {
                                                                                                                  
                     if($("#streamButton").attr("data-action") === "startStream"){                        
                         connect();                        
+                        $($("#video-chat>div.modal-footer>div>a")[0]).addClass('disabled');
                     }   
                     else if($("#streamButton").attr("data-action") === "stopStream") {                    
                         disconnect();                        
+                        $($("#video-chat>div.modal-footer>div>a")[0]).removeClass('disabled');
                     }
                     else if($("#streamButton").attr("data-action") === "startPublish") {
                         startPublishing();                        
+                        $($("#video-chat>div.modal-footer>div>a")[0]).addClass('disabled');
                     }
                     else if($("#streamButton").attr("data-action") === "stopPublish") {                        
-                        stopPublishing();                   
+                        stopPublishing();      
+                        $($("#video-chat>div.modal-footer>div>a")[0]).removeClass('disabled');                                     
                     }                          
                 }                
             );                                       
@@ -2441,7 +2462,21 @@ $(document).ready(function() {
         $("#video-chat>div.modal-header").html(dialogHeader);                          
         $("#video-chat>div.modal-body").html(dialogContent);
         $("#video-chat>div.modal-footer").html(dialogFooter);
-        $("#video-chat").modal().draggable({handle:'.modal-header'});              
+        $("#video-chat").modal({backdrop:false, keyboard: false}).draggable({handle:'.modal-header'});
+        
+        $('#videoChatPopIn').click(function() {
+            $("#video-chat").modal('hide');
+            var width = (window.innerWidth > 0) ? window.innerWidth : screen.width;
+            var videoChatPopOut = $("<button>").attr({type: 'button', id: 'videoChatPopOut'}).addClass('btn btn-warning')
+            .css({position: "absolute", "z-index": 3000, top: "5px", left:width - 280, "-webkit-box-shadow": "1px 1px 1px 1px #4C4C4C"})
+            .html("<i class='icon-facetime-video'></i><p></p>").click(function() {
+                $("#video-chat").modal({backdrop:false, keyboard: false}).draggable({handle:'.modal-header'});
+                $(this).remove();
+            });
+            document.body.appendChild(videoChatPopOut.get(0));
+            
+            setTimeout(blink($("#videoChatPopOut>i.icon-facetime-video")), 500);
+        });                                      
     });
 
     $("a[data-action=editor-find]").click(function() {

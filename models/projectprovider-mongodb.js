@@ -46,7 +46,7 @@ ProjectProvider.prototype.findAll = function(user, callback) {
     this.getCollection(function(error, project_collection) {
       if( error ) callback(error)
       else {
-        project_collection.find().toArray(function(error, results) {
+        project_collection.find().sort("created_on",1).toArray(function(error, results) {
           if( error ) callback(error) 
           else {             
             var _results = [];
@@ -64,6 +64,7 @@ ProjectProvider.prototype.findAll = function(user, callback) {
                  }
                }
             }
+            
             callback(null, _results)
           }
         });
