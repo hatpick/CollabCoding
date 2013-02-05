@@ -39,6 +39,7 @@ a img{max-width:none;height:20px}
 .chatMsg{width:185px;resize:none;rows:5}
 .cu-list{width:195px;margin:5px;text-align:center;overflow-x:hidden;overflow-y:auto;list-style-type:none}
 .cu-status-available{width:12px;height:12px;-webkit-border-radius:10px;border:1px solid #fefefe;background-color:#0c0}
+.cu-status-available-video{width:16px;height:10px;background-image:url("../img/icon_videochat.png")}
 .cu-status-busy{width:12px;height:12px;-webkit-border-radius:10px;border:1px solid #fefefe;background-color:#f00}
 .cu-item{padding:5px}
 .cu-item:hover{background-color:#e6e6e6}

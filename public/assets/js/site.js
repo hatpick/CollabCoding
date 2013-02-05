@@ -1895,11 +1895,12 @@ $(document).ready(function() {
         var pname = sessionStorage.getItem('project');
         $.each(users[pname], function(index, user) {
             var docPath = getDocPathName(user.currentDocument);
+            var chatAvailabilityClass = (TB.checkSystemRequirements() === TB.HAS_REQUIREMENTS)?"cu-status-available-video":"cu-status-available";
             var cuItem = $("<div>").attr("chat-user-id", user._id).addClass("cu-item").append($("<table>").css({
                 'width' : '100%',
                 'height' : '100%',
                 'text-align' : 'center'
-            }).append($("<tr>").attr('align', 'center').append($("<td>").css("width", "20px").append($("<div>").addClass("cu-status-available"))).append($("<td>").css("width", "20px").append("<img src=assets/img/silhouette.png></img>")).append($("<td>").css({
+            }).append($("<tr>").attr('align', 'center').append($("<td>").append($("<div>").addClass(chatAvailabilityClass))).append($("<td>").css("width", "20px").append("<img src=assets/img/silhouette.png></img>")).append($("<td>").css({
                 'text-align' : 'left',
                 'padding-left' : '5px'
             }).attr('valign', 'middle').append($("<a>").css({
