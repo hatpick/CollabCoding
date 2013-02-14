@@ -99,7 +99,7 @@ a img{max-width:none;height:20px}
 .chatboxoptions a{text-decoration:none;color:#fff}
 .chatboxtitle{float:left}
 .notification-count{display:none;position:fixed;height:12px;width:10px;right:115px;top:0;background-color:#f00;color:#fff;padding-bottom:4px;pading-right:1px;font-size:9px;font-weight:bold;border-radius:2px;border:1px solid #f44;border-bottom-color:#b00;border-right-color:#b00}
-.notification-a,.notification-user-a,.notification-project-a,.notification-folder-a,.notification-file-a,.notification-comment-a{text-decoration:none;font-weight:bold}
+.notification-a,.notification-user-a,.notification-project-a,.notification-folder-a,.notification-file-a,.notification-comment-a{text-decoration:none}
 .notification-user-a{color:#3a87ad}
 .notification-project-a{color:#3a87ad}
 .notification-folder-a{color:#3a87ad}

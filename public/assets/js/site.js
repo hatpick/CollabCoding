@@ -986,7 +986,8 @@ $(document).ready(function() {
             $('.breadcrumb').append(li);
                         
             var elem = document.getElementById('home');
-            var myCodeMirror = editor(elem, mode);                        
+            var myCodeMirror = editor(elem, mode);
+            myCodeMirror.setOption("readOnly", "nocursor");                        
             
             //Save current content to the database before openning new file
             saveCodeXML(myCodeMirror, false);
@@ -995,26 +996,28 @@ $(document).ready(function() {
             
             currentDocumentPath = getFilePath(paths);            
                                                                         
-            sharejs.open(docName, 'text', function(error, newdoc) {
-                if (doc !== null) {
+            var connection = sharejs.open(docName, 'text', function(error, newdoc) {
+                if(doc !== null) {
                     doc.close();
                     doc.detach_codemirror();
-                };
-
+                }
+                
                 doc = newdoc;
-
+                                            
                 if (error) {
                     console.error(error);
                     return;
                 }
-                
-                doc.attach_codemirror(myCodeMirror);
+                else{                                        
+                    doc.attach_codemirror(myCodeMirror);
+                    myCodeMirror.setOption("readOnly", false);
+                }
                 
                 //Start a transaction by making other open editors readonly
                 now.startTransaction(currentDocumentPath);
                 
                 _augmentDocument(currentDocumentPath, docName);                                    
-            //End transaction                     
+                //End transaction                     
             });
             
             if ($(".CodeMirror.CodeMirror-wrap").size() > 1) {
@@ -1037,7 +1040,7 @@ $(document).ready(function() {
             $("#right-items>div").html("");
             
             //TODO:Share cursor positions
-            myCodeMirror.on("cursorActivity", function() {                   
+            /*myCodeMirror.on("cursorActivity", function() {                   
                 var color = sessionStorage.getItem("color");
                 var cursor = myCodeMirror.getCursor();
                 cursor.color = color;  
@@ -1045,7 +1048,7 @@ $(document).ready(function() {
                 cursor.who = now.user.user;
                 cursor.path = currentDocumentPath;          
                 now.syncCursors(cursor, now.user.clientId);
-            });
+            });*/
                                                 
             var user = username;
             user.currentDocument = currentDocumentPath.replace(/\*/g, '/');
@@ -1551,6 +1554,7 @@ $(document).ready(function() {
             var project_name = sessionStorage.getItem('project');
             var paths = $.jstree._focused().get_path();
             var file_name = $("div input").val();
+            var sharejsid = uuid.v4();
 
             if (!reg.test($("div input").val())) {
                 return;
@@ -1559,6 +1563,7 @@ $(document).ready(function() {
             $.post('/project/' + project_name + '/new', {
                 paths : paths,
                 name : file_name,
+                sid : sharejsid,
                 type : 'file'
             }, function() {                
             }, 'json');
@@ -1576,7 +1581,9 @@ $(document).ready(function() {
             $("#browser").jstree("create", ele, "last", {
                 data : $("#dialog>div.modal-body input").val(),
                 attr : {
-                    rel : type
+                    rel : type,
+                    id: file_name + "_id",
+                    'data-shareJSId' : sharejsid
                 }
             }, function(o) {
             }, true);
@@ -1586,7 +1593,7 @@ $(document).ready(function() {
             var notifMsg = '<span style="text-align:justify"><a href="#" class="notification-user-a">' + now.user.name + '</a>' + ' has created a new file <a href="#" class="notification-file-a">' + file_name + '</a> under <a class="notification-project-a" href="#">' + sessionStorage.getItem('project') + '</a> project.</span>';
             ns.sendNotification(notifMsg, "information", true, 'g');
             localNotify("Successfully created " + file_name + " file!", 'success');
-            saveCodeXML(myCodeMirror, false);
+            //saveCodeXML(myCodeMirror, false);
             //refreshProjectTree();
         }));
 
@@ -1858,7 +1865,7 @@ $(document).ready(function() {
                         $("#dialog").modal('hide');
 
                         //TODO "Now" Group Change, Remove User From Old Group
-                        now.changeProjectGroup(sessionStorage.getItem('project'));
+                        now.changeProjectGroup(sessionStorage.getItem('project'), (TB.checkSystemRequirements() === TB.HAS_REQUIREMENTS));
                         //now.sayHi();
                     });
                 }))).append($('<td>').html(created_on_string)).append($('<td>').html(last_modified_on_string));
@@ -1895,12 +1902,12 @@ $(document).ready(function() {
         var pname = sessionStorage.getItem('project');
         $.each(users[pname], function(index, user) {
             var docPath = getDocPathName(user.currentDocument);
-            var chatAvailabilityClass = (TB.checkSystemRequirements() === TB.HAS_REQUIREMENTS)?"cu-status-available-video":"cu-status-available";
+            var chatAvailabilityClass = user.videoChat?"cu-status-available-video":"cu-status-available";
             var cuItem = $("<div>").attr("chat-user-id", user._id).addClass("cu-item").append($("<table>").css({
                 'width' : '100%',
                 'height' : '100%',
                 'text-align' : 'center'
-            }).append($("<tr>").attr('align', 'center').append($("<td>").append($("<div>").addClass(chatAvailabilityClass))).append($("<td>").css("width", "20px").append("<img src=assets/img/silhouette.png></img>")).append($("<td>").css({
+            }).append($("<tr>").attr('align', 'center').append($("<td>").css('width','40px').append($("<div>").addClass(chatAvailabilityClass))).append($("<td>").css("width", "20px").append("<img src=assets/img/silhouette.png></img>")).append($("<td>").css({
                 'text-align' : 'left',
                 'padding-left' : '5px'
             }).attr('valign', 'middle').append($("<a>").css({

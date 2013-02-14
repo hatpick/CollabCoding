@@ -69,7 +69,7 @@ exports.files.new = function(req, res, next) {
   obj.paths = req.body.paths;
   obj.name = req.body.name;
   obj.type = req.body.type;
-  obj.shareJSId = hat();
+  obj.shareJSId = req.body.sid;
   obj.created_on = new Date;
   obj.last_modified_on = new Date;
   projectProvider.new(project_name, obj, function(error, project) {
