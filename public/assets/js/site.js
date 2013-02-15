@@ -1978,7 +1978,7 @@ $(document).ready(function() {
         $("#dialog>div.modal-footer").html(dialogFooter);
 
         $("#users").autoSuggest("/users/list", {
-            selectedItemProp : "name",
+            selectedItemProp : "user",
             searchObjProps : "name",
             selectedValuesProp : "user",
             selectionLimit : 5,

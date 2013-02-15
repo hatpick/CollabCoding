@@ -94,8 +94,14 @@ exports.signup = function(req, res) {
 };
 
 exports.list = function(req, res) {
+    var user = req.session.user.user;
     AM.getAllRecords(function(err, result) {
-        res.json(result);
+        var _results = [];
+        for(var i=0;i<result.length;i++){
+            if(result[i].user !== user)
+                _results.push(result[i]);
+        }                
+        res.json(_results);
     });
 };
 

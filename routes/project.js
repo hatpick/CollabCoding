@@ -21,10 +21,18 @@ exports.show = function(req, res) {
   }
 };
 
-exports.new = function(req, res) {
+function contains(value, array) {
+    for(var i=0; i < array.length; i++) {
+        if(array[i] === value) return i;
+    }
+    return -1;
+}
+
+exports.new = function(req, res) {        
   var project_name = req.body.pname;
   var users = req.body.users; 
   if (users == null) users = [];
+  if(contains(req.session.user.user, users) === -1) users.push(req.session.user.user);
   projectProvider = ProjectProvider.factory();
   projectProvider.findByName(project_name, function(error, project) {
     console.log(project);
@@ -36,7 +44,7 @@ exports.new = function(req, res) {
     } else {
       projectProvider.save({
         name: project_name,
-        creator: req.session.user.name,
+        creator: req.session.user.user,
         users: users,
         root: {
           html: [],
