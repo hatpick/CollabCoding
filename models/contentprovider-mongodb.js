@@ -114,22 +114,11 @@ ContentProvider.prototype.findLatest = function(sid, user, callback) {
         if (error)
             callback(error)
         else {            
-            contents_collection.find().toArray(function(error, results) {                
+            contents_collection.find().sort({timestamp:1}).toArray(function(error, results) {                
                 if (error)
-                    callback(error + " nothing found!");
-                var contents = [];
-                for(var i = 0; i < results.length; i++) {
-                    if(results[i].shareJSId === sid)
-                        contents.push(results[i]);                    
-                }       
-                if(contents.length > 0) {
-                    contents = contents.sort(_compare_contents);                                                 
-                    callback(null, {
-                        'latest' : contents[contents.length - 1].snapshot                    
-                    });
-                }
-                else
-                    callback("not found any content!");
+                    callback(error + " nothing found!", {'latest': null});
+                else                                                                
+                    callback(null, {'latest' : results[0]});
             });            
         }
     });

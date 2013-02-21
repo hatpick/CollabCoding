@@ -6,7 +6,7 @@ var widgets = [];
 var markedText = [];
 var sideComments = [];
 var lockedCodes = [];
-var currentDocumentPath = '';
+var currentDocumentPath = null;
 
 var refresh_prepare = 1;
 var functions = [];
@@ -323,6 +323,8 @@ function lockCode(lockedCode, lcid, cm) {
     markedText.push(mt);
     cm.setCursor(lockedCode.from);    
     lockedCodes.push(lockedCode);
+    
+    saveCodeXML(myCodeMirror, true);
 }
 
 function arian(string, context) {
@@ -423,14 +425,18 @@ function _wherebookmark(dln) {
     return -1;
 }
 
-function getLineByCID(cid) {        
+function getLineByCID(cid) {            
     var ln = $("#icon-" + cid).parent().parent().children()[0].innerHTML;
-    return ln;
+    if(ln !== undefined)
+        return ln;
+    return -1;
 }
     
 function getLineByLCID(lcid) {
     var ln = $("#" + lcid).parent().parent().children()[0].innerHTML;;
-    return ln;
+    if(ln !== undefined)
+        return ln;
+    return -1;
 }
 
 function getBookmarkPosition(ln) {
@@ -511,7 +517,9 @@ function codeToXML(editor) {
         var codeLine = codeHTML[index];
         if ( typeof codeLine.wrapClass !== 'undefined') {
             switch(codeLine.wrapClass) {
-                case 'commentMarker commentMarkerInvisible':
+                //TODO add cid, lid
+                //TODO comment inside locked code
+                case 'commentMarker commentMarkerInvisible':                                    
                     var cid = '';
                     var commentNode = $("<comment>").attr("id", cid).append($("<l>").text(codeLine.text));
                     index++;
@@ -526,7 +534,8 @@ function codeToXML(editor) {
                     $(rootDocument).append(commentNode);
                     break;
                 case 'lockedCodeMarker':
-                    var lockedCodeNode = $("<lockedCode>");
+                    var lid = '';
+                    var lockedCodeNode = $("<lockedCode>").attr("id", lid);
                     var codeText = "";
                     var j = index, tempLine = codeLine;
                     while (tempLine.wrapClass === 'lockedCodeMarker') {
@@ -580,7 +589,7 @@ function _logout(options){
     var reason = options.reason;
     
     switch(reason){
-        case 'idle':
+        case 'idle':        
             cleanSessionStorage();
             now.changeProjectGroup(undefined);
             var notifMsg = now.user.name + " is offline!";
@@ -945,7 +954,7 @@ $(document).ready(function() {
                 var waitingLint; 
                 myCodeMirror.on("change", function(myCodeMirror, changeObj){
                     clearTimeout(waitingAutosave);
-                    waitingAutosave = setTimeout(saveCodeXML(myCodeMirror, false), 5000);
+                    waitingAutosave = setTimeout(saveCodeXML(myCodeMirror, false), 300);
                     
                     updateCommentsLineNumber();
                     updateLockedCodeLineNumber(); 
@@ -986,14 +995,23 @@ $(document).ready(function() {
             $('.breadcrumb').append(li);
                         
             var elem = document.getElementById('home');
+            //Clean memory
+            errBookmarks = [];
+            commentBookmarks = [];
+            lockedCodeBookmarks = [];
+            errorIcons = [];
+            widgets = [];
+            markedText = [];
+            sideComments = [];
+            lockedCodes = [];
+            //Clean memory
             var myCodeMirror = editor(elem, mode);
             myCodeMirror.setOption("readOnly", "nocursor");                        
             
-            //Save current content to the database before openning new file
-            saveCodeXML(myCodeMirror, false);
+            //Save current content to the database before openning new file            
             var docName = $.jstree._focused().get_selected().attr('data-shareJSId');
             sessionStorage.setItem("docName", docName);
-            
+            if(currentDocumentPath) saveCodeXML(myCodeMirror, false);
             currentDocumentPath = getFilePath(paths);            
                                                                         
             var connection = sharejs.open(docName, 'text', function(error, newdoc) {
@@ -1008,7 +1026,7 @@ $(document).ready(function() {
                     console.error(error);
                     return;
                 }
-                else{                                        
+                else {                                                            
                     doc.attach_codemirror(myCodeMirror);
                     myCodeMirror.setOption("readOnly", false);
                 }
@@ -1740,6 +1758,7 @@ $(document).ready(function() {
         })).append($("<a href='#'>").attr({
             class : "btn btn-primary"                        
         }).css("margin","5px 5px 6px").text("Loggoff").click(function(){
+            saveCodeXML(myCodeMirror, true);
             $.idleTimeout.options.onTimeout.call(this);
         }));
         
@@ -1751,6 +1770,7 @@ $(document).ready(function() {
             warningLength: 10,
             idleAfter: idleTime,                        
             onTimeout: function(){
+                saveCodeXML(myCodeMirror, true);
                 _logout({"reason":"idle"});
             },
             onIdle: function(){
@@ -1841,6 +1861,10 @@ $(document).ready(function() {
     var users;
 
     function _openProject() {
+        if ($(".CodeMirror.CodeMirror-wrap").size() > 1) {
+            $($(".CodeMirror.CodeMirror-wrap")[1]).remove();
+        }
+        
         $.get('/project/list', function(projects) {
             var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>Open Project</p>";
             var project_table = $('<table>').attr({
@@ -1922,8 +1946,7 @@ $(document).ready(function() {
             $("#chat-users-list").append($("<li>").html(cuItem));
         });
     }
-    function _closeProject() {
-        //TODO clear the tree, clear the editor, clear the comments, change roomnow.changeProjectGroup(undefined);        
+    function _closeProject() {                        
         now.changeProjectGroup(undefined);
         $("#browser").html('');
         $("#editor-area>div.CodeMirror").remove();
@@ -1937,6 +1960,10 @@ $(document).ready(function() {
     }
 
     function _newProject() {
+        if ($(".CodeMirror.CodeMirror-wrap").size() > 1) {
+            $($(".CodeMirror.CodeMirror-wrap")[1]).remove();
+        }
+        
         var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>New Project</p>";
         var dialogContent = '<input type="text" id="project_name" placeholder="Enter project name" width="100%" required/><br/><input type="text" id="users" width="100%" required/>';
 
@@ -2224,8 +2251,7 @@ $(document).ready(function() {
         $(commentContent).append(commentItem);
     }
 
-    function createComment(line, content, who, cid, remote) {
-        //TODO Add Database Model tricky! :-/        
+    function createComment(line, content, who, cid, remote) {               
         var comment_id = cid ? cid : uuid.v1();                
         var pname = sessionStorage.getItem('project');
                 
@@ -2333,6 +2359,8 @@ $(document).ready(function() {
         commentIconObg.content = content;
         commentIconObg.lineNumber = parseInt(getLineByCID(comment_id), 10) - 1
         sideComments.push(commentIconObg);
+        
+        saveCodeXML(myCodeMirror, true);
 
         
         myCodeMirror.on("delete", function(cm, line) {
