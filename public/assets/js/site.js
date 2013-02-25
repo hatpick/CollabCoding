@@ -368,7 +368,7 @@ function editor(id, mode) {
         syntax : "html",
         autoCloseTags: true,
         matchBrackets : true,
-        profile : "xhtml",        
+        profile : "xhtml",                
         onKeyEvent : function() {
             return zen_editor.handleKeyEvent.apply(zen_editor, arguments);
         },
@@ -508,7 +508,7 @@ function codeToXML(editor) {
     var codeHTML = [];
 
     var rootDocument = $("<code>").attr("id", currentDocumentPath);
-    var codeDocument = editor.view.doc;
+    var codeDocument = editor.doc;
     codeDocument.iter(0, codeDocument.size, function(line) {
         codeHTML.push(line);
     });
