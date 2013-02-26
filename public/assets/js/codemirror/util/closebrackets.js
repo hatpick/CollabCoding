@@ -1,3 +1,4 @@
+
 (function() {
   var DEFAULT_BRACKETS = "()[]{}''\"\"";
 

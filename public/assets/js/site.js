@@ -15,7 +15,10 @@ var parseId;
 /////////////////////////////////////
 /////////////////////////Tokbox Area
 /////////////////////////////////////
-var tokboxData = {"api_key": "16861582", "api_secret":"37bf9ac7337139b14ebffb17364e69fe84bfda8b"};
+var tokboxData = {
+    "api_key" : "16861582",
+    "api_secret" : "37bf9ac7337139b14ebffb17364e69fe84bfda8b"
+};
 var tokboxSession = {};
 
 var VIDEO_WIDTH = 320;
@@ -27,44 +30,49 @@ var subscribers = {};
 
 function connect() {
     session.connect(tokboxData.api_key, tokboxSession.token);
-    $("#streamButton").attr("data-action","startPublish");
+    $("#streamButton").attr("data-action", "startPublish");
     $("#streamButton").text("Publish");
 }
 
 function disconnect() {
     session.disconnect();
-    $("#streamButton").attr("data-action","startStream");
+    $("#streamButton").attr("data-action", "startStream");
     $("#streamButton").text("Start");
 }
 
 // Called when user wants to start publishing to the session
 function startPublishing() {
-    if (!publisher) {                
-        $("#streamButton").attr("data-action","stopPublish");
-        $("#streamButton").text("Unpublish");                
-        var publisherDiv = document.createElement('div'); // Create a div for the publisher to replace
+    if (!publisher) {
+        $("#streamButton").attr("data-action", "stopPublish");
+        $("#streamButton").text("Unpublish");
+        var publisherDiv = document.createElement('div');
+        // Create a div for the publisher to replace
         publisherDiv.setAttribute('id', 'vc-publisher');
         $("#video-chat>div.modal-body>div>div#localCast").append(publisherDiv);
-        var publisherProps = {width: VIDEO_WIDTH, height: VIDEO_HEIGHT};
-        publisher = TB.initPublisher(tokboxData, publisherDiv.id, publisherProps);  // Pass the replacement div id and properties
-        session.publish(publisher);                            
+        var publisherProps = {
+            width : VIDEO_WIDTH,
+            height : VIDEO_HEIGHT
+        };
+        publisher = TB.initPublisher(tokboxData, publisherDiv.id, publisherProps);
+        // Pass the replacement div id and properties
+        session.publish(publisher);
     }
 }
 
 function stopPublishing() {
     if (publisher) {
-        $("#streamButton").attr("data-action","stopStream");
+        $("#streamButton").attr("data-action", "stopStream");
         $("#streamButton").text("Stop");
         session.unpublish(publisher);
     }
-    publisher = null;            
+    publisher = null;
 }
 
 function sessionConnectedHandler(event) {
     // Subscribe to all streams currently in the Session
     for (var i = 0; i < event.streams.length; i++) {
         addStream(event.streams[i]);
-    }                        
+    }
 }
 
 function streamCreatedHandler(event) {
@@ -82,7 +90,7 @@ function streamDestroyedHandler(event) {
 function sessionDisconnectedHandler(event) {
     // This signals that the user was disconnected from the Session. Any subscribers and publishers
     // will automatically be removed. This default behaviour can be prevented using event.preventDefault()
-    publisher = null;                                 
+    publisher = null;
 }
 
 function connectionDestroyedHandler(event) {
@@ -94,8 +102,8 @@ function connectionCreatedHandler(event) {
 }
 
 /*
-If you un-comment the call to TB.setLogLevel(), above, OpenTok automatically displays exception event messages.
-*/
+ If you un-comment the call to TB.setLogLevel(), above, OpenTok automatically displays exception event messages.
+ */
 function exceptionHandler(event) {
     alert("Exception: " + event.code + "::" + event.message);
 }
@@ -106,18 +114,24 @@ function addStream(stream) {
     if (stream.connection.connectionId == session.connection.connectionId) {
         return;
     }
-    var subscriberDiv = document.createElement('div'); // Create a div for the subscriber to replace
-    subscriberDiv.setAttribute('id', stream.streamId); // Give the replacement div the id of the stream as its id.
+    var subscriberDiv = document.createElement('div');
+    // Create a div for the subscriber to replace
+    subscriberDiv.setAttribute('id', stream.streamId);
+    // Give the replacement div the id of the stream as its id.
     $("#video-chat>div.modal-body>div>div#remoteCasts").append(subscriberDiv);
-    var subscriberProps = {width: VIDEO_WIDTH/2, height: VIDEO_HEIGHT/2};
+    var subscriberProps = {
+        width : VIDEO_WIDTH / 2,
+        height : VIDEO_HEIGHT / 2
+    };
     subscribers[stream.streamId] = session.subscribe(stream, subscriberDiv.id, subscriberProps);
-}                           
+}
+
 ///////////////////Tokbox Area
 //////////////////////////////
 //////////////////////////////
 
 function get_random_color() {
-    return '#' + Math.floor(Math.random()*16777215).toString(16);
+    return '#' + Math.floor(Math.random() * 16777215).toString(16);
 }
 
 function parse(delay) {
@@ -125,7 +139,7 @@ function parse(delay) {
         window.clearTimeout(parseId);
     }
 
-    parseId = window.setTimeout(function () {
+    parseId = window.setTimeout(function() {
         var code, options, result, el, str;
 
         // Special handling for regular expression literal since we need to
@@ -138,28 +152,28 @@ function parse(delay) {
             return value;
         }
 
-        if (typeof window.editor === 'undefined') {
+        if ( typeof window.editor === 'undefined') {
             code = document.getElementById('home').value;
         } else {
             code = myCodeMirror.getValue();
         }
         options = {
-            comment: false,
-            raw: false,
-            range: false,
-            loc: true,
-            tolerant: true
+            comment : false,
+            raw : false,
+            range : false,
+            loc : true,
+            tolerant : true
         };
-        
+
         try {
 
             result = esprima.parse(code, options);
             str = JSON.stringify(result, adjustRegexLiteral, 4);
             options.tokens = true;
             // document.getElementById('tokens').value = JSON.stringify(esprima.parse(code, options).tokens,
-                // adjustRegexLiteral, 4);
+            // adjustRegexLiteral, 4);
             // updateTree(result);
-        } catch (e) {            
+        } catch (e) {
             //updateTree();
             str = e.name + ': ' + e.message;
         }
@@ -176,33 +190,35 @@ function parse(delay) {
     }, delay || 811);
 }
 
-function extractFunctions(obj, functions) {           
-    if(obj.body.length === 0) return;    
-    for(var i = 0; i < obj.body.length; i++){
-        if(obj.body[i].type === 'FunctionDeclaration') functions.push(obj.body[i]);                 
-        if(typeof obj.body[i].body === 'undefined') continue;
-        extractFunctions(obj.body[i], functions);                
+function extractFunctions(obj, functions) {
+    if (obj.body.length === 0)
+        return;
+    for (var i = 0; i < obj.body.length; i++) {
+        if (obj.body[i].type === 'FunctionDeclaration')
+            functions.push(obj.body[i]);
+        if ( typeof obj.body[i].body === 'undefined')
+            continue;
+        extractFunctions(obj.body[i], functions);
     }
 }
 
 function tempLoadXml() {
     var pname = sessionStorage['project'];
     var sid = sessionStorage['docName'];
-    
+
     var url = '/project/loadXML/' + sid;
     console.log(url);
-    
-    $.get({        
-        url:url, 
-        success: function(data){              
-            return data;                 
-        },          
-        async: false        
+
+    $.get({
+        url : url,
+        success : function(data) {
+            return data;
+        },
+        async : false
     });
 }
 
-function checkRefresh()
-{
+function checkRefresh() {
     // Get the time now and convert to UTC seconds
     var today = new Date();
     var now = today.getUTCSeconds();
@@ -212,26 +228,19 @@ function checkRefresh()
     var cookieArray = cookie.split('; ');
 
     // Parse the cookies: get the stored time
-    for(var loop=0; loop < cookieArray.length; loop++)
-    {
+    for (var loop = 0; loop < cookieArray.length; loop++) {
         var nameValue = cookieArray[loop].split('=');
         // Get the cookie time stamp
-        if( nameValue[0].toString() == 'SHTS' )
-        {
-            var cookieTime = parseInt( nameValue[1] );
+        if (nameValue[0].toString() == 'SHTS') {
+            var cookieTime = parseInt(nameValue[1]);
         }
         // Get the cookie page
-        else if( nameValue[0].toString() == 'SHTSP' )
-        {
+        else if (nameValue[0].toString() == 'SHTSP') {
             var cookieName = nameValue[1];
         }
     }
 
-    if( cookieName &&
-        cookieTime &&
-        cookieName == escape(location.href) &&
-        Math.abs(now - cookieTime) < 5 )
-    {
+    if (cookieName && cookieTime && cookieName == escape(location.href) && Math.abs(now - cookieTime) < 5) {
         // Refresh detected
 
         // Insert code here representing what to do on
@@ -239,39 +248,33 @@ function checkRefresh()
         return true;
 
         // If you would like to toggle so this refresh code
-        // is executed on every OTHER refresh, then 
+        // is executed on every OTHER refresh, then
         // uncomment the following line
-        // refresh_prepare = 0; 
-    }   
-    else {
+        // refresh_prepare = 0;
+    } else {
         return false;
     }
 
-    // You may want to add code in an else here special 
-    // for fresh page loads    
+    // You may want to add code in an else here special
+    // for fresh page loads
 }
 
-function prepareForRefresh()
-{
-    if( refresh_prepare > 0 )
-    {
+function prepareForRefresh() {
+    if (refresh_prepare > 0) {
         // Turn refresh detection on so that if this
         // page gets quickly loaded, we know it's a refresh
         var today = new Date();
         var now = today.getUTCSeconds();
         document.cookie = 'SHTS=' + now + ';';
         document.cookie = 'SHTSP=' + escape(location.href) + ';';
-    }
-    else
-    {
+    } else {
         // Refresh detection has been disabled
         document.cookie = 'SHTS=;';
         document.cookie = 'SHTSP=;';
     }
 }
 
-function disableRefreshDetection()
-{
+function disableRefreshDetection() {
     // The next page will look like a refresh but it actually
     // won't be, so turn refresh detection off.
     refresh_prepare = 0;
@@ -286,7 +289,7 @@ function updateHints(editor) {
         for (var i = 0; i < errBookmarks.length; ++i) {
             $(errBookmarks[i].dom).remove();
         }
-        //editor.clearGutter("CodeMirror-errorGutter");
+                
         errBookmarks.length = 0;
         errorIcons.length = 0;
 
@@ -299,14 +302,12 @@ function updateHints(editor) {
             $(bm.dom).tooltip({
                 title : err.line + ": " + err.reason,
                 placement : "left"
-            });
-            //addGutterError(err.line, editor);
+            });            
         }
     });
 }
 
-
-function lockCode(lockedCode, lcid, cm) {          
+function lockCode(lockedCode, lcid, cm) {
     var mt = cm.markText(lockedCode.from, lockedCode.to, {
         className : "gooz",
         readOnly : true
@@ -314,16 +315,16 @@ function lockCode(lockedCode, lcid, cm) {
     $.each(mt.lines, function(i, line) {
         cm.addLineClass(line, "wrap", "lockedCodeMarker");
     });
-    
+
     addBookmarks("lockedCode", lockedCode.from.line, lcid, cm);
-    
+
     var lcIcon = $("<div>").attr("id", lcid);
     myCodeMirror.setGutterMarker(lockedCode.from.line, "CodeMirror-lockedCodeGutter", lcIcon.get(0));
-    
+
     markedText.push(mt);
-    cm.setCursor(lockedCode.from);    
+    cm.setCursor(lockedCode.from);
     lockedCodes.push(lockedCode);
-    
+
     saveCodeXML(myCodeMirror, true);
 }
 
@@ -362,18 +363,19 @@ function editor(id, mode) {
         mode : mode,
         lineNumbers : true,
         lineWrapping : true,
-        extraKeys : {                                    
+        extraKeys : {
             "Ctrl-Space" : "autocomplete"
         },
         syntax : "html",
-        autoCloseTags: true,
+        autoCloseTags : true,
         matchBrackets : true,
-        profile : "xhtml",                
+        profile : "xhtml",
+        autoCloseBrackets : true,        
         onKeyEvent : function() {
             return zen_editor.handleKeyEvent.apply(zen_editor, arguments);
         },
         gutters : ["CodeMirror-commentsGutter", "CodeMirror-commentsiconsGutter", "CodeMirror-lockedCodeGutter", "CodeMirror-linenumbers"]
-    });    
+    });
 
     Inlet(_editor);
 
@@ -425,16 +427,17 @@ function _wherebookmark(dln) {
     return -1;
 }
 
-function getLineByCID(cid) {            
+function getLineByCID(cid) {
     var ln = $("#icon-" + cid).parent().parent().children()[0].innerHTML;
-    if(ln !== undefined)
+    if (ln !== undefined)
         return ln;
     return -1;
 }
-    
+
 function getLineByLCID(lcid) {
-    var ln = $("#" + lcid).parent().parent().children()[0].innerHTML;;
-    if(ln !== undefined)
+    var ln = $("#" + lcid).parent().parent().children()[0].innerHTML;
+    ;
+    if (ln !== undefined)
         return ln;
     return -1;
 }
@@ -443,14 +446,13 @@ function getBookmarkPosition(ln) {
     var bookmarkHeight = $("#bookmarksArea").height();
     var editorHeight = myCodeMirror.lineCount();
     var mapPers = (bookmarkHeight) / (editorHeight);
-    
 
     return mapPers * (ln);
 }
 
 function addBookmarks(type, dln, vid, cm) {
     var notError = false;
-    var marker, className, bookmarks;    
+    var marker, className, bookmarks;
 
     var top = getBookmarkPosition(dln);
 
@@ -473,17 +475,19 @@ function addBookmarks(type, dln, vid, cm) {
         var cname = $(this).attr("class").substring(24);
         var vid = $(this).attr("vid");
         var line = $(this).attr("data-line") - 1;
-        if(cname === 'Comment') line = getLineByCID(vid) - 1;
-        else if(cname === 'LockedCode') line = getLineByLCID(vid) - 1;         
+        if (cname === 'Comment')
+            line = getLineByCID(vid) - 1;
+        else if (cname === 'LockedCode')
+            line = getLineByLCID(vid) - 1;
         clearMarker(cm, cname);
-        if(type !== 'lockedCode')
+        if (type !== 'lockedCode')
             cm.addLineClass(line, "wrap", marker);
         cm.setCursor({
             line : line,
             ch : 0
-        });        
+        });
     });
-    
+
     var bookmarkObj = {
         line : dln,
         id : $(bookmark).attr("vid"),
@@ -491,20 +495,22 @@ function addBookmarks(type, dln, vid, cm) {
         type : type
     };
     var index = _wherebookmark(dln);
-    if(index === 0 && notError) {
+    if (index === 0 && notError) {
         $("#bookmarksArea").prepend(bookmark);
-    }
-    else if (index !== -1 && notError)
+    } else if (index !== -1 && notError)
         $("#bookmarksArea div:nth-child(" + index + ")").after(bookmark);
     else
         $("#bookmarksArea").append(bookmark);
-    if(type !== 'error') bookmarks[bookmarkObj.id] = bookmarkObj;
-    else bookmarks.push(bookmarkObj);
+    if (type !== 'error')
+        bookmarks[bookmarkObj.id] = bookmarkObj;
+    else
+        bookmarks.push(bookmarkObj);
     return bookmarkObj;
 }
 
 function codeToXML(editor) {
-    if(editor.getValue() === "") return "";
+    if (editor.getValue() === "")
+        return "";
     var codeHTML = [];
 
     var rootDocument = $("<code>").attr("id", currentDocumentPath);
@@ -519,7 +525,7 @@ function codeToXML(editor) {
             switch(codeLine.wrapClass) {
                 //TODO add cid, lid
                 //TODO comment inside locked code
-                case 'commentMarker commentMarkerInvisible':                                    
+                case 'commentMarker commentMarkerInvisible':
                     var cid = '';
                     var commentNode = $("<comment>").attr("id", cid).append($("<l>").text(codeLine.text));
                     index++;
@@ -568,52 +574,50 @@ function codeToXML(editor) {
             $(rootDocument).append(pureCodeNode);
         }
     }
-    
+
     return $(rootDocument)[0].outerHTML;
 }
 
 function cleanSessionStorage() {
-    try{
-    sessionStorage.removeItem('project');
-    sessionStorage.removeItem('docName');
-    }
-    catch(e){
+    try {
+        sessionStorage.removeItem('project');
+        sessionStorage.removeItem('docName');
+    } catch(e) {
         console.log(e);
-    }
-    finally{
-        
+    } finally {
+
     }
 }
 
-function _logout(options){
+function _logout(options) {
     var reason = options.reason;
-    
-    switch(reason){
-        case 'idle':        
+
+    switch(reason) {
+        case 'idle':
             cleanSessionStorage();
             now.changeProjectGroup(undefined);
             var notifMsg = now.user.name + " is offline!";
             ns.sendNotification(notifMsg, "error", false, 'e');
             //TODO: save current open document on the server, appropriate notification
-        break;
+            break;
         case 'logoutButton':
             cleanSessionStorage();
             now.changeProjectGroup(undefined);
             var notifMsg = now.user.name + " is offline!";
             ns.sendNotification(notifMsg, "error", false, 'e');
             //TODO: save current open document on the server, appropriate notification
-        break;
+            break;
         case 'windowClose':
             now.changeProjectGroup(undefined);
             var notifMsg = now.user.name + " is offline!";
             ns.sendNotification(notifMsg, "error", false, 'e');
             //save current open document on the server, appropriate notification
-        break;
-        case 'refresh':            
+            break;
+        case 'refresh':
             //save current open document on the server, appropriate notification
-        break;
+            break;
     }
-                    
+
     window.location.href = '/logout';
 }
 
@@ -739,19 +743,23 @@ $(window).resize(function() {
         myCodeMirror.refresh();
 });
 
-$(window).load(function(){
+$(window).load(function() {
     var isRefresh = checkRefresh();
-    if(isRefresh){
-        _logout({"reason":"refresh"});
-    }    
+    if (isRefresh) {
+        _logout({
+            "reason" : "refresh"
+        });
+    }
 });
 
 window.onunload = function() {
     prepareForRefresh();
 }
 
-window.onbeforeunload = function(e) {         
-    _logout({"reason": "windowClose"});               
+window.onbeforeunload = function(e) {
+    _logout({
+        "reason" : "windowClose"
+    });
 };
 
 var idleModal;
@@ -783,7 +791,7 @@ $(document).ready(function() {
         },
         'Lock Code' : {
             onclick : function(menuItem, menu) {
-                if (myCodeMirror.somethingSelected()) {                       
+                if (myCodeMirror.somethingSelected()) {
                     var lockedCode = {};
                     lockedCode.lcid = uuid.v4();
                     lockedCode.from = myCodeMirror.view.sel.from;
@@ -794,7 +802,7 @@ $(document).ready(function() {
                     var tsstring = "On " + ts.toDateString() + " at " + ts.toLocaleTimeString();
                     lockCode.tsstring = tsstring;
                     lockedCode.content = myCodeMirror.getRange(lockedCode.from, lockedCode.to);
-                    lockCode(lockedCode, lockedCode.lcid ,myCodeMirror);
+                    lockCode(lockedCode, lockedCode.lcid, myCodeMirror);
                     now.sendLockedCode(lockedCode);
                 }
             },
@@ -823,71 +831,86 @@ $(document).ready(function() {
         if (needRefresh)
             refreshProjectTree();
     }
-    
     function autoupdate(dom) {
-      setTimeout(function(){
-         $(dom).css('display', 'none');
-         setTimeout(function(){
-            $(dom).css('display', 'block');
-            setTimeout(autoupdate(dom), 50);
-         }, 600)
-      }, 600)
+        setTimeout(function() {
+            $(dom).css('display', 'none');
+            setTimeout(function() {
+                $(dom).css('display', 'block');
+                setTimeout(autoupdate(dom), 50);
+            }, 600)
+        }, 600)
     }
-    
+
     function showOtherCursor(cursor, cm) {
-      var cmCursor = {line : cursor.line, ch : cursor.ch};
-      var cursorCoords = cm.cursorCoords(cmCursor);
-      var cursorEl = document.createElement('pre');
-      cursorEl.className = 'other-client';
-      cursorEl.style.borderLeftWidth = '2px';
-      cursorEl.style.borderLeftStyle = 'solid';
-      cursorEl.innerHTML = '&nbsp;';
-      cursorEl.style.borderLeftColor = cursor.color;
-      cursorEl.style.height = (cursorCoords.bottom - cursorCoords.top) * 1.1 + 'px';
-      var ua = $("<div>").css({"top" : "-" + (cursorEl.style.height/2),"padding": "3px","display":"none","background-color":cursor.color, "color":"white", "font-size" : "11px"}).html(cursor.who);
-      $(cursorEl).append(ua);
-      setTimeout(autoupdate(cursorEl), 50);      
-      var time = 2500, timer;    
-      function handlerIn() {
-          clearTimeout(timer);
-          $($(cursorEl).find("div")).stop(true).show();
-      }
-      function handlerOut() {
-          timer = setTimeout(function() {
-              $($(cursorEl).find("div")).hide();
-          }, time);
-      }
-    
-      $(cursorEl).hover(handlerIn, handlerOut);
-      cm.addWidget(cursor, cursorEl, false);      
-      return {
-        clear: function () {
-          var parent = cursorEl.parentNode;
-          if (parent) { parent.removeChild(cursorEl); }
+        var cmCursor = {
+            line : cursor.line,
+            ch : cursor.ch
+        };
+        var cursorCoords = cm.cursorCoords(cmCursor);
+        var cursorEl = document.createElement('pre');
+        cursorEl.className = 'other-client';
+        cursorEl.style.borderLeftWidth = '2px';
+        cursorEl.style.borderLeftStyle = 'solid';
+        cursorEl.innerHTML = '&nbsp;';
+        cursorEl.style.borderLeftColor = cursor.color;
+        cursorEl.style.height = (cursorCoords.bottom - cursorCoords.top) * 1.1 + 'px';
+        var ua = $("<div>").css({
+            "top" : "-" + (cursorEl.style.height / 2),
+            "padding" : "3px",
+            "display" : "none",
+            "background-color" : cursor.color,
+            "color" : "white",
+            "font-size" : "11px"
+        }).html(cursor.who);
+        $(cursorEl).append(ua);
+        setTimeout(autoupdate(cursorEl), 50);
+        var time = 2500, timer;
+        function handlerIn() {
+            clearTimeout(timer);
+            $($(cursorEl).find("div")).stop(true).show();
         }
-      };
+
+        function handlerOut() {
+            timer = setTimeout(function() {
+                $($(cursorEl).find("div")).hide();
+            }, time);
+        }
+
+
+        $(cursorEl).hover(handlerIn, handlerOut);
+        cm.addWidget(cursor, cursorEl, false);
+        return {
+            clear : function() {
+                var parent = cursorEl.parentNode;
+                if (parent) {
+                    parent.removeChild(cursorEl);
+                }
+            }
+        };
     }
-    
+
     var cursorsDom = {};
-    now.receiveCursors = function(cursors) {                
+    now.receiveCursors = function(cursors) {
         $.each(cursors, function(cursor, index) {
-            if (cursors[cursor].path !== currentDocumentPath || cursors[cursor].sid === now.core.clientId) return;            
-            if(cursorsDom[cursor]) cursorsDom[cursor].clear(); 
+            if (cursors[cursor].path !== currentDocumentPath || cursors[cursor].sid === now.core.clientId)
+                return;
+            if (cursorsDom[cursor])
+                cursorsDom[cursor].clear();
             //console.log(cursors[cursor]);
             var mark = showOtherCursor(cursors[cursor], myCodeMirror);
-            cursorsDom[cursor] = mark;          
-        });        
+            cursorsDom[cursor] = mark;
+        });
     }
 
     now.receiveComment = function(comment, cid) {
-        if (comment.sid === now.core.clientId) {            
+        if (comment.sid === now.core.clientId) {
             return;
         }
         if (currentDocumentPath === comment.path) {
             appendComment(comment.cid, comment.content, comment.who, comment.line, comment.timestamp, false);
         }
     }
-    
+
     now.receiveLockedCode = function(lockedCode, sid) {
         if (sid === now.core.clientId)
             return;
@@ -895,21 +918,21 @@ $(document).ready(function() {
             lockCode(lockedCode, lockedCode.cid, myCodeMirror);
         }
     }
-    
+
     now.executePauseCommand = function(path, sid) {
         if (sid === now.core.clientId)
             return;
         if (currentDocumentPath === path) {
             myCodeMirror.setOption("readOnly", true);
-        }                    
+        }
     }
-    
+
     now.executeResumeCommand = function(path, sid) {
         if (sid === now.core.clientId)
             return;
         if (currentDocumentPath === path) {
             myCodeMirror.setOption("readOnly", false);
-        }                    
+        }
     }
     /*$(".CodeMirror-lines").resize(function(e) {
      var _height = $(".CodeMirror").height();
@@ -924,51 +947,50 @@ $(document).ready(function() {
         });
         return currentdocumentpath.substring(0, currentdocumentpath.length - 1);
     }
-    
+
     function _augmentDocument(path, sid) {
-        var url = "/project/" + path + "/augment";        
-        
-        $.get(url,             
-            function(data) {                
-                $.each(data.comments, function(index, comment){
-                    appendComment(comment.commentId, comment.commentBody, comment.commentSender, comment.commentLineNumber, comment.commentTimestamp, true)
+        var url = "/project/" + path + "/augment";
+
+        $.get(url, function(data) {
+            $.each(data.comments, function(index, comment) {
+                appendComment(comment.commentId, comment.commentBody, comment.commentSender, comment.commentLineNumber, comment.commentTimestamp, true)
+            });
+
+            $.each(data.lockedCodes, function(index, lockedCode) {
+                var lc = {};
+                lc.lcid = lockedCode.lockedCodeId;
+                lc.from = lockedCode.lockedCodeFrom;
+                lc.to = lockedCode.lockedCodeTo;
+                lc.who = lockedCode.lockedCodeOwner;
+                lc.path = lockedCode.lockedCodePath;
+                lc.timestamp = lockedCode.lockedCodetimestamp;
+                lc.tsstring = lockedCode.lockedCodeTSString;
+                lc.content = lockedCode.lockedCodeContent;
+
+                lockCode(lc, lc.lcid, myCodeMirror);
+            });
+
+            now.stopTransaction(path);
+
+            var waitingAutosave;
+            var waitingLint;
+            myCodeMirror.on("change", function(myCodeMirror, changeObj) {
+                clearTimeout(waitingAutosave);
+                waitingAutosave = setTimeout(saveCodeXML(myCodeMirror, false), 300);
+
+                updateCommentsLineNumber();
+                updateLockedCodeLineNumber();
+            });
+
+            if (currentDocumentPath.indexOf(".js") !== -1) {
+                myCodeMirror.on("change", function(myCodeMirror, changeObj) {
+                    clearTimeout(waitingLint);
+                    waitingLint = setTimeout(updateHints(myCodeMirror), 300);
                 });
-                                                                        
-                $.each(data.lockedCodes, function(index, lockedCode){
-                    var lc = {};
-                    lc.lcid = lockedCode.lockedCodeId;
-                    lc.from = lockedCode.lockedCodeFrom;
-                    lc.to = lockedCode.lockedCodeTo;
-                    lc.who = lockedCode.lockedCodeOwner;
-                    lc.path = lockedCode.lockedCodePath;
-                    lc.timestamp = lockedCode.lockedCodetimestamp;                  
-                    lc.tsstring = lockedCode.lockedCodeTSString;
-                    lc.content = lockedCode.lockedCodeContent;
-                    
-                    lockCode(lc, lc.lcid ,myCodeMirror);
-                });
-                
-                now.stopTransaction(path); 
-                
-                var waitingAutosave;
-                var waitingLint; 
-                myCodeMirror.on("change", function(myCodeMirror, changeObj){
-                    clearTimeout(waitingAutosave);
-                    waitingAutosave = setTimeout(saveCodeXML(myCodeMirror, false), 300);
-                    
-                    updateCommentsLineNumber();
-                    updateLockedCodeLineNumber(); 
-                }); 
-                
-                if(currentDocumentPath.indexOf(".js") !== -1){
-                    myCodeMirror.on("change", function(myCodeMirror, changeObj) {
-                        clearTimeout(waitingLint);
-                        waitingLint = setTimeout(updateHints(myCodeMirror), 300);
-                    });
-                }                                                                                                                             
-            });  
+            }
+        });
     }
-   
+
 
     $('#browser').bind('click', function() {
         //TODO save current document in database
@@ -984,7 +1006,7 @@ $(document).ready(function() {
             $('.breadcrumb').empty();
             var paths = $.jstree._focused().get_path();
             var li;
-            
+
             for (var i = 0; i < paths.length - 1; i++) {
                 li = $('<li>').append($('<a>').attr('href', '#').html(paths[i]).click(function() {
                     $.jstree._reference('#browser').select_node($('#' + $(this).text() + '_id'), true);
@@ -993,7 +1015,7 @@ $(document).ready(function() {
             }
             li = $('<li>').addClass('active').html(paths[i]);
             $('.breadcrumb').append(li);
-                        
+
             var elem = document.getElementById('home');
             //Clean memory
             errBookmarks = [];
@@ -1006,38 +1028,38 @@ $(document).ready(function() {
             lockedCodes = [];
             //Clean memory
             var myCodeMirror = editor(elem, mode);
-            myCodeMirror.setOption("readOnly", "nocursor");                        
-            
-            //Save current content to the database before openning new file            
+            myCodeMirror.setOption("readOnly", "nocursor");
+
+            //Save current content to the database before openning new file
             var docName = $.jstree._focused().get_selected().attr('data-shareJSId');
             sessionStorage.setItem("docName", docName);
-            if(currentDocumentPath) saveCodeXML(myCodeMirror, false);
-            currentDocumentPath = getFilePath(paths);            
-                                                                        
+            if (currentDocumentPath)
+                saveCodeXML(myCodeMirror, false);
+            currentDocumentPath = getFilePath(paths);
+
             var connection = sharejs.open(docName, 'text', function(error, newdoc) {
-                if(doc !== null) {
+                if (doc !== null) {
                     doc.close();
                     doc.detach_codemirror();
                 }
-                
+
                 doc = newdoc;
-                                            
+
                 if (error) {
                     console.error(error);
                     return;
-                }
-                else {                                                            
+                } else {
                     doc.attach_codemirror(myCodeMirror);
-                    myCodeMirror.setOption("readOnly", false);
+                    myCodeMirror.setOption("readOnly", false);                    
                 }
-                
+
                 //Start a transaction by making other open editors readonly
                 now.startTransaction(currentDocumentPath);
-                
-                _augmentDocument(currentDocumentPath, docName);                                    
-                //End transaction                     
+
+                _augmentDocument(currentDocumentPath, docName);
+                //End transaction
             });
-            
+
             if ($(".CodeMirror.CodeMirror-wrap").size() > 1) {
                 $($(".CodeMirror.CodeMirror-wrap")[1]).remove();
             }
@@ -1056,21 +1078,21 @@ $(document).ready(function() {
 
             $("#right-items").css("display", "block");
             $("#right-items>div").html("");
-            
+
             //TODO:Share cursor positions
-            /*myCodeMirror.on("cursorActivity", function() {                   
-                var color = sessionStorage.getItem("color");
-                var cursor = myCodeMirror.getCursor();
-                cursor.color = color;  
-                cursor.sid = now.core.clientId;
-                cursor.who = now.user.user;
-                cursor.path = currentDocumentPath;          
-                now.syncCursors(cursor, now.user.clientId);
-            });*/
-                                                
+            /*myCodeMirror.on("cursorActivity", function() {
+             var color = sessionStorage.getItem("color");
+             var cursor = myCodeMirror.getCursor();
+             cursor.color = color;
+             cursor.sid = now.core.clientId;
+             cursor.who = now.user.user;
+             cursor.path = currentDocumentPath;
+             now.syncCursors(cursor, now.user.clientId);
+             });*/            
+
             var user = username;
             user.currentDocument = currentDocumentPath.replace(/\*/g, '/');
-            now.updateCurrentDoc(username, user.currentDocument);                                                        
+            now.updateCurrentDoc(username, user.currentDocument);
 
             window.myCodeMirror = myCodeMirror;
             if (file_type === 'file-html') {
@@ -1078,7 +1100,7 @@ $(document).ready(function() {
             } else {
                 _switchLiveViewButton(false);
             }
-            _toggleLiveView(false);                                    
+            _toggleLiveView(false);
         }
     });
 
@@ -1496,8 +1518,8 @@ $(document).ready(function() {
             showConsole($("a[data-action=editor-console-toggle]"));
         }
     }
-    
-    function localNotify(message, type){
+
+    function localNotify(message, type) {
         var options = {
             text : message,
             template : '<div class="noty_message"><span class="noty_text"></span><div class="noty_close"></div></div>',
@@ -1508,29 +1530,29 @@ $(document).ready(function() {
             closeWith : ['button'],
             buttons : false
         };
-        var ntfcn = noty(options);    
-    }        
-    
+        var ntfcn = noty(options);
+    }
+
     function saveCodeXML(editor, ntfn) {
         var sid = sessionStorage.getItem("docName");
         var project_name = sessionStorage.getItem('project');
         if (currentDocumentPath === '')
             return;
-        var xmlDoc = codeToXML(editor);    
-        var url = '/project/' + project_name + '/saveXML';         
-    
+        var xmlDoc = codeToXML(editor);
+        var url = '/project/' + project_name + '/saveXML';
+
         $.post(url, {
             "owner" : now.user.user,
             "snapshot" : xmlDoc,
             "content" : editor.getValue(),
             "path" : currentDocumentPath,
-            "shareJSId": sid,
-            "timestamp": new Date()
+            "shareJSId" : sid,
+            "timestamp" : new Date()
         }, function(data) {
-            if(ntfn)        
-                localNotify('Successfully saved ' + currentDocumentPath.replace(/\*/g,'/') + ' in the the database!', 'success');       
+            if (ntfn)
+                localNotify('Successfully saved ' + currentDocumentPath.replace(/\*/g, '/') + ' in the the database!', 'success');
         }, 'json');
-    }        
+    }
 
     function deleteElement(ele) {
         var project_name = sessionStorage.getItem('project');
@@ -1539,7 +1561,7 @@ $(document).ready(function() {
         $.post('/project/' + project_name + '/' + id + '/delete', {
             paths : paths,
             type : 'file'
-        }, function(data) {            
+        }, function(data) {
         }, 'json');
         localNotify('Successfully deleted ' + path + '!', 'success');
         //refreshProjectTree();
@@ -1566,7 +1588,7 @@ $(document).ready(function() {
             "data-dismiss" : "modal"
         }).text("Cancel")).append($("<a>").attr({
             class : "btn btn-primary"
-        }).css('margin','5px 5px 6px').text("Create").click(function() {
+        }).css('margin', '5px 5px 6px').text("Create").click(function() {
             // Create New a file
             var reg = /.+\..+/;
             var project_name = sessionStorage.getItem('project');
@@ -1583,7 +1605,7 @@ $(document).ready(function() {
                 name : file_name,
                 sid : sharejsid,
                 type : 'file'
-            }, function() {                
+            }, function() {
             }, 'json');
 
             var opt = $("select option:selected").val();
@@ -1600,7 +1622,7 @@ $(document).ready(function() {
                 data : $("#dialog>div.modal-body input").val(),
                 attr : {
                     rel : type,
-                    id: file_name + "_id",
+                    id : file_name + "_id",
                     'data-shareJSId' : sharejsid
                 }
             }, function(o) {
@@ -1646,7 +1668,7 @@ $(document).ready(function() {
             "data-dismiss" : "modal"
         }).text("Cancel")).append($("<a>").attr({
             class : "btn btn-primary"
-        }).css('margin','5px 5px 6px').text("Create").click(function() {
+        }).css('margin', '5px 5px 6px').text("Create").click(function() {
             //  TODO save folder
             var project_name = sessionStorage.getItem('project');
             var paths = $.jstree._focused().get_path();
@@ -1655,7 +1677,7 @@ $(document).ready(function() {
                 paths : paths,
                 name : folder_name,
                 type : 'folder'
-            }, function() {                
+            }, function() {
             }, 'json');
 
             // create
@@ -1665,7 +1687,7 @@ $(document).ready(function() {
                     rel : 'folder'
                 }
             }, function(o) {
-            }, true);            
+            }, true);
             $("#dialog").modal('hide');
             var notifMsg = '<span style="text-align:justify"><a href="#" class="notification-user-a">' + now.user.name + '</a>' + ' has created a new folder <a href="#" class="notification-file-a">' + folder_name + '</a> under <a class="notification-project-a" href="#">' + sessionStorage.getItem('project') + '</a> project.</span>';
             localNotify("Successfully created " + folder_name + " folder!", 'success');
@@ -1673,9 +1695,10 @@ $(document).ready(function() {
         }));
         $("#dialog>div.modal-header").html(dialogHeader);
         $("#dialog>div.modal-body").html(dialogContent);
-        $("#dialog>div.modal-footer").html(dialogFooter);        
+        $("#dialog>div.modal-footer").html(dialogFooter);
         $("#dialog").modal();
-    }    
+    }
+
 
     $("#left-items").width(205);
     $("#project-tree").jstree();
@@ -1746,42 +1769,47 @@ $(document).ready(function() {
             showLeftArea($(this));
         }
     });
-    
-    function startIdleTimer(idleTime){        
+
+    function startIdleTimer(idleTime) {
         var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p style='text-align:center;font-weight:bold;' class='text-error'>***Warning***</p><p></p>";
-        var dialogContent = "<p>You were idle for more than " + idleTime/60 + " minutes, and you are about to be logged out in <span id='dialog-countdown' class='text-error'></span> seconds!</p>";                
-        
-        var dialogFooter = $("<div>").css({'text-align':'center'}).append($("<a href='#'>").attr({
-            class : "btn btn-success"            
+        var dialogContent = "<p>You were idle for more than " + idleTime / 60 + " minutes, and you are about to be logged out in <span id='dialog-countdown' class='text-error'></span> seconds!</p>";
+
+        var dialogFooter = $("<div>").css({
+            'text-align' : 'center'
+        }).append($("<a href='#'>").attr({
+            class : "btn btn-success"
         }).text("Keep Working").click(function() {
-            $.idleTimeout.options.onResume.call(this);                       
+            $.idleTimeout.options.onResume.call(this);
         })).append($("<a href='#'>").attr({
-            class : "btn btn-primary"                        
-        }).css("margin","5px 5px 6px").text("Loggoff").click(function(){
+            class : "btn btn-primary"
+        }).css("margin", "5px 5px 6px").text("Loggoff").click(function() {
             saveCodeXML(myCodeMirror, true);
             $.idleTimeout.options.onTimeout.call(this);
         }));
-        
+
         $(".idle.modal-header").html(dialogHeader);
         $(".idle.modal-body").html(dialogContent);
         $(".idle.modal-footer").html(dialogFooter);
-        
+
         $.idleTimeout('#idleDialog', '#idleDialog', {
-            warningLength: 10,
-            idleAfter: idleTime,                        
-            onTimeout: function(){
+            warningLength : 10,
+            idleAfter : idleTime,
+            onTimeout : function() {
                 saveCodeXML(myCodeMirror, true);
-                _logout({"reason":"idle"});
+                _logout({
+                    "reason" : "idle"
+                });
             },
-            onIdle: function(){
+            onIdle : function() {
                 $("#idleDialog").modal('show');
             },
-            onResume: function(){
-                $("#idleDialog").modal('hide');                
+            onResume : function() {
+                $("#idleDialog").modal('hide');
             },
-            onCountdown: function(counter){
+            onCountdown : function(counter) {
                 var $countdown = $('#dialog-countdown');
-                $countdown.html(counter); // update the counter
+                $countdown.html(counter);
+                // update the counter
             }
         });
     }
@@ -1796,7 +1824,7 @@ $(document).ready(function() {
         } else if (mode === "text/html" || mode === "xml") {
             CodeMirror.simpleHint(cm, CodeMirror.htmlHint);
         } else if (mode === "javascript") {
-            CodeMirror.simpleHint(cm, CodeMirror.javascriptHint);        
+            CodeMirror.simpleHint(cm, CodeMirror.javascriptHint);
         }
     };
 
@@ -1810,7 +1838,9 @@ $(document).ready(function() {
     });
 
     $(".btn-logout").click(function() {
-        _logout({"reason": "logoutButton"});                                
+        _logout({
+            "reason" : "logoutButton"
+        });
     });
 
     $("a[data-action=editor-new-file]").click(function() {
@@ -1823,13 +1853,13 @@ $(document).ready(function() {
 
     $("a[data-action=editor-open-project]").click(function() {
         // fetch project list
-        _openProject();        
+        _openProject();
     });
 
     $("a[data-action=editor-close-project]").click(function() {
         // fetch project list
         _closeProject();
-    });        
+    });
 
     $("a[data-action=editor-share-code]").click(function() {
         var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>Share via this link</p>";
@@ -1848,7 +1878,7 @@ $(document).ready(function() {
             "data-dismiss" : "modal"
         }).text("Cancel")).append($("<a>").attr({
             class : "btn btn-primary"
-        }).css('margin','5px 5px 6px').text("Share").click(function() {
+        }).css('margin', '5px 5px 6px').text("Share").click(function() {
             //TODO: Send notification to user
         }));
 
@@ -1864,7 +1894,7 @@ $(document).ready(function() {
         if ($(".CodeMirror.CodeMirror-wrap").size() > 1) {
             $($(".CodeMirror.CodeMirror-wrap")[1]).remove();
         }
-        
+
         $.get('/project/list', function(projects) {
             var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>Open Project</p>";
             var project_table = $('<table>').attr({
@@ -1926,12 +1956,12 @@ $(document).ready(function() {
         var pname = sessionStorage.getItem('project');
         $.each(users[pname], function(index, user) {
             var docPath = getDocPathName(user.currentDocument);
-            var chatAvailabilityClass = user.videoChat?"cu-status-available-video":"cu-status-available";
+            var chatAvailabilityClass = user.videoChat ? "cu-status-available-video" : "cu-status-available";
             var cuItem = $("<div>").attr("chat-user-id", user._id).addClass("cu-item").append($("<table>").css({
                 'width' : '100%',
                 'height' : '100%',
                 'text-align' : 'center'
-            }).append($("<tr>").attr('align', 'center').append($("<td>").css('width','40px').append($("<div>").addClass(chatAvailabilityClass))).append($("<td>").css("width", "20px").append("<img src=assets/img/silhouette.png></img>")).append($("<td>").css({
+            }).append($("<tr>").attr('align', 'center').append($("<td>").css('width', '40px').append($("<div>").addClass(chatAvailabilityClass))).append($("<td>").css("width", "20px").append("<img src=assets/img/silhouette.png></img>")).append($("<td>").css({
                 'text-align' : 'left',
                 'padding-left' : '5px'
             }).attr('valign', 'middle').append($("<a>").css({
@@ -1946,7 +1976,7 @@ $(document).ready(function() {
             $("#chat-users-list").append($("<li>").html(cuItem));
         });
     }
-    function _closeProject() {                        
+    function _closeProject() {
         now.changeProjectGroup(undefined);
         $("#browser").html('');
         $("#editor-area>div.CodeMirror").remove();
@@ -1963,7 +1993,7 @@ $(document).ready(function() {
         if ($(".CodeMirror.CodeMirror-wrap").size() > 1) {
             $($(".CodeMirror.CodeMirror-wrap")[1]).remove();
         }
-        
+
         var dialogHeader = "<button type='button' class='close' data-dismiss='modal'>×</button><p>New Project</p>";
         var dialogContent = '<input type="text" id="project_name" placeholder="Enter project name" width="100%" required/><br/><input type="text" id="users" width="100%" required/>';
 
@@ -1971,7 +2001,7 @@ $(document).ready(function() {
             class : "btn",
             type : 'button',
             "data-dismiss" : "modal"
-        }).text("Cancel")).append($("<button>").css('margin','5px 5px 6px').attr({
+        }).text("Cancel")).append($("<button>").css('margin', '5px 5px 6px').attr({
             class : "btn btn-primary",
             type : 'submit'
         }).text("Create").click(function() {
@@ -2059,8 +2089,8 @@ $(document).ready(function() {
         $(document).bind('keyup', hotkeys.FULLSCREEN, function() {
             _fullscreen();
         });
-        
-        $(document).bind('keyup', hotkeys.SAVE, function() {                       
+
+        $(document).bind('keyup', hotkeys.SAVE, function() {
             saveCodeXML(myCodeMirror, true);
         });
         //TODO: add all shortcuts/hotkeys
@@ -2208,21 +2238,21 @@ $(document).ready(function() {
         var pname = sessionStorage.getItem('project');
         chatWith('GroupChat');
     });
-    
+
     function _generateCommentContent(content) {
         /*.append($('<p>').css('margin', '2px').html($('<span>').css({
-                'font-weight' : 'bold',
-                'font-size' : '10px',
-                'font-color' : '#3399FF'
-            }).html(comment.commentSender).append($('<span>').css({
-                'font-weight' : 'normal',
-                'font-size' : '10px'
-            }).html(': ' + ))).append($('<p>').css({
-                'font-size' : '8px',
-                'text-align' : 'left',
-                'margin-bottom' : '-1px'
-            }).html(tsstring)));*/        
-    }        
+         'font-weight' : 'bold',
+         'font-size' : '10px',
+         'font-color' : '#3399FF'
+         }).html(comment.commentSender).append($('<span>').css({
+         'font-weight' : 'normal',
+         'font-size' : '10px'
+         }).html(': ' + ))).append($('<p>').css({
+         'font-size' : '8px',
+         'text-align' : 'left',
+         'margin-bottom' : '-1px'
+         }).html(tsstring)));*/
+    }
 
     function appendComment(commentId, commentBody, commentSender, commentLineNumber, commentTimestamp, remote) {
         if ($('#icon-' + commentId).size() === 0) {
@@ -2251,25 +2281,26 @@ $(document).ready(function() {
         $(commentContent).append(commentItem);
     }
 
-    function createComment(line, content, who, cid, remote) {               
-        var comment_id = cid ? cid : uuid.v1();                
+    function createComment(line, content, who, cid, remote) {
+        var comment_id = cid ? cid : uuid.v1();
         var pname = sessionStorage.getItem('project');
-                
-        var commentIcon = $("<div>").attr({            
+
+        var commentIcon = $("<div>").attr({
             "id" : "icon-" + comment_id,
             "tabindex" : "-1"
         }).addClass("CodeMirror-commentsicons").tooltip({
             title : "Show Discussion!"
-        });        
+        });
         //Start transaction
         myCodeMirror.setGutterMarker(line - 1, "CodeMirror-commentsiconsGutter", commentIcon.get(0));
         //End transaction
-        
+
         hideComments(parseInt(getLineByCID(comment_id), 10) - 1);
 
-        if(!remote) myCodeMirror.addLineClass(parseInt(getLineByCID(comment_id), 10) - 1, 'wrap', 'commentMarker commentMarkerInvisible');        
-        var comment = $("<div>").attr({            
-            "id" : comment_id,           
+        if (!remote)
+            myCodeMirror.addLineClass(parseInt(getLineByCID(comment_id), 10) - 1, 'wrap', 'commentMarker commentMarkerInvisible');
+        var comment = $("<div>").attr({
+            "id" : comment_id,
             "tabindex" : "-1"
         }).attr("editor-comment-isopen", !remote).html($("<table>").css({
             "width" : "100%",
@@ -2299,15 +2330,15 @@ $(document).ready(function() {
                 });
 
                 var nowComment = {};
-                
+
                 nowComment.content = finalContent;
-                nowComment.who = now.user.user;                
+                nowComment.who = now.user.user;
                 nowComment.timestamp = ts;
                 nowComment.TSString = 'Sent on ' + ts.toDateString() + ' at ' + ts.toLocaleTimeString();
                 nowComment.taggedUsers = taggedUsers;
                 nowComment.path = currentDocumentPath;
                 nowComment.cid = $($(this).parents()[5]).attr('id');
-                nowComment.line = getLineByCID(nowComment.cid);                                
+                nowComment.line = getLineByCID(nowComment.cid);
 
                 $(this).val('');
                 appendComment(nowComment.cid, nowComment.content, nowComment.who, nowComment.line, nowComment.timestamp, false);
@@ -2328,7 +2359,7 @@ $(document).ready(function() {
         });
 
         commentIcon.click(function(e) {
-            var cid = $(this).attr('id');            
+            var cid = $(this).attr('id');
             var comment = $("#" + cid.substring(5));
 
             if ($(comment).attr("editor-comment-isopen") === "true") {
@@ -2359,15 +2390,14 @@ $(document).ready(function() {
         commentIconObg.content = content;
         commentIconObg.lineNumber = parseInt(getLineByCID(comment_id), 10) - 1
         sideComments.push(commentIconObg);
-        
+
         saveCodeXML(myCodeMirror, true);
 
-        
         myCodeMirror.on("delete", function(cm, line) {
             cm.setGutterMarker(parseInt(getLineByCID(comment_id), 10) - 1, "CodeMirror-commentsiconsGutter", null);
         });
 
-        myCodeMirror.setGutterMarker(parseInt(getLineByCID(comment_id), 10) - 1, "CodeMirror-commentsGutter", comment.get(0));        
+        myCodeMirror.setGutterMarker(parseInt(getLineByCID(comment_id), 10) - 1, "CodeMirror-commentsGutter", comment.get(0));
         //Add Bookmark
         var bm = addBookmarks("comment", parseInt(getLineByCID(comment_id), 10) - 1, comment_id, myCodeMirror);
         var ctext = (content === null) ? "" : commentIconObg.content;
@@ -2376,49 +2406,62 @@ $(document).ready(function() {
             placement : "left"
         });
         //set focus on entry
-        if(!remote) {
+        if (!remote) {
             $(comment).show(400);
             $($(comment).find("table>tbody>tr>td")[1]).find(".commentEntry>input").focus();
         }
-    };        
-    
+    };
+
     function updateCommentsLineNumber() {
-        for(var i = 0; i < sideComments.length; i++) {
+        for (var i = 0; i < sideComments.length; i++) {
             var sc = sideComments[i];
             sc.lineNumber = parseInt(getLineByCID(sc.cid), 10) - 1;
-            commentBookmarks[sc.cid].dln = sc.lineNumber;            
+            commentBookmarks[sc.cid].dln = sc.lineNumber;
             $(commentBookmarks[sc.cid].dom).attr("data-line", sc.lineNumber);
             $(commentBookmarks[sc.cid].dom).css("top", getBookmarkPosition(sc.lineNumber));
-            
-            var url = "/project/comment/" + sc.cid +"/updateLineNumber";
-            $.post(url, {lineNumber: sc.lineNumber + 1}, function(){}, 'json');
-        }                    
-        
+
+            var url = "/project/comment/" + sc.cid + "/updateLineNumber";
+            $.post(url, {
+                lineNumber : sc.lineNumber + 1
+            }, function() {
+            }, 'json');
+        }
+
     }
-    
+
     function updateLockedCodeLineNumber() {
-        for(var i = 0; i < lockedCodes.length; i++) {
+        for (var i = 0; i < lockedCodes.length; i++) {
             var lockedCode = lockedCodes[i];
-            var lcid = lockedCode.lcid;     
+            var lcid = lockedCode.lcid;
             var newLineNumber = parseInt(getLineByLCID(lcid), 10) - 1;
-                   
+
             lockedCodeBookmarks[lcid].dln = newLineNumber;
             $(lockedCodeBookmarks[lcid].dom).attr("data-line", newLineNumber);
             $(lockedCodeBookmarks[lcid].dom).css("top", getBookmarkPosition(newLineNumber));
-            
+
             var oldFromCh = lockedCode.from.ch;
             var oldToCh = lockedCode.to.ch;
             //Calculating new boundary
-            var fromDiffTo = lockedCode.from.line - lockedCode.to.line; 
-            lockedCode.from = {line: newLineNumber, ch: oldFromCh};
-            lockedCode.to = {line: newLineNumber + fromDiffTo, ch: oldToCh};
+            var fromDiffTo = lockedCode.from.line - lockedCode.to.line;
+            lockedCode.from = {
+                line : newLineNumber,
+                ch : oldFromCh
+            };
+            lockedCode.to = {
+                line : newLineNumber + fromDiffTo,
+                ch : oldToCh
+            };
             //updating database
-            var url = "/project/lockedCode/" + lcid +"/updateLineNumber";            
-            $.post(url, {from: lockedCode.from , to:lockedCode.to}, function(){}, 'json');            
-        }       
+            var url = "/project/lockedCode/" + lcid + "/updateLineNumber";
+            $.post(url, {
+                from : lockedCode.from,
+                to : lockedCode.to
+            }, function() {
+            }, 'json');
+        }
     }
-    
-    function hideComments(ccid) {        
+
+    function hideComments(ccid) {
         for (var i = 0; i < sideComments.length; i++) {
             var sco = sideComments[i];
             var lineNumber = parseInt(getLineByCID(sco.cid), 10) - 1;
@@ -2428,99 +2471,117 @@ $(document).ready(function() {
                 myCodeMirror.removeLineClass(lineNumber, "wrap", 'commentMarker');
             }
         }
-    }    
-    
-    function blink(dom) {        
-        setTimeout(function(){
-           $(dom).removeClass('icon-white');
-             setTimeout(function(){
+    }
+
+    function blink(dom) {
+        setTimeout(function() {
+            $(dom).removeClass('icon-white');
+            setTimeout(function() {
                 $(dom).addClass('icon-white');
                 setTimeout(blink(dom), 1000);
-             }, 600)
-          }, 600)
-    }    
-    
-    $("a[data-action=editor-videochat]").click(function() {     
-        if($('#video-chat').css('display') === 'display') return;   
-        if($('#videoChatPopOut').size() !== 0) $('#videoChatPopOut').remove();        
-        var dialogHeader = "<button type='button' id='videoChatPopIn' class='close' style='padding-top:5px'><i class='icon-resize-small'/></button><p align='center'>Video Chat</p>";        
-        $('#video-chat>div.modal-header').hover(function(){
-           $(this).css('cursor', 'move'); 
-        });        
-        
-        var dialogContent = $("<div>").css("height","370px").append($("<div id='localCast'>")).append($("<div id='remoteCasts'>"));
+            }, 600)
+        }, 600)
+    }
+
+
+    $("a[data-action=editor-videochat]").click(function() {
+        if ($('#video-chat').css('display') === 'display')
+            return;
+        if ($('#videoChatPopOut').size() !== 0)
+            $('#videoChatPopOut').remove();
+        var dialogHeader = "<button type='button' id='videoChatPopIn' class='close' style='padding-top:5px'><i class='icon-resize-small'/></button><p align='center'>Video Chat</p>";
+        $('#video-chat>div.modal-header').hover(function() {
+            $(this).css('cursor', 'move');
+        });
+
+        var dialogContent = $("<div>").css("height", "370px").append($("<div id='localCast'>")).append($("<div id='remoteCasts'>"));
         var dialogFooter = $("<div>").append($("<a>").attr({
-                class : "btn",
-                "data-dismiss" : "modal"
-            }).text("Close")).append($("<a>").attr({
-                class : "btn btn-primary"
-            }).css('margin','5px 5px 6px').text("Start").attr({"id":"streamButton", "data-action":"startStream"}).click(function() { 
-                $.post('/webRTCchat/createSession', 
-                {            
-                    api_key : tokboxData.api_key,
-                    api_secret : tokboxData.api_secret,
-                    pname: sessionStorage.getItem("project")
-                },        
-                function(data) {                                         
-                    tokboxSession.sessionId = data.sessionId;
-                    tokboxSession.token = data.token;                                            
-                                                       
-                    session = TB.initSession(tokboxSession.sessionId);    // Initialize session
-        
-                    // Add event listeners to the session
-                    session.addEventListener('sessionConnected', sessionConnectedHandler);
-                    session.addEventListener('sessionDisconnected', sessionDisconnectedHandler);
-                    session.addEventListener('connectionCreated', connectionCreatedHandler);
-                    session.addEventListener('connectionDestroyed', connectionDestroyedHandler);
-                    session.addEventListener('streamCreated', streamCreatedHandler);
-                    session.addEventListener('streamDestroyed', streamDestroyedHandler);
-                                                                                                                 
-                    if($("#streamButton").attr("data-action") === "startStream"){                        
-                        connect();                        
-                        $($("#video-chat>div.modal-footer>div>a")[0]).addClass('disabled');
-                    }   
-                    else if($("#streamButton").attr("data-action") === "stopStream") {                    
-                        disconnect();                        
-                        $($("#video-chat>div.modal-footer>div>a")[0]).removeClass('disabled');
-                    }
-                    else if($("#streamButton").attr("data-action") === "startPublish") {
-                        startPublishing();                        
-                        $($("#video-chat>div.modal-footer>div>a")[0]).addClass('disabled');
-                    }
-                    else if($("#streamButton").attr("data-action") === "stopPublish") {                        
-                        stopPublishing();      
-                        $($("#video-chat>div.modal-footer>div>a")[0]).removeClass('disabled');                                     
-                    }                          
-                }                
-            );                                       
+            class : "btn",
+            "data-dismiss" : "modal"
+        }).text("Close")).append($("<a>").attr({
+            class : "btn btn-primary"
+        }).css('margin', '5px 5px 6px').text("Start").attr({
+            "id" : "streamButton",
+            "data-action" : "startStream"
+        }).click(function() {
+            $.post('/webRTCchat/createSession', {
+                api_key : tokboxData.api_key,
+                api_secret : tokboxData.api_secret,
+                pname : sessionStorage.getItem("project")
+            }, function(data) {
+                tokboxSession.sessionId = data.sessionId;
+                tokboxSession.token = data.token;
+
+                session = TB.initSession(tokboxSession.sessionId);
+                // Initialize session
+
+                // Add event listeners to the session
+                session.addEventListener('sessionConnected', sessionConnectedHandler);
+                session.addEventListener('sessionDisconnected', sessionDisconnectedHandler);
+                session.addEventListener('connectionCreated', connectionCreatedHandler);
+                session.addEventListener('connectionDestroyed', connectionDestroyedHandler);
+                session.addEventListener('streamCreated', streamCreatedHandler);
+                session.addEventListener('streamDestroyed', streamDestroyedHandler);
+
+                if ($("#streamButton").attr("data-action") === "startStream") {
+                    connect();
+                    $($("#video-chat>div.modal-footer>div>a")[0]).addClass('disabled');
+                } else if ($("#streamButton").attr("data-action") === "stopStream") {
+                    disconnect();
+                    $($("#video-chat>div.modal-footer>div>a")[0]).removeClass('disabled');
+                } else if ($("#streamButton").attr("data-action") === "startPublish") {
+                    startPublishing();
+                    //$($("#video-chat>div.modal-footer>div>a")[0]).addClass('disabled');
+                } else if ($("#streamButton").attr("data-action") === "stopPublish") {
+                    stopPublishing();                    
+                    //$($("#video-chat>div.modal-footer>div>a")[0]).removeClass('disabled');
+                }
+            });
         }));
-                
-        $("#video-chat>div.modal-header").html(dialogHeader);                          
+
+        $("#video-chat>div.modal-header").html(dialogHeader);
         $("#video-chat>div.modal-body").html(dialogContent);
         $("#video-chat>div.modal-footer").html(dialogFooter);
-        $("#video-chat").modal({backdrop:false, keyboard: false}).draggable({handle:'.modal-header'});
-        
+        $("#video-chat").modal({
+            backdrop : false,
+            keyboard : false
+        }).draggable({
+            handle : '.modal-header'
+        });
+
         $('#videoChatPopIn').click(function() {
             $("#video-chat").modal('hide');
             var width = (window.innerWidth > 0) ? window.innerWidth : screen.width;
-            var videoChatPopOut = $("<button>").attr({type: 'button', id: 'videoChatPopOut'}).addClass('btn btn-warning')
-            .css({position: "absolute", "z-index": 3000, top: "5px", left:width - 280, "-webkit-box-shadow": "1px 1px 1px 1px #4C4C4C"})
-            .html("<i class='icon-facetime-video'></i><p></p>").click(function() {
-                $("#video-chat").modal({backdrop:false, keyboard: false}).draggable({handle:'.modal-header'});
+            var videoChatPopOut = $("<button>").attr({
+                type : 'button',
+                id : 'videoChatPopOut'
+            }).addClass('btn btn-warning').css({
+                position : "absolute",
+                "z-index" : 3000,
+                top : "5px",
+                left : width - 280,
+                "-webkit-box-shadow" : "1px 1px 1px 1px #4C4C4C"
+            }).html("<i class='icon-facetime-video'></i><p></p>").click(function() {
+                $("#video-chat").modal({
+                    backdrop : false,
+                    keyboard : false
+                }).draggable({
+                    handle : '.modal-header'
+                });
                 $(this).remove();
             });
             document.body.appendChild(videoChatPopOut.get(0));
-            
+
             setTimeout(blink($("#videoChatPopOut>i.icon-facetime-video")), 500);
-        });                                      
+        });
     });
 
     $("a[data-action=editor-find]").click(function() {
-        CodeMirror.commands["find"](myCodeMirror);        
+        CodeMirror.commands["find"](myCodeMirror);
     });
-    
+
     $("a[data-action=editor-find-replace]").click(function() {
-        CodeMirror.commands["replace"](myCodeMirror);        
+        CodeMirror.commands["replace"](myCodeMirror);
     });
 
     $("a[data-action=editor-find-next]").click(function() {
@@ -2555,8 +2616,8 @@ $(document).ready(function() {
     $("a[data-action=editor-console-clean]").click(function() {
         $("#small-console>div").html("");
     });
-    
-    $("a[data-action=editor-save-document]").click(function(){
+
+    $("a[data-action=editor-save-document]").click(function() {
         saveCodeXML(myCodeMirror, true);
     });
 
