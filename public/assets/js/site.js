@@ -318,14 +318,14 @@ function lockCode(lockedCode, lcid, cm) {
 
     addBookmarks("lockedCode", lockedCode.from.line, lcid, cm);
 
-    var lcIcon = $("<div>").attr("id", lcid);
-    myCodeMirror.setGutterMarker(lockedCode.from.line, "CodeMirror-lockedCodeGutter", lcIcon.get(0));
+    //var lcIcon = $("<div>").attr("id", lcid);
+    //myCodeMirror.setGutterMarker(lockedCode.from.line, "CodeMirror-lockedCodeGutter", lcIcon.get(0));
 
     markedText.push(mt);
     cm.setCursor(lockedCode.from);
     lockedCodes.push(lockedCode);
 
-    saveCodeXML(myCodeMirror, true);
+    saveCodeXML(myCodeMirror, false);
 }
 
 function arian(string, context) {
@@ -976,16 +976,16 @@ $(document).ready(function() {
             var waitingLint;
             myCodeMirror.on("change", function(myCodeMirror, changeObj) {
                 clearTimeout(waitingAutosave);
-                waitingAutosave = setTimeout(saveCodeXML(myCodeMirror, false), 300);
+                waitingAutosave = setTimeout(saveCodeXML(myCodeMirror, false), 5000);                
 
                 updateCommentsLineNumber();
-                updateLockedCodeLineNumber();
+                updateLockedCodeLineNumber();                
             });
 
             if (currentDocumentPath.indexOf(".js") !== -1) {
                 myCodeMirror.on("change", function(myCodeMirror, changeObj) {
                     clearTimeout(waitingLint);
-                    waitingLint = setTimeout(updateHints(myCodeMirror), 300);
+                    waitingLint = setTimeout(updateHints(myCodeMirror), 5000);
                 });
             }
         });
@@ -993,6 +993,7 @@ $(document).ready(function() {
 
 
     $('#browser').bind('click', function() {
+        //$("#syncing-status").empty();
         //TODO save current document in database
         var reg = /^file.*/;
 
@@ -1534,12 +1535,14 @@ $(document).ready(function() {
     }
 
     function saveCodeXML(editor, ntfn) {
+        //$("#syncing-status").html("Saving...");
         var sid = sessionStorage.getItem("docName");
         var project_name = sessionStorage.getItem('project');
         if (currentDocumentPath === '')
             return;
         var xmlDoc = codeToXML(editor);
         var url = '/project/' + project_name + '/saveXML';
+        var date = new Date();
 
         $.post(url, {
             "owner" : now.user.user,
@@ -1547,10 +1550,11 @@ $(document).ready(function() {
             "content" : editor.getValue(),
             "path" : currentDocumentPath,
             "shareJSId" : sid,
-            "timestamp" : new Date()
+            "timestamp" : date,
         }, function(data) {
             if (ntfn)
                 localNotify('Successfully saved ' + currentDocumentPath.replace(/\*/g, '/') + ' in the the database!', 'success');
+            //$("#syncing-status").html("Last saved on " + date.toLocaleString());
         }, 'json');
     }
 
@@ -2391,7 +2395,7 @@ $(document).ready(function() {
         commentIconObg.lineNumber = parseInt(getLineByCID(comment_id), 10) - 1
         sideComments.push(commentIconObg);
 
-        saveCodeXML(myCodeMirror, true);
+        saveCodeXML(myCodeMirror, false);
 
         myCodeMirror.on("delete", function(cm, line) {
             cm.setGutterMarker(parseInt(getLineByCID(comment_id), 10) - 1, "CodeMirror-commentsiconsGutter", null);

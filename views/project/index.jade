@@ -238,7 +238,7 @@ html
         #editor-area.span8
           ul.breadcrumb
             li
-              a(href='#')          
+              a(href='#')            
           textarea#home.tab-pane.fade(disabled='disabled')
         #right-items.span2
           #bookmarksArea.bookmarks      
@@ -249,6 +249,7 @@ html
       div#chatbox.chatbox
       audio#chatAlert(src='/assets/img/gtalk1.wav', style='display:none')        
       #small-console(style='-webkit-box-shadow: 0px -5px 10px #000000; opacity: 0.95;z-index:5001')
+        //span#syncing-status
         a(href='#show', data-action='editor-console-toggle')
           i.icon-chevron-up.icon-white.pull-right
         a(href='#', data-action='editor-console-clean')
@@ -280,7 +281,7 @@ html
     script(type='text/javascript', charset='utf-8', src='assets/js/noty/layouts/top.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/noty/layouts/bottomLeft.js')
     script(type='text/javascript', charset='utf-8', src='assets/js/noty/themes/default.js')
-    script(type='text/javascript', charset='utf-8', src='http://static.opentok.com/v1.1/js/TB.min.js')
+    script(type='text/javascript', charset='utf-8', src='http://static.opentok.com/webrtc/v2.0/js/TB.min.js')
     script(type='text/javascript', src='/channel/bcsocket.js')
     script(type='text/javascript', src='/share/share.js')    
     script(type='text/javascript', src='/share/cm.js')

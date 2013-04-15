@@ -63,8 +63,8 @@ module.exports = MysqlDb = (options) ->
         doc varchar(256) NOT NULL,
         v int NOT NULL,
         type varchar(256) NOT NULL,
-        snapshot varchar(256) NOT NULL,
-        meta varchar(256) NOT NULL,
+        snapshot text NOT NULL,
+        meta text NOT NULL,
         created_at timestamp NOT NULL,
         CONSTRAINT snapshots_pkey PRIMARY KEY (doc, v)
       );
@@ -76,8 +76,8 @@ module.exports = MysqlDb = (options) ->
       CREATE TABLE #{operations_table} (
         doc varchar(256) NOT NULL,
         v int NOT NULL,
-        op varchar(256) NOT NULL,
-        meta varchar(256) NOT NULL,
+        op text NOT NULL,
+        meta text NOT NULL,
         CONSTRAINT operations_pkey PRIMARY KEY (doc, v)
       );
     """
@@ -100,7 +100,7 @@ module.exports = MysqlDb = (options) ->
       snapshot:   JSON.stringify(docData.snapshot),
       meta:       JSON.stringify(docData.meta),
       type:       docData.type,
-      created_at: Date.now()
+      created_at: new Date
     client.query sql, values, (error, result) ->
       if !error?
         callback?()
@@ -112,14 +112,14 @@ module.exports = MysqlDb = (options) ->
   @delete = (docName, dbMeta, callback) ->
     sql = """
       DELETE FROM #{operations_table}
-      WHERE "doc" = ?
+      WHERE doc = ?
     """
     values = [docName]
     client.query sql, values, (error, result) ->
       if !error?
         sql = """
           DELETE FROM #{snapshot_table}
-          WHERE "doc" = ?
+          WHERE doc = ?
         """
         client.query sql, values, (error, result) ->
           if !error? and result.length > 0
@@ -135,8 +135,8 @@ module.exports = MysqlDb = (options) ->
     sql = """
       SELECT *
       FROM #{snapshot_table}
-      WHERE "doc" = ?
-      ORDER BY "v" DESC
+      WHERE doc = ?
+      ORDER BY v DESC
       LIMIT 1
     """
     values = [docName]
@@ -158,7 +158,7 @@ module.exports = MysqlDb = (options) ->
     sql = """
       UPDATE #{snapshot_table}
       SET ?
-      WHERE "doc" = ?
+      WHERE doc = ?
     """
     values =
       v:        docData.v
@@ -175,9 +175,9 @@ module.exports = MysqlDb = (options) ->
     sql = """
       SELECT *
       FROM #{operations_table}
-      WHERE "v" BETWEEN ? AND ?
-      AND "doc" = ?
-      ORDER BY "v" ASC
+      WHERE v BETWEEN ? AND ?
+      AND doc = ?
+      ORDER BY v ASC
     """
     values = [start, end, docName]
     client.query sql, values, (error, result) ->
@@ -213,6 +213,6 @@ module.exports = MysqlDb = (options) ->
   # But, its not really a big problem.
   if options.create_tables_automatically
     client.query "SELECT * from #{snapshot_table} LIMIT 0", (error, result) =>
-      @initialize() if error?.message.match "does not exist"
+      @initialize() if error?.message.match "(does not exist|ER_NO_SUCH_TABLE)"
 
   this
