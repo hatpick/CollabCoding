@@ -18,7 +18,7 @@
   "dependencies": {
     "share": "*",
     "ot": "0.0.10",
-    "connect": "~1",
+    "connect": "~3",
     "express": "3.x",
     "jade": "*",
     "stylus": "*",
